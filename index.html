@@ -40,6 +40,9 @@ iframe {
 <div id="left">
     <h1 style="color: cyan;">Nakazawaaaaaaaaaa.com</h1>
 
+    <!-- 訪問者カウンター -->
+    <h2 id="counter" style="color:lime;"></h2>
+
     <h2 style="color:red;">おすすめサイト</h2>
     <a href="https://www.aliexpress.com" target="_blank" style="color:red;">
         ありえくすぷれす.com
@@ -51,7 +54,7 @@ iframe {
     <input id="pass" type="password" style="padding:5px;">
     <button onclick="checkPass()">送信</button>
 
-    <p id="msg" style="color:red;"></p>
+    <p id="msg"></p>
 
     <div id="secret" style="display:none; margin-top:30px;">
         <h3>かいちゃん年表</h3>
@@ -80,12 +83,24 @@ iframe {
 
 <script>
 // ---------------------------
-// ページ読み込み時 掲示板の読み込み
+// 訪問者カウンター
+// ---------------------------
+let count = localStorage.getItem("visitCount");
+if (!count) count = 0;
+count++;
+localStorage.setItem("visitCount", count);
+document.getElementById("counter").innerHTML =
+    "あなたは " + count + " 番目の訪問者です";
+
+
+// ---------------------------
+// ページ読み込み時 掲示板 + 動画読み込み
 // ---------------------------
 window.onload = function() {
     loadBoard();
     loadRandomVideo();
 };
+
 
 // ---------------------------
 // パスワードチェック
@@ -97,9 +112,12 @@ function checkPass() {
         document.getElementById("secret").style.display = "block";
         document.getElementById("msg").innerHTML = "";
     } else {
-        document.getElementById("msg").innerHTML = "ギャミー「お仕置きが必要だね〜」";
+        document.getElementById("msg").style.color = "red";
+        document.getElementById("msg").innerHTML =
+            "パスワードが違います<br>ギャミー「お仕置きが必要だね〜」";
     }
 }
+
 
 // ---------------------------
 // 掲示板：投稿
@@ -116,6 +134,7 @@ function postMsg() {
     loadBoard();
 }
 
+
 // ---------------------------
 // 掲示板：読み込み
 // ---------------------------
@@ -127,6 +146,7 @@ function loadBoard() {
     });
     document.getElementById("board").innerHTML = html;
 }
+
 
 // ---------------------------
 // ランダム動画
