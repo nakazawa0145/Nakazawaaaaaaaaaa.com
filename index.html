@@ -13,13 +13,11 @@ body {
     padding: 20px;
 }
 
-/* 左側 */
 #left {
     width: 60%;
     text-align: center;
 }
 
-/* 右側（ランダム動画） */
 #right {
     width: 40%;
     padding-left: 20px;
@@ -36,7 +34,6 @@ iframe {
 
 <body>
 
-<!-- 左側 -->
 <div id="left">
     <h1 style="color: cyan;">Nakazawaaaaaaaaaa.com</h1>
 
@@ -62,59 +59,48 @@ iframe {
         <p>2015年 クチャラー発動し嫌われる</p>
         <p>2020年 クチャラーやめるも顔がなーと言われ絶望</p>
         <p>2022年 ある人物にお仕置きする</p>
-        <p>2025年 ニキビの数が0145個突破し恐怖</p>
+        <p>2025年 ニキビ0145突破</p>
         <p>2835年 死ぬ</p>
     </div>
 
     <hr style="margin-top:40px;">
 
-    <h2 style="color:lime;">フリー掲示板</h2>
-    <input id="postText" type="text" style="padding:5px; width:70%;">
-    <button onclick="postMsg()">送信</button>
-
-    <div id="board" style="margin-top:20px; text-align:left;"></div>
+    <!-- ★ ここが新しい掲示板（全デバイス共通/消えない） -->
+    <h2 style="color:lime;">フリー掲示板（ネット保存対応）</h2>
+    <div id="HCB_comment_box">読み込んでいます…</div>
+    <link rel="stylesheet" 
+      href="https://www.htmlcommentbox.com/static/skins/bootstrap/twitter-bootstrap.css" />
+    <script type="text/javascript" 
+      src="https://www.htmlcommentbox.com/jread.js?v=0.1"></script>
 </div>
-
 
 <!-- 右側 -->
 <div id="right">
     <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
     <iframe id="video" src=""></iframe>
 
-    <!-- PNG画像 -->
     <img src="76561199814821332R26 (1).png" 
          style="width:100%; margin-top:20px; border:2px solid red;">
 
-    <!-- MP4動画 -->
     <video src="asdfg.mp4" 
            style="width:100%; margin-top:20px;" 
            controls></video>
 </div>
 
-
 <script>
 // ---------------------------
-// 訪問者カウンター
+// 訪問者カウンター（端末共通は無理だから説明）
 // ---------------------------
 let count = localStorage.getItem("visitCount");
 if (!count) count = 0;
 count++;
 localStorage.setItem("visitCount", count);
 document.getElementById("counter").innerHTML =
-    "あなたは " + count + " 番目の訪問者です";
+    "あなたは " + count + " 番目の訪問者です（端末ごと）";
 
 
 // ---------------------------
-// ページ読み込み時 掲示板 + 動画読み込み
-// ---------------------------
-window.onload = function() {
-    loadBoard();
-    loadRandomVideo();
-};
-
-
-// ---------------------------
-// パスワードチェック
+// パスワード
 // ---------------------------
 function checkPass() {
     let p = document.getElementById("pass").value;
@@ -131,39 +117,9 @@ function checkPass() {
 
 
 // ---------------------------
-// 掲示板：投稿
-// ---------------------------
-function postMsg() {
-    let text = document.getElementById("postText").value.trim();
-    if (text === "") return;
-
-    let logs = JSON.parse(localStorage.getItem("board") || "[]");
-    logs.push(text);
-    localStorage.setItem("board", JSON.stringify(logs));
-
-    document.getElementById("postText").value = "";
-    loadBoard();
-}
-
-
-// ---------------------------
-// 掲示板：読み込み
-// ---------------------------
-function loadBoard() {
-    let logs = JSON.parse(localStorage.getItem("board") || "[]");
-    let html = "";
-    logs.forEach(m => {
-        html += "<p>・" + m + "</p>";
-    });
-    document.getElementById("board").innerHTML = html;
-}
-
-
-// ---------------------------
 // ランダム動画
 // ---------------------------
 function loadRandomVideo() {
-
     let list = [
         "https://www.youtube.com/embed/QVr0sLy0HPA",
         "https://www.youtube.com/embed/L4owQYNIXgs",
@@ -175,6 +131,8 @@ function loadRandomVideo() {
     let r = Math.floor(Math.random() * list.length);
     document.getElementById("video").src = list[r];
 }
+
+window.onload = loadRandomVideo;
 </script>
 
 </body>
