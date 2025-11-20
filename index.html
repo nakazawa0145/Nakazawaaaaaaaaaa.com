@@ -37,8 +37,9 @@ iframe {
 <div id="left">
     <h1 style="color: cyan;">Nakazawaaaaaaaaaa.com</h1>
 
-    <!-- 訪問者カウンター -->
-    <h2 id="counter" style="color:lime;"></h2>
+    <!-- 共有訪問者カウンター -->
+    <h2 id="counter" style="color:lime;">読み込み中…</h2>
+
 
     <h2 style="color:red;">おすすめサイト</h2>
     <a href="https://www.aliexpress.com" target="_blank" style="color:red;">
@@ -58,21 +59,32 @@ iframe {
         <p>2010年 かいちゃん誕生</p>
         <p>2015年 クチャラー発動し嫌われる</p>
         <p>2020年 クチャラーやめるも顔がなーと言われ絶望</p>
-        <p>2022年 ある人物にお仕置きする</p>
+        <p>2022年 ある人物にお仕置き</p>
         <p>2025年 ニキビ0145突破</p>
-        <p>2835年 死ぬ</p>
+        <p>2835年 死</p>
     </div>
 
     <hr style="margin-top:40px;">
 
-    <!-- ★ ここが新しい掲示板（全デバイス共通/消えない） -->
-    <h2 style="color:lime;">フリー掲示板（ネット保存対応）</h2>
-    <div id="HCB_comment_box">読み込んでいます…</div>
-    <link rel="stylesheet" 
-      href="https://www.htmlcommentbox.com/static/skins/bootstrap/twitter-bootstrap.css" />
-    <script type="text/javascript" 
-      src="https://www.htmlcommentbox.com/jread.js?v=0.1"></script>
+
+    <!-- ★ 新しい掲示板（確実に動く） -->
+    <h2 style="color:lime;">フリー掲示板（サーバー保存）</h2>
+
+    <div id="disqus_thread" style="background:#222; padding:10px; border-radius:10px;"></div>
+
+    <script>
+    /**
+     * 完全自動 Disqus 埋め込み
+     */
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://commentbox-2025.disqus.com/embed.js'; 
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+    </script>
 </div>
+
 
 <!-- 右側 -->
 <div id="right">
@@ -89,14 +101,14 @@ iframe {
 
 <script>
 // ---------------------------
-// 訪問者カウンター（端末共通は無理だから説明）
+// 🔥 共有訪問者カウンター（全デバイス共通）
 // ---------------------------
-let count = localStorage.getItem("visitCount");
-if (!count) count = 0;
-count++;
-localStorage.setItem("visitCount", count);
-document.getElementById("counter").innerHTML =
-    "あなたは " + count + " 番目の訪問者です（端末ごと）";
+fetch("https://api.countapi.xyz/hit/nakazawa2025/site")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("counter").innerHTML =
+      "あなたは " + data.value + " 番目の訪問者です（全員共通）";
+  });
 
 
 // ---------------------------
