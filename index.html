@@ -13,11 +13,13 @@ body {
     padding: 20px;
 }
 
+/* 左側 */
 #left {
     width: 60%;
     text-align: center;
 }
 
+/* 右側 */
 #right {
     width: 40%;
     padding-left: 20px;
@@ -29,16 +31,53 @@ iframe {
     height: 250px;
     border: none;
 }
+
+/* 虹色タイトルアニメ */
+@keyframes rainbow {
+    0% { color: red; }
+    20% { color: orange; }
+    40% { color: yellow; }
+    60% { color: lime; }
+    80% { color: cyan; }
+    100% { color: violet; }
+}
+.rainbow {
+    animation: rainbow 3s infinite linear;
+}
 </style>
 </head>
 
 <body>
 
+<!-- 左側 -->
 <div id="left">
-    <h1 style="color: cyan;">Nakazawaaaaaaaaaa.com</h1>
+    <h1 class="rainbow">Nakazawaaaaaaaaaa.com</h1>
 
-    <!-- 共有訪問者カウンター -->
-    <h2 id="counter" style="color:lime;">読み込み中…</h2>
+    <!-- 外部アクセスカウンター -->
+    <div style="margin:20px 0;">
+        <nobr>
+        <table border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+        <tr>
+        <td>
+        <a href="https://ctr.stylemap.co.jp/">
+        <img src="https://www.f-counter.net/ani1/66/1763653435/"
+        alt="無料アクセスカウンター"
+        style="margin:0; padding:0; border:0; vertical-align:bottom;">
+        </a>
+        </td>
+        <td>
+        <a href="https://ctr.stylemap.co.jp/">
+        <img src="https://www.f-counter.net/ani2/66/1763653435/"
+        alt="無料アクセスカウンター"
+        style="margin:0; padding:0; border:0; vertical-align:bottom;">
+        </a>
+        </td>
+        </tr>
+        </tbody>
+        </table>
+        </nobr>
+    </div>
 
     <h2 style="color:red;">おすすめサイト</h2>
     <a href="https://www.aliexpress.com" target="_blank" style="color:red;">
@@ -58,19 +97,19 @@ iframe {
         <p>2010年 かいちゃん誕生</p>
         <p>2015年 クチャラー発動し嫌われる</p>
         <p>2020年 クチャラーやめるも顔がなーと言われ絶望</p>
-        <p>2022年 ある人物にお仕置き</p>
-        <p>2025年 ニキビ0145突破</p>
-        <p>2835年 死</p>
+        <p>2022年 ある人物にお仕置きする</p>
+        <p>2025年 ニキビの数が0145個突破し恐怖</p>
+        <p>2835年 死ぬ</p>
     </div>
 
     <hr style="margin-top:40px;">
 
-    <!-- ★ 無料で確実に動く掲示板 -->
-    <h2 style="color:lime;">フリー掲示板（ネット保存）</h2>
+    <h2 style="color:lime;">フリー掲示板</h2>
 
+    <!-- kuku.lu 掲示板 -->
     <iframe 
-        src="https://www3.rocketbbs.com/601/test_free_bbs.html"
-        style="width:100%; height:400px; border:2px solid #0f0; background:black;">
+        src="https://c.kuku.lu/t6dht4nb"
+        style="width:100%; height:500px; border:2px solid lime;">
     </iframe>
 
 </div>
@@ -80,28 +119,19 @@ iframe {
     <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
     <iframe id="video" src=""></iframe>
 
+    <!-- PNG画像 -->
     <img src="76561199814821332R26 (1).png" 
          style="width:100%; margin-top:20px; border:2px solid red;">
 
-    <video src="asdfg.mp4" 
-           style="width:100%; margin-top:20px;" 
+    <!-- mp4動画 -->
+    <video src="download.mp4"
+           style="width:100%; margin-top:20px;"
            controls></video>
 </div>
 
 <script>
 // ---------------------------
-// 🔥 共有カウンター
-// ---------------------------
-fetch("https://api.countapi.xyz/hit/nakazawa2025/site")
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("counter").innerHTML =
-      "あなたは " + data.value + " 番目の訪問者です（全員共通）";
-  });
-
-
-// ---------------------------
-// パスワード
+// パスワードチェック
 // ---------------------------
 function checkPass() {
     let p = document.getElementById("pass").value;
@@ -120,12 +150,13 @@ function checkPass() {
 // ランダム動画
 // ---------------------------
 function loadRandomVideo() {
+
     let list = [
-        "https://www.youtube.com/embed/QVr0sLy0HPA",
-        "https://www.youtube.com/embed/L4owQYNIXgs",
-        "https://www.youtube.com/embed/7JxXs4Zdw3Y",
-        "https://www.youtube.com/embed/KhzCAigBttE",
-        "https://www.youtube.com/embed/M4ybyejDRQo"
+        "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "https://www.youtube.com/embed/9bZkp7q19f0",
+        "https://www.youtube.com/embed/3JZ_D3ELwOQ",
+        "https://www.youtube.com/embed/l482T0yNkeo",
+        "https://www.youtube.com/embed/2Vv-BfVoq4g"
     ];
 
     let r = Math.floor(Math.random() * list.length);
