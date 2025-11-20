@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nakazawaaaaaaaaaa.com</title>
+
+<style>
+body {
+    background: black;
+    color: white;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    display: flex;
+    padding: 20px;
+}
+
+/* 左側 */
+#left {
+    width: 60%;
+    text-align: center;
+}
+
+/* 右側（ランダム動画） */
+#right {
+    width: 40%;
+    padding-left: 20px;
+    text-align: center;
+}
+
+iframe {
+    width: 100%;
+    height: 250px;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 左側 -->
+<div id="left">
+    <h1 style="color: cyan;">Nakazawaaaaaaaaaa.com</h1>
+
+    <h2 style="color:red;">おすすめサイト</h2>
+    <a href="https://www.aliexpress.com" target="_blank" style="color:red;">
+        ありえくすぷれす.com
+    </a>
+
+    <h2 style="margin-top:40px; color:yellow;">かいちゃんのひみつ</h2>
+    <p>パスワードを入れてください</p>
+
+    <input id="pass" type="password" style="padding:5px;">
+    <button onclick="checkPass()">送信</button>
+
+    <p id="msg" style="color:red;"></p>
+
+    <div id="secret" style="display:none; margin-top:30px;">
+        <h3>かいちゃん年表</h3>
+        <p>2010年 かいちゃん誕生</p>
+        <p>2015年 クチャラー発動し嫌われる</p>
+        <p>2020年 クチャラーやめるも顔がなーと言われ絶望</p>
+        <p>2022年 ある人物にお仕置きする</p>
+        <p>2025年 ニキビの数が0145個突破し恐怖</p>
+        <p>2835年 死ぬ</p>
+    </div>
+
+    <hr style="margin-top:40px;">
+
+    <h2 style="color:lime;">フリー掲示板</h2>
+    <input id="postText" type="text" style="padding:5px; width:70%;">
+    <button onclick="postMsg()">送信</button>
+
+    <div id="board" style="margin-top:20px; text-align:left;"></div>
+</div>
+
+<!-- 右側：ランダム動画 -->
+<div id="right">
+    <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
+    <iframe id="video" src=""></iframe>
+</div>
+
+<script>
+// ---------------------------
+// ページ読み込み時 掲示板の読み込み
+// ---------------------------
+window.onload = function() {
+    loadBoard();
+    loadRandomVideo();
+};
+
+// ---------------------------
+// パスワードチェック
+// ---------------------------
+function checkPass() {
+    let p = document.getElementById("pass").value;
+
+    if (p === "nakazawaeros") {
+        document.getElementById("secret").style.display = "block";
+        document.getElementById("msg").innerHTML = "";
+    } else {
+        document.getElementById("msg").innerHTML = "ギャミー「お仕置きが必要だね〜」";
+    }
+}
+
+// ---------------------------
+// 掲示板：投稿
+// ---------------------------
+function postMsg() {
+    let text = document.getElementById("postText").value.trim();
+    if (text === "") return;
+
+    let logs = JSON.parse(localStorage.getItem("board") || "[]");
+    logs.push(text);
+    localStorage.setItem("board", JSON.stringify(logs));
+
+    document.getElementById("postText").value = "";
+    loadBoard();
+}
+
+// ---------------------------
+// 掲示板：読み込み
+// ---------------------------
+function loadBoard() {
+    let logs = JSON.parse(localStorage.getItem("board") || "[]");
+    let html = "";
+    logs.forEach(m => {
+        html += "<p>・" + m + "</p>";
+    });
+    document.getElementById("board").innerHTML = html;
+}
+
+// ---------------------------
+// ランダム動画
+// ---------------------------
+function loadRandomVideo() {
+
+    let list = [
+        "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "https://www.youtube.com/embed/9bZkp7q19f0",
+        "https://www.youtube.com/embed/3JZ_D3ELwOQ",
+        "https://www.youtube.com/embed/l482T0yNkeo",
+        "https://www.youtube.com/embed/2Vv-BfVoq4g"
+    ];
+
+    let r = Math.floor(Math.random() * list.length);
+    document.getElementById("video").src = list[r];
+}
+</script>
+
+</body>
+</html>
