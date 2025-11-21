@@ -12,27 +12,9 @@ body {
     display: flex;
     padding: 40px;
 }
-
-/* 左側 */
-#left {
-    width: 60%;
-    text-align: center;
-}
-
-/* 右側 */
-#right {
-    width: 40%;
-    padding-left: 20px;
-    text-align: center;
-}
-
-iframe {
-    width: 100%;
-    height: 250px;
-    border: none;
-}
-
-/* タイトル*/
+#left { width: 60%; text-align: center; }
+#right { width: 40%; padding-left: 20px; text-align: center; }
+iframe { width: 100%; height: 250px; border: none; }
 @keyframes rainbow {
     0% { color: red; }
     20% { color: orange; }
@@ -41,54 +23,33 @@ iframe {
     80% { color: cyan; }
     100% { color: violet; }
 }
-.rainbow {
-    animation: rainbow 3s infinite linear;
-}
+.rainbow { animation: rainbow 3s infinite linear; }
 </style>
 </head>
 
 <body>
-
-<!-- 左側 -->
 <div id="left">
     <h1 class="rainbow">Nakazawaaaaaaaaaa.com</h1>
 
-    
     <div style="text-align:center; margin:30px 0;">
-
         <h2 style="font-size:32px; color:lime;">
             あなたは 
-            <span style="font-size:42px; color:yellow; font-weight:bold;">
-                ↓↓↓
-            </span>
+            <span style="font-size:42px; color:yellow; font-weight:bold;">↓↓↓</span>
             人目の訪問者です
         </h2>
-
-        <!-- WOXカウンター -->
         <div style="display:flex; justify-content:center; margin-top:20px; zoom:2;">
             <script src="https://nakazawa.counter.wox.cc" language="JavaScript" type="text/javascript"></script>
-            <noscript>
-                <a href="https://wox.cc">
-                    <img src="https://nakazawa.counter.wox.cc/?mode=noscript" 
-                         alt="ホームページ ブログ レンタル掲示板 - WOX" 
-                         title="ホームページ ブログ レンタル掲示板 - WOX" />
-                </a>
-            </noscript>
+            <noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
         </div>
-
     </div>
 
     <h2 style="color:red;">おすすめサイト</h2>
-    <a href="https://www.aliexpress.com" target="_blank" style="color:red;">
-        AliExpress.com
-    </a>
+    <a href="https://www.aliexpress.com" target="_blank" style="color:red;">AliExpress.com</a>
 
     <h2 style="margin-top:40px; color:yellow;">かいちゃんのひみつ</h2>
     <p>パスワードを入れてください</p>
-
     <input id="pass" type="password" style="padding:5px;">
     <button onclick="checkPass()">送信</button>
-
     <p id="msg"></p>
 
     <div id="secret" style="display:none; margin-top:30px;">
@@ -103,53 +64,31 @@ iframe {
 
     <hr style="margin-top:40px;">
 
-    <h2 style="color:lime;">掲示板</h2>
-
-    <!--掲示板 2-->
-    <iframe 
-        src="https://netroom.oz96.com/?r=233347"
-        style="width:100%; height:800px; border:2px solid lime;">
+    <h2 style="color:lime;">ブロック崩しゲーム</h2>
+    <iframe style="width:100%; height:800px; border:2px solid lime;"
+        src="https://html5.gamedistribution.com/rvvASMiM/77087b953d9047198a48528927dab68a/index.html?gd_sdk_referrer_url=https%3A%2F%2Fwww.miniplay.com%2Fgame%2Fbreak-many-bricks&mp_api_as3_url=https%3A%2F%2Fssl.minijuegosgratis.com%2Flechuck%2Fas3%2Flatest.swf&mp_api_as3_url_bck=https%3A%2F%2Fapi.minijuegos.com%2Flechuck%2Fclient-as%2F&mp_api_id=5492&mp_api_js_url=https%3A%2F%2Fssl.minijuegosgratis.com%2Flechuck%2Fjs%2Flatest.js&mp_api_js_url_bck=https%3A%2F%2Fapi.minijuegos.com%2Flechuck%2Fclient-js%2F&mp_assets=https%3A%2F%2Fs2.minijuegosgratis.com%2F&mp_embed=0&mp_game_id=243526&mp_game_uid=break-many-bricks&mp_game_url=https%3A%2F%2Fwww.miniplay.com%2Fgame%2Fbreak-many-bricks&mp_int=1&mp_locale=en_US&mp_player_type=IFRAME&mp_site_https_url=https%3A%2F%2Fwww.miniplay.com%2F&mp_site_name=miniplay.com&mp_site_url=https%3A%2F%2Fwww.miniplay.com%2F&mp_timezone=Asia%2FTokyo&mp_view_type=&mini_signature=a671a5dbd50666cd10a0865b96fdf10a&xdm_e=https%3A%2F%2Fwww.miniplay.com&xdm_c=default2337&xdm_p=1&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5taW5pcGxheS5jb20vZ2FtZS9icmVhay1tYW55LWJyaWNrcyIsInBhcmVudERvbWFpbiI6Im1pbmlwbGF5LmNvbSIsInRvcERvbWFpbiI6Im1pbmlwbGF5LmNvbSIsImhhc0ltcHJlc3Npb24iOmZhbHNlLCJsb2FkZXJFbmFibGVkIjp0cnVlLCJob3N0IjoiaHRtbDUuZ2FtZWRpc3RyaWJ1dGlvbi5jb20iLCJ2ZXJzaW9uIjoiMS41LjE4In0%253D">
     </iframe>
-
 </div>
 
-<!-- 右側 -->
 <div id="right">
     <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
     <iframe id="video" src=""></iframe>
-
-    <!-- PNG画像 -->
-    <img src="76561199814821332R26 (1).png" 
-         style="width:100%; margin-top:20px; border:2px solid red;">
-
-    <!-- mp4動画 -->
-    <video src="asdfg.mp4"
-           style="width:100%; margin-top:20px;"
-           controls></video>
+    <img src="76561199814821332R26 (1).png" style="width:100%; margin-top:20px; border:2px solid red;">
+    <video src="asdfg.mp4" style="width:100%; margin-top:20px;" controls></video>
 </div>
 
 <script>
-// ---------------------------
-// パスワードチェック
-// ---------------------------
 function checkPass() {
     let p = document.getElementById("pass").value;
-
     if (p === "nakazawaeros") {
         document.getElementById("secret").style.display = "block";
         document.getElementById("msg").innerHTML = "";
     } else {
         document.getElementById("msg").style.color = "red";
-        document.getElementById("msg").innerHTML =
-            "パスワードが違います<br>ギャミー「お仕置きが必要だね〜」";
+        document.getElementById("msg").innerHTML = "パスワードが違います<br>ギャミー「お仕置きが必要だね〜」";
     }
 }
-
-// ---------------------------
-// ランダム動画
-// ---------------------------
 function loadRandomVideo() {
-
     let list = [
         "https://www.youtube.com/embed/QVr0sLy0HPA",
         "https://www.youtube.com/embed/L4owQYNIXgs",
@@ -157,11 +96,9 @@ function loadRandomVideo() {
         "https://www.youtube.com/embed/KhzCAigBttE",
         "https://www.youtube.com/embed/M4ybyejDRQo"
     ];
-
     let r = Math.floor(Math.random() * list.length);
     document.getElementById("video").src = list[r];
 }
-
 window.onload = loadRandomVideo;
 </script>
 
