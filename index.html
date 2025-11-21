@@ -5,16 +5,30 @@
 <title>Nakazawaaaaaaaaaa.com</title>
 
 <style>
+/* 全体レイアウト（PC/スマホ両対応） */
 body {
     background: black;
     color: white;
     font-family: "Comic Sans MS", cursive, sans-serif;
+    margin: 0;
+    padding: 20px;
     display: flex;
-    padding: 40px;
+    justify-content: center;
 }
-#left { width: 60%; text-align: center; }
-#right { width: 40%; padding-left: 20px; text-align: center; }
-iframe { width: 100%; height: 250px; border: none; }
+
+/* 最大幅を中央に固定（スマホ対応） */
+#container {
+    width: 100%;
+    max-width: 1100px;
+}
+
+/* セクション上下余白 */
+section {
+    margin: 40px 0;
+    text-align: center;
+}
+
+/* レインボーアニメ */
 @keyframes rainbow {
     0% { color: red; }
     20% { color: orange; }
@@ -24,35 +38,86 @@ iframe { width: 100%; height: 250px; border: none; }
     100% { color: violet; }
 }
 .rainbow { animation: rainbow 3s infinite linear; }
+
+/* PC: 左右2カラム / スマホ: 1カラム */
+#columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.column {
+    flex: 1 1 450px;
+    min-width: 300px;
+    background: #111;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #333;
+}
+
+iframe, video, img {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+/* 強烈点滅アニメ修正版 */
+@keyframes blink {
+  0% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
+  20% { opacity:0.3; color:#00ffff; text-shadow:0 0 40px #00ffff; }
+  40% { opacity:1; color:#ffffff; text-shadow:0 0 60px #ffffff; }
+  60% { opacity:0.2; color:#ff00ff; text-shadow:0 0 40px #ff00ff; }
+  80% { opacity:1; color:#ffff00; text-shadow:0 0 50px #ffff00; }
+  100% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
+}
+.blink {
+  animation: blink 0.25s infinite linear;
+}
 </style>
 </head>
 
 <body>
-<div id="left">
-    <h1 class="rainbow">Nakazawaaaaaaaaaa.com</h1>
+<div id="container">
 
-    <div style="text-align:center; margin:30px 0;">
-        <h2 style="font-size:32px; color:lime;">
-            あなたは 
-            <span style="font-size:42px; color:yellow; font-weight:bold;">↓↓↓</span>
-            人目の訪問者です
-        </h2>
-        <div style="display:flex; justify-content:center; margin-top:20px; zoom:2;">
-            <script src="https://nakazawa.counter.wox.cc" language="JavaScript" type="text/javascript"></script>
-            <noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
-        </div>
+<section>
+    <h1 class="rainbow" style="font-size:42px; font-family: 'Press Start 2P', monospace;">Nakazawaaaaaaaaaa.com</h1>
+</section>
+
+<section>
+    <h2 style="font-size:28px; color:lime;">あなたは <span style="font-size:40px; color:yellow; font-weight:bold;">↓↓↓</span> 人目の訪問者です</h2>
+    <div style="zoom:1.7; margin-top:10px;">
+        <script src="https://nakazawa.counter.wox.cc" language="JavaScript" type="text/javascript"></script>
+        <noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
     </div>
+</section>
 
-    <h2 style="color:red;">おすすめサイト</h2>
-    <a href="https://www.aliexpress.com" target="_blank" style="color:red;">AliExpress.com</a>
+<section>
+    <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト</h2>
+    <a href="https://www.aliexpress.com" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">AliExpress.com</a>
+</section>
 
-    <h2 style="margin-top:40px; color:yellow;">かいちゃんのひみつ</h2>
+<section>
+    <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト2</h2>
+    <a href="https://www.dmm.co.jp/top/" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">あきひさの伝説.com</a>
+</section>
+
+<section>
+    <h2 class="blink" style="color:red; font-size:36px;">おすすめゲーム</h2>
+    <a href="https://jp.theacebanker.com/" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">丸山エロス.com</a>
+</section>
+
+
+
+
+<section>
+    <h2 style="color:yellow;">かいちゃんのひみつ</h2>
     <p>パスワードを入れてください</p>
-    <input id="pass" type="password" style="padding:5px;">
-    <button onclick="checkPass()">送信</button>
+    <input id="pass" type="password" style="padding:8px; font-size:16px;">
+    <button onclick="checkPass()" style="padding:8px 15px; font-size:16px;">送信</button>
     <p id="msg"></p>
 
-    <div id="secret" style="display:none; margin-top:30px;">
+    <div id="secret" style="display:none; margin-top:20px;">
         <h3>かいちゃん年表</h3>
         <p>2010年 かいちゃん誕生</p>
         <p>2015年 クチャラー発動し嫌われる</p>
@@ -61,20 +126,92 @@ iframe { width: 100%; height: 250px; border: none; }
         <p>2025年 ニキビの数が0145個突破し恐怖</p>
         <p>2835年 死ぬ</p>
     </div>
+</section>
 
-    <hr style="margin-top:40px;">
-
+<section>
     <h2 style="color:lime;">ブロック崩しゲーム</h2>
-    <iframe style="width:100%; height:500px; border:2px solid lime;"
-        src="https://html5.gamedistribution.com/rvvASMiM/77087b953d9047198a48528927dab68a/index.html?gd_sdk_referrer_url=https%3A%2F%2Fwww.miniplay.com%2Fgame%2Fbreak-many-bricks&mp_api_as3_url=https%3A%2F%2Fssl.minijuegosgratis.com%2Flechuck%2Fas3%2Flatest.swf&mp_api_as3_url_bck=https%3A%2F%2Fapi.minijuegos.com%2Flechuck%2Fclient-as%2F&mp_api_id=5492&mp_api_js_url=https%3A%2F%2Fssl.minijuegosgratis.com%2Flechuck%2Fjs%2Flatest.js&mp_api_js_url_bck=https%3A%2F%2Fapi.minijuegos.com%2Flechuck%2Fclient-js%2F&mp_assets=https%3A%2F%2Fs2.minijuegosgratis.com%2F&mp_embed=0&mp_game_id=243526&mp_game_uid=break-many-bricks&mp_game_url=https%3A%2F%2Fwww.miniplay.com%2Fgame%2Fbreak-many-bricks&mp_int=1&mp_locale=en_US&mp_player_type=IFRAME&mp_site_https_url=https%3A%2F%2Fwww.miniplay.com%2F&mp_site_name=miniplay.com&mp_site_url=https%3A%2F%2Fwww.miniplay.com%2F&mp_timezone=Asia%2FTokyo&mp_view_type=&mini_signature=a671a5dbd50666cd10a0865b96fdf10a&xdm_e=https%3A%2F%2Fwww.miniplay.com&xdm_c=default2337&xdm_p=1&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5taW5pcGxheS5jb20vZ2FtZS9icmVhay1tYW55LWJyaWNrcyIsInBhcmVudERvbWFpbiI6Im1pbmlwbGF5LmNvbSIsInRvcERvbWFpbiI6Im1pbmlwbGF5LmNvbSIsImhhc0ltcHJlc3Npb24iOmZhbHNlLCJsb2FkZXJFbmFibGVkIjp0cnVlLCJob3N0IjoiaHRtbDUuZ2FtZWRpc3RyaWJ1dGlvbi5jb20iLCJ2ZXJzaW9uIjoiMS41LjE4In0%253D">
+    <iframe style="height:500px; border:2px solid lime;"
+        src="https://html5.gamedistribution.com/rvvASMiM/77087b953d9047198a48528927dab68a/index.html">
     </iframe>
-</div>
+</section>
+<section>
+    <h2 style="color:lime;">太鼓の達人</h2>
+    <iframe style="height:500px; border:2px solid lime;"
+        src="https://musiclab.chromeexperiments.com/Rhythm/">
+    </iframe>
+</section>
+<section>
+    <div id="columns">
+        <div class="column">
+            <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
+            <iframe id="video" style="height:250px;"></iframe>
+        </div>
 
-<div id="right">
-    <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
-    <iframe id="video" src=""></iframe>
-    <img src="76561199814821332R26 (1).png" style="width:100%; margin-top:20px; border:2px solid red;">
-    <video src="asdfg.mp4" style="width:100%; margin-top:20px;" controls></video>
+        <div class="column">
+            <img src="76561199814821332R26 (1).png" alt="img">
+            <video src="asdfg.mp4" controls></video>
+        </div>
+    </div>
+</section>
+<section>
+    <h2 style="color:rgb(38, 0, 255);">中澤ブログ　まれに更新
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">１日目　今日は寒い気がします暖房をつけました暑いです
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">２日目　ニキビができた
+    </h2>
+<section>
+    
+<section>
+    <h2 style="color:rgb(255, 255, 255);">３日目　
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">４日目
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">５日目
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">６日目
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">７日目
+    </h2>
+<section>
+    
+<section>
+    <h2 style="color:rgb(255, 255, 255);">８日目
+    </h2>
+<section>
+    
+<section>
+    <h2 style="color:rgb(255, 255, 255);">９日目
+    </h2>
+<section>
+
+<section>
+    <h2 style="color:rgb(255, 255, 255);">１０日目
+    </h2>
+<section>
+
+
+
+
+
 </div>
 
 <script>
@@ -88,6 +225,7 @@ function checkPass() {
         document.getElementById("msg").innerHTML = "パスワードが違います<br>ギャミー「お仕置きが必要だね〜」";
     }
 }
+
 function loadRandomVideo() {
     let list = [
         "https://www.youtube.com/embed/QVr0sLy0HPA",
@@ -96,11 +234,11 @@ function loadRandomVideo() {
         "https://www.youtube.com/embed/KhzCAigBttE",
         "https://www.youtube.com/embed/M4ybyejDRQo"
     ];
-    let r = Math.floor(Math.random() * list.length);
-    document.getElementById("video").src = list[r];
+    document.getElementById("video").src = list[Math.floor(Math.random() * list.length)];
 }
 window.onload = loadRandomVideo;
 </script>
+
 
 </body>
 </html>
