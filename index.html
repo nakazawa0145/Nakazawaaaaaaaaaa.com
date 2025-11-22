@@ -14,14 +14,18 @@ body {
     display: flex;
     justify-content: center;
 }
+
 #container {
     width: 100%;
     max-width: 1100px;
 }
+
 section {
     margin: 40px 0;
     text-align: center;
 }
+
+/* 虹色タイトル */
 @keyframes rainbow {
     0% { color: red; }
     20% { color: orange; }
@@ -30,7 +34,24 @@ section {
     80% { color: cyan; }
     100% { color: violet; }
 }
-.rainbow { animation: rainbow 3s infinite linear; }
+.rainbow {
+    animation: rainbow 3s infinite linear;
+}
+
+/* 光る点滅効果 */
+@keyframes blink {
+    0% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
+    20% { opacity:0.3; color:#00ffff; text-shadow:0 0 40px #00ffff; }
+    40% { opacity:1; color:#ffffff; text-shadow:0 0 60px #ffffff; }
+    60% { opacity:0.2; color:#ff00ff; text-shadow:0 0 40px #ff00ff; }
+    80% { opacity:1; color:#ffff00; text-shadow:0 0 50px #ffff00; }
+    100% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
+}
+.blink {
+    animation: blink 0.25s infinite linear;
+}
+
+/* 二段レイアウト */
 #columns {
     display: flex;
     flex-wrap: wrap;
@@ -45,137 +66,250 @@ section {
     border-radius: 10px;
     border: 2px solid #333;
 }
+
 iframe, video, img {
     width: 100%;
     border: none;
     border-radius: 10px;
     margin-top: 20px;
 }
-@keyframes blink {
-  0% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
-  20% { opacity:0.3; color:#00ffff; text-shadow:0 0 40px #00ffff; }
-  40% { opacity:1; color:#ffffff; text-shadow:0 0 60px #ffffff; }
-  60% { opacity:0.2; color:#ff00ff; text-shadow:0 0 40px #ff00ff; }
-  80% { opacity:1; color:#ffff00; text-shadow:0 0 50px #ffff00; }
-  100% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
-}
-.blink { animation: blink 0.25s infinite linear; }
 </style>
 </head>
 
 <body>
 <div id="container">
 
+<!-- タイトル -->
 <section>
-    <h1 class="rainbow" style="font-size:42px; font-family: 'Press Start 2P', monospace;">Nakazawaaaaaaaaaa.com</h1>
+    <h1 class="rainbow" style="font-size:42px; font-family: 'Press Start 2P', monospace;">
+        Nakazawaaaaaaaaaa.com
+    </h1>
 </section>
 
+<!-- カウンター -->
 <section>
-    <h2 style="font-size:28px; color:lime;">あなたは <span style="font-size:40px; color:yellow; font-weight:bold;">↓↓↓</span> 人目の訪問者です</h2>
+    <h2 style="font-size:28px; color:lime;">
+        あなたは <span style="font-size:40px; color:yellow; font-weight:bold;">↓↓↓</span> 人目の訪問者です
+    </h2>
     <div style="zoom:1.7; margin-top:10px;">
         <script src="https://nakazawa.counter.wox.cc"></script>
         <noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
     </div>
 </section>
 
+<!-- おすすめサイト -->
 <section>
     <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト</h2>
-    <a href="https://www.aliexpress.com" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">AliExpress.com</a>
+    <a href="https://www.aliexpress.com" target="_blank"
+       class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">
+       AliExpress.com
+    </a>
 </section>
 
+<!-- おすすめサイト2 -->
 <section>
     <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト2</h2>
-    <a href="https://www.effectivegatecpm.com/e489rn8n?key=9a3e97acd0392472deecc84f30dad02a" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">あきひさの伝説.com</a>
+    <a href="https://www.effectivegatecpm.com/e489rn8n?key=9a3e97acd0392472deecc84f30dad02a"
+       target="_blank" class="blink"
+       style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">
+       あきひさの伝説.com
+    </a>
 </section>
 
+<!-- おすすめゲーム -->
 <section>
     <h2 class="blink" style="color:red; font-size:36px;">おすすめゲーム</h2>
-    <a href="https://www.effectivegatecpm.com/e489rn8n?key=9a3e97acd0392472deecc84f30dad02a" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">丸山エロス.com</a>
+    <a href="https://www.effectivegatecpm.com/e489rn8n?key=9a3e97acd0392472deecc84f30dad02a"
+       target="_blank" class="blink"
+       style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">
+       丸山エロス.com
+    </a>
 </section>
 
-<!-- 728×90 広告 1〜3 -->
-<div class="ad-box"><div style="width:728px; margin:0 auto; text-align:center;">
-<script type="text/javascript">
-atOptions={'key':'7168a8fe5a667d3ea1af3f47b8033d49','format':'iframe','height':90,'width':728,'params':{}};
-</script>
-<script src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
-</div></div>
-
-<div class="ad-box"><div style="width:728px; margin:0 auto; text-align:center;">
-<script type="text/javascript">
-atOptions={'key':'7168a8fe5a667d3ea1af3f47b8033d49','format':'iframe','height':90,'width':728,'params':{}};
-</script>
-<script src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
-</div></div>
-
-<div class="ad-box"><div style="width:728px; margin:0 auto; text-align:center;">
-<script type="text/javascript">
-atOptions={'key':'7168a8fe5a667d3ea1af3f47b8033d49','format':'iframe','height':90,'width':728,'params':{}};
-</script>
-<script src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
-</div></div>
-
-<!-- ★ ここに縦長広告 160×600 を５つ横並び ★ -->
-<section>
-<h2 style="color:cyan;">超縦長広告ゾーン</h2>
-
-<div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
-
-    <!-- 5つの縦長広告 -->
-    <div>
-        <script>atOptions={'key':'8dc1172332f4fc1216f0ed08d622c93b','format':'iframe','height':600,'width':160,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/8dc1172332f4fc1216f0ed08d622c93b/invoke.js"></script>
+<!-- 広告1〜3 -->
+<div class="ad-box">
+    <div style="width:728px; margin:0 auto; text-align:center;">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '7168a8fe5a667d3ea1af3f47b8033d49',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
     </div>
-
-    <div>
-        <script>atOptions={'key':'8dc1172332f4fc1216f0ed08d622c93b','format':'iframe','height':600,'width':160,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/8dc1172332f4fc1216f0ed08d622c93b/invoke.js"></script>
-    </div>
-
-    <div>
-        <script>atOptions={'key':'8dc1172332f4fc1216f0ed08d622c93b','format':'iframe','height':600,'width':160,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/8dc1172332f4fc1216f0ed08d622c93b/invoke.js"></script>
-    </div>
-
-    <div>
-        <script>atOptions={'key':'8dc1172332f4fc1216f0ed08d622c93b','format':'iframe','height':600,'width':160,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/8dc1172332f4fc1216f0ed08d622c93b/invoke.js"></script>
-    </div>
-
-    <div>
-        <script>atOptions={'key':'8dc1172332f4fc1216f0ed08d622c93b','format':'iframe','height':600,'width':160,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/8dc1172332f4fc1216f0ed08d622c93b/invoke.js"></script>
-    </div>
-
 </div>
-</section>
+<div class="ad-box">
+    <div style="width:728px; margin:0 auto; text-align:center;">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '7168a8fe5a667d3ea1af3f47b8033d49',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
+    </div>
+</div>
+<div class="ad-box">
+    <div style="width:728px; margin:0 auto; text-align:center;">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '7168a8fe5a667d3ea1af3f47b8033d49',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script>
+    </div>
+</div>
 
-<!--（※ この下はあなたのオリジナル部分なので省略せず全部残してあります）-->
+<!-- 大きめ広告 3つ横並び -->
+<div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0;">
+    <div>
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '4af7ad53a67f1b998c95f01149579846',
+                'format' : 'iframe',
+                'height' : 250,
+                'width' : 300,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript"
+         src="//www.highperformanceformat.com/4af7ad53a67f1b998c95f01149579846/invoke.js"></script>
+    </div>
 
+    <div>
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '4af7ad53a67f1b998c95f01149579846',
+                'format' : 'iframe',
+                'height' : 250,
+                'width' : 300,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript"
+         src="//www.highperformanceformat.com/4af7ad53a67f1b998c95f01149579846/invoke.js"></script>
+    </div>
+
+    <div>
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '4af7ad53a67f1b998c95f01149579846',
+                'format' : 'iframe',
+                'height' : 250,
+                'width' : 300,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript"
+         src="//www.highperformanceformat.com/4af7ad53a67f1b998c95f01149579846/invoke.js"></script>
+    </div>
+</div>
+
+<!-- 追加invoke -->
+<script type="text/javascript"
+ src="//www.highperformanceformat.com/4af7ad53a67f1b998c95f01149579846/invoke.js"></script>
+
+<!-- パスワードページ -->
 <section>
     <h2 style="color:yellow;">かいちゃんのひみつ</h2>
     <p>パスワードを入れてください</p>
+
     <input id="pass" type="password" style="padding:8px; font-size:16px;">
     <button onclick="checkPass()" style="padding:8px 15px; font-size:16px;">送信</button>
+
     <p id="msg"></p>
 
     <div id="secret" style="display:none; margin-top:20px;">
         <h3>かいちゃん年表</h3>
         <p>2010年 かいちゃん誕生</p>
-        <p>2015年 クチャラー発動</p>
-        <p>2020年 顔がなーと言われる</p>
-        <p>2022年 お仕置きする</p>
-        <p>2025年 ニキビ0145個突破</p>
+        <p>2015年 クチャラー発動し嫌われる</p>
+        <p>2020年 クチャラーやめるも顔がなーと言われ絶望</p>
+        <p>2022年 ある人物にお仕置きする</p>
+        <p>2025年 ニキビの数が0145個突破し恐怖</p>
         <p>2835年 死ぬ</p>
     </div>
 </section>
 
+<script>
+function checkPass() {
+    const input = document.getElementById("pass").value;
+    if (input === "nakazawaeros") {
+        document.getElementById("secret").style.display = "block";
+        document.getElementById("msg").innerHTML = "<span style='color:lime;'>認証成功！</span>";
+    } else {
+        document.getElementById("msg").innerHTML = "<span style='color:red;'>間違っています</span>";
+    }
+}
+</script>
+
+<!-- ブロック崩し -->
 <section>
     <h2 style="color:lime;">ブロック崩しゲーム</h2>
-    <iframe style="height:500px; border:2px solid lime;" src="https://html5.gamedistribution.com/rvvASMiM/77087b953d9047198a48528927dab68a/index.html"></iframe>
+    <iframe style="height:500px; border:2px solid lime;"
+     src="https://html5.gamedistribution.com/rvvASMiM/77087b953d9047198a48528927dab68a/index.html"></iframe>
 </section>
 
-<!-- 以下、広告4〜8もそのまま -->
+<!-- ネイティブバナー広告 -->
+<section>
+    <script async="async" data-cfasync="false"
+     src="//pl28111633.effectivegatecpm.com/2d3b6b9d1f227b1c9e373b22dc72b1b9/invoke.js"></script>
+    <div id="container-2d3b6b9d1f227b1c9e373b22dc72b1b9"></div>
+</section>
+
+<!-- 二段レイアウト -->
+<section>
+    <div id="columns">
+
+        <div class="column">
+            <h2 style="color:orange;">ランダム動画ジェネレーター</h2>
+            <iframe id="video" style="height:250px;"></iframe>
+        </div>
+
+        <div class="column">
+            <img src="76561199814821332R26 (1).png" alt="img">
+            <video src="asdfg.mp4" controls></video>
+        </div>
+
+    </div>
+</section>
+
+<!-- ブログ -->
+<section><h2 style="color:rgb(38, 0, 255);">中澤ブログ　まれに更新</h2></section>
+<section><h2 style="color:white;">１日目　今日は寒い気がします暖房をつけました暑いです</h2></section>
+<section><h2 style="color:white;">２日目　ニキビができた</h2></section>
+<section><h2 style="color:white;">３日目　おなとんうるせーんだよ れいこししこんな 中澤エロス異常な笑い方 みそきん購入 近所のかっぱ寿司リニューアル ドンキホーテに行く ハローキティポップコーンバター味購入</h2></section>
+<section><h2 style="color:white;">４日目</h2></section>
+<section><h2 style="color:white;">５日目</h2></section>
+<section><h2 style="color:white;">６日目</h2></section>
+<section><h2 style="color:white;">７日目</h2></section>
+<section><h2 style="color:white;">８日目</h2></section>
+<section><h2 style="color:white;">９日目</h2></section>
+<section><h2 style="color:white;">１０日目</h2></section>
+
+<!-- 広告4〜8（従来の） -->
+<div class="ad-box"><div style="width:728px; margin:0 auto;"><script type="text/javascript">atOptions={'key':'7168a8fe5a667d3ea1af3f47b8033d49','format':'iframe','height':90,'width':728,'params':{}};</script><script type="text/javascript" src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script></div></div>
+
+<section>
+    <h2 style="color:red;">👍👍👍👍👍👍👍👍👍👍👍👍👍</h2>
+    <video src="ali.mp4" controls></video>
+</section>
+
+<div class="ad-box"><div style="width:728px; margin:0 auto;"><script type="text/javascript">atOptions={'key':'7168a8fe5a667d3ea1af3f47b8033d49','format':'iframe','height':90,'width':728,'params':{}};</script><script type="text/javascript" src="//www.highperformanceformat.com/7168a8fe5a667d3ea1af3f47b8033d49/invoke.js"></script></div></div>
+
+<section>
+    <h2 style="color:red;">🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮</h2>
+    <video src="temu.mp4" controls></video>
+</section>
 
 </div>
 </body>
