@@ -359,7 +359,6 @@ body {
     margin:0;
 }
 
-/* レインボータイトル */
 .rainbow {
   font-size: 40px;
   font-weight: bold;
@@ -369,21 +368,18 @@ body {
   margin-bottom: 10px;
 }
 
-/* 総スピン数表示 */
 #totalSpinDisplay {
   font-size: 28px;
   margin-bottom: 15px;
   font-weight: bold;
 }
 
-/* スロットコンテナ */
 #slotContainer {
-  max-height: 200px; /* 1段分の高さ＋余白 */
-  overflow-y: auto; /* 2段目以降はスクロールで表示 */
+  max-height: 200px;
+  overflow-y: auto;
   padding: 20px;
 }
 
-/* スロット段 */
 .slotRow {
   display: flex;
   justify-content: center;
@@ -403,7 +399,6 @@ body {
   border-radius: 8px;
 }
 
-/* ボタン共通 */
 button {
   padding: 12px 20px;
   margin: 5px;
@@ -413,13 +408,11 @@ button {
   cursor: pointer;
 }
 
-/* 個別ボタン */
 #startButton { background:white; color:black; }
 #autoButton  { background:white; color:black; }
 #plusButton  { background:white; color:black; }
 #minusButton { background:white; color:black; }
 
-/* 統計表示 */
 #result {
   font-size: 32px;
   margin-top: 20px;
@@ -434,6 +427,7 @@ button {
 </head>
 <body>
 
+
 <h1 class="rainbow">中澤スロット</h1>
 <div id="totalSpinDisplay">総スピン数：0</div>
 
@@ -443,7 +437,7 @@ button {
 <button id="plusButton" onclick="addRow()">効率 ＋</button>
 <button id="minusButton" onclick="removeRow()">効率 －</button>
 <br>
-速度(ms)：<input type="number" id="speed" value="50" min="1" max="1000" style="font-size:20px;width:100px;">
+速度(ms)：<input type="number" id="speed" value="50" min="0" max="1000" style="font-size:20px;width:100px;">
 </div>
 
 <div id="slotContainer"></div>
@@ -452,18 +446,18 @@ button {
 <div id="stats"></div>
 
 <script>
-// 出現確率
+// ======== 確率を完全に正しく修正 ========
 const probs = [
   { mark:"赤", p:0.50, color:"red" },
   { mark:"青", p:0.20, color:"cyan" },
   { mark:"緑", p:0.10, color:"lime" },
   { mark:"黄", p:0.05, color:"yellow" },
   { mark:"紫", p:0.03, color:"violet" },
-  { mark:"7",  p:1/300, color:"white" },
-  { mark:"N",  p:1/1000, color:"gray" }
+  { mark:"7",  p:1/300, color:"white" },   // 0.003333…
+  { mark:"N",  p:1/1000, color:"gray" },   // 0.001
+  { mark:"空白", p: 1 - (0.50+0.20+0.10+0.05+0.03+1/300+1/1000), color:"black" }
 ];
 
-// 5個揃う確率（理論）
 const theory5 = {
   "赤": 5.794374,
   "青": 0.05933439,
@@ -474,32 +468,29 @@ const theory5 = {
   "N": 0.0000000001
 };
 
-// 並び順（7をNの1個上）
 const showOrder = ["赤","青","緑","黄","紫","7","N"];
 
-// カウンタ
 let count = { "赤":0, "青":0, "緑":0, "黄":0, "紫":0, "7":0, "N":0 };
 let totalSpin = 0;
 let auto = null;
 let slotRows = [];
 
-// 初期1段作成
 addRow();
 
-// ランダム抽選
+// ====== 正しい抽選 ======
 function pick(){
   let r = Math.random();
   let acc = 0;
-  for(let o of probs){
+  for (let o of probs){
     acc += o.p;
-    if(r <= acc) return o;
+    if (r <= acc) return o;
   }
-  return probs[probs.length-1];
+  return probs[probs.length - 1];
 }
 
 // 1回スピン
 function spinOnce(){
-  totalSpin++;
+  totalSpin += slotRows.length;
   totalSpinDisplay.textContent = "総スピン数：" + totalSpin;
 
   slotRows.forEach(row => {
@@ -522,21 +513,37 @@ function spinOnce(){
   updateStats();
 }
 
-// 自動スピン
+// ====== 自動（速度0対応） ======
 function toggleAuto(){
+  // OFF処理
   if(auto){
+    cancelAnimationFrame(auto);
     clearInterval(auto);
     auto = null;
-  } else {
-    let sp = Number(speed.value);
-    if(sp < 1) sp = 1;
-    auto = setInterval(spinOnce, sp);
+    return;
   }
+
+  let sp = Number(speed.value);
+
+  // --------- 速度 0 → デバイス限界速度 ----------
+  if(sp === 0){
+    function loop(){
+      spinOnce();
+      auto = requestAnimationFrame(loop);
+    }
+    auto = requestAnimationFrame(loop);
+    return;
+  }
+
+  // --------- 通常速度 ----------
+  if(sp < 1) sp = 1;
+  auto = setInterval(spinOnce, sp);
 }
 
-// 統計更新
+// 統計
 function updateStats(){
-  let out = "";
+  let out = "<div style='font-size:24px;margin-bottom:10px;'>揃いカウンター</div>";
+
   for(let key of showOrder){
     out += `<span style="color:${probs.find(o=>o.mark===key).color}; font-weight:bold;">
       ${key}： ${count[key]}回 （5個揃う確率： ${theory5[key]}%）
@@ -545,7 +552,7 @@ function updateStats(){
   stats.innerHTML = out;
 }
 
-// 段追加
+// 行追加
 function addRow(){
   let rowDiv = document.createElement("div");
   rowDiv.className = "slotRow";
@@ -561,14 +568,21 @@ function addRow(){
   slotRows.unshift({div:rowDiv, cells:cells});
 }
 
-// 段削除
+// 行削除
 function removeRow(){
   if(slotRows.length <= 1) return;
   let last = slotRows.shift();
   slotContainer.removeChild(last.div);
 }
 </script>
-<h2 style="color:red;">👇👇学校ゴミフィルター回避たい人は下のリンクへ👇👇</h2>
+</body>
+</html>
+
+
+
+
+
+  <h2 style="color:red;">👇👇学校ゴミフィルター回避たい人は下のリンクへ👇👇</h2>
 </body>
 </html>👇
 <a href="proxy.html" 
