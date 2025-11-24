@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NAKAZAWA Casino — スロット & 人生逆転ジャンケン</title>
+<style>
+:root{
+  --bg:#0f0016;
+  --panel:#1f0b1f;
+  --accent:#9b59ff;
+  --neon:#00ffcc;
+  --gold:#ffdc7a;
+  --back-purple:#6b3cff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background: radial-gradient(circle at 10% 10%, #2a003a 0%, var(--bg) 40%), #000;
+  color:#fff;
+  font-family: "Segoe UI", Meiryo, "Hiragino Kaku Gothic ProN", sans-serif;
+  min-height:100vh;
+  padding:20px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+/* container */
+.container{width:100%;max-width:980px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+
+/* title */
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.title{
+  font-size:40px;font-weight:800;
+  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
+  background-size:800%;
+  -webkit-background-clip:text;color:transparent;
+  animation:moveRainbow 6s linear infinite;
+}
+@keyframes moveRainbow{0%{background-position:0%}100%{background-position:-800%}}
+.balance{font-size:16px;color:#ffd6ff}
+
+/* sections */
+.section{margin-top:18px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.03)}
+.section h2{margin:0 0 8px 0}
+
+/* janken (top) */
+.jankenControls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=number]{width:120px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0f0710;color:#fff;font-size:14px}
+button.primary{padding:10px 14px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(111,60,255,0.14);transition:all .15s}
+button.primary:hover{background:var(--accent);color:#120018}
+
+/* janken display */
+.jankenDisplay{height:60px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:#08040a;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.rules{margin-top:8px;font-size:14px;color:#ddd;line-height:1.5}
+
+/* enemy hand area */
+#enemyArea{display:flex;flex-direction:column;align-items:center;margin-top:10px}
+#enemyHand{width:120px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#050308;padding:6px}
+
+/* choices */
+.choices{display:flex;gap:12px;justify-content:center;margin-top:12px}
+.choice{width:110px;height:82px;border-radius:12px;background:#0b0610;border:2px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s, box-shadow .12s}
+.choice img{max-width:100%;max-height:100%;object-fit:contain}
+.choice:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(155,89,255,0.12)}
+
+/* challenge & half buttons */
+.actionRow{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.option{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;cursor:pointer}
+.option.disabled{opacity:0.35;cursor:not-allowed}
+#halfBtn{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#2b1b3a;color:#fff;cursor:pointer;}
+
+/* result and history */
+.resultLarge{font-size:20px;font-weight:800;text-align:center;margin-top:12px;color:#fff}
+.history{max-height:160px;overflow:auto;padding:8px;background:rgba(0,0,0,0.25);border-radius:8px;margin-top:12px}
+.history::-webkit-scrollbar{width:8px;height:8px}
+.history::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:8px}
+
+/* cashout */
+.cashout{margin-top:10px;display:flex;justify-content:center}
+.cashout button{padding:10px 18px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
+
+/* slot (bottom) */
+#slotArea{margin-top:20px}
+#slotControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#slotContainer{margin-top:12px;max-height:300px;overflow-y:auto;padding:8px;border-radius:8px;background:#050308;border:1px solid rgba(255,255,255,0.03)}
+.slotRow{display:flex;justify-content:center;margin-bottom:6px}
+.slotCell{width:60px;height:60px;border:2px solid white;margin:3px;display:flex;justify-content:center;align-items:center;font-size:26px;background:#111}
+
+/* neon buttons for slot */
+.neonBtn{
+  padding:10px 14px;border-radius:12px;border:2px solid rgba(0,255,204,0.8);
+  background:linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2));
+  color:var(--neon);font-weight:800;cursor:pointer;box-shadow:0 6px 26px rgba(0,255,204,0.08);
+  transition:transform .12s, box-shadow .12s, background .12s;
+}
+.neonBtn:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,255,204,0.18);background:rgba(0,255,204,0.06);}
+
+/* prize rainbow list under slot */
+.rainbowPrizeTitle{
+  font-size:20px;font-weight:800;margin-top:12px;text-align:center;
+  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
+  background-size:600%;-webkit-background-clip:text;color:transparent;animation:prizeMove 6s linear infinite;
+}
+.rainbowPrize{font-size:16px;text-align:center;margin-top:6px;background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);background-size:600%;-webkit-background-clip:text;color:transparent;animation:prizeMove 6s linear infinite;}
+@keyframes prizeMove{0%{background-position:0%}100%{background-position:-600%}}
+
+/* back button */
+.backWrap{display:flex;justify-content:center;margin-top:16px}
+.backBtn{display:inline-block;padding:10px 18px;border-radius:12px;background:var(--back-purple);color:white;font-weight:800;text-decoration:none;border:2px solid rgba(255,255,255,0.06);box-shadow:0 8px 30px rgba(107,60,255,0.12)}
+.backBtn:hover{transform:translateY(-3px);box-shadow:0 14px 50px rgba(107,60,255,0.18);}
+
+/* responsive choices stack */
+@media(max-width:740px){
+  .choices{flex-direction:column}
+  .choice{width:70%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <div class="title">NAKAZAWA Casino</div>
+    <div class="balance">残高: <span id="balance">10,000</span> NZ</div>
+  </div>
+
+  <!-- JANKEN (top) -->
+  <div id="jankenArea" class="section">
+    <h2>人生逆転ジャンケン</h2>
+
+    <!-- embed bet input & start inside janken UI -->
+    <div class="jankenControls">
+      <label>ベット:</label>
+      <input id="betInput" type="number" min="1" value="100" step="1">
+      <button id="startBtn" class="primary">スタート</button>
+      <button id="resetBtn" class="primary">リセット</button>
+
+      <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
+        現在の掛け： <strong id="staged">0</strong> NZ
+        &nbsp;｜&nbsp; 倍率： <strong id="mult">1x</strong>
+      </div>
+    </div>
+
+    <!-- rules (updated) -->
+    <div class="rules" id="rules">
+      ルール：ベットしてスタート。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。勝利後は「半分賭ける」「10倍チャレンジ」を選べます。10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。チャレンジであいこ・負けは掛け没収。いつでも「ここでやめる」で掛けを回収。残高はこの端末に保存されます。
+    </div>
+
+    <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
+
+    <!-- enemy hand area -->
+    <div id="enemyArea">
+      <div style="color:#ccc;font-size:13px">相手の手</div>
+      <img id="enemyHand" src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="相手の手">
+    </div>
+
+    <div class="choices" id="choices">
+      <div class="choice" data-hand="rock" title="グー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="グー"></div>
+      <div class="choice" data-hand="scissors" title="チョキ"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png" alt="チョキ"></div>
+      <div class="choice" data-hand="paper" title="パー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png" alt="パー"></div>
+    </div>
+
+    <div class="actionRow">
+      <button id="tenX" class="option disabled">10倍チャレンジ</button>
+      <button id="lifeX" class="option disabled">人生逆転（20x）</button>
+      <button id="halfBtn" style="display:none">半分賭ける（半分出金）</button>
+    </div>
+
+    <div class="resultLarge" id="resultLarge"></div>
+
+    <div class="cashout"><button id="cashoutBtn">ここでやめる（回収）</button></div>
+
+    <div class="history" id="history"></div>
+  </div>
+
+  <!-- big separator then SLOT (bottom) -->
+  <div id="slotArea" class="section">
+    <h2>中澤スロット</h2>
+
+    <div id="slotControls">
+      <button id="startButton" class="neonBtn">スロット開始</button>
+      <button id="autoButton" class="neonBtn">自動 ON/OFF</button>
+      <button id="plusButton" class="neonBtn">効率 ＋</button>
+      <button id="minusButton" class="neonBtn">効率 －</button>
+
+      <div style="margin-left:10px">
+        速度(ms)：<input type="number" id="speed" value="50" min="0" max="1000" style="font-size:14px;width:100px;">
+      </div>
+    </div>
+
+    <div id="totalSpinDisplay" style="margin-top:8px">総スピン数：0</div>
+    <div id="slotContainer"></div>
+
+    <div id="result" style="margin-top:12px;font-size:16px;"></div>
+    <div id="stats" style="margin-top:10px;font-size:13px;"></div>
+
+    <!-- prize list rainbow -->
+    <div class="rainbowPrizeTitle">スロット当選額一覧</div>
+    <div class="rainbowPrize">緑：+1 NZ</div>
+    <div class="rainbowPrize">黄：+5 NZ</div>
+    <div class="rainbowPrize">紫：+100 NZ</div>
+    <div class="rainbowPrize">7：+1,000,000 NZ</div>
+    <div class="rainbowPrize">N：+8,888,888,888,888 NZ</div>
+  </div>
+
+  <!-- back button -->
+  <div class="backWrap">
+    <a class="backBtn" href="index.html">Nakazawaaaaaaaaaa.com に戻る</a>
+  </div>
+
+</div>
+
+<!-- sounds -->
+<audio id="soundWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/sgaro2_02.mp3"></audio>
+<audio id="soundLife" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gt_02.mp3"></audio>
+
+<script>
+/* ------------------ utility ------------------ */
+function numberWithCommas(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function saveBalance(){ try{ localStorage.setItem('nakazawa_balance_v1', String(balance)); }catch(e){} }
+function loadBalance(){
+  try{
+    const v = localStorage.getItem('nakazawa_balance_v1');
+    if(v!==null && !isNaN(Number(v))){ balance = Math.floor(Number(v)); }
+    else { balance = 10000; saveBalance(); }
+  }catch(e){
+    balance = 10000;
+  }
+}
+
+/* game over check */
+function checkGameOver(){
+  if(typeof balance !== 'number') return;
+  if(balance <= 0){
+    alert('GAME OVER — 残高が 0 になりました。残高を 10,000 NZ にリセットします。');
+    balance = 10000;
+    saveBalance();
+    staged = 0;
+    baseBet = 0;
+    awaitingStart = true;
+    roundWins = 0;
+    lifeAvailable = false;
+    challengeMode = null;
+    appendHistory('GAME OVER: 自動リセット（残高 10,000）');
+    refreshUI();
+  }
+}
+
+/* ------------------ SLOT (bottom) ------------------ */
+const probs = [
+  { mark:"赤", p:0.50, color:"red" },
+  { mark:"青", p:0.20, color:"cyan" },
+  { mark:"緑", p:0.10, color:"lime" },
+  { mark:"黄", p:0.05, color:"yellow" },
+  { mark:"紫", p:0.03, color:"violet" },
+  { mark:"7",  p:1/300, color:"white" },
+  { mark:"N",  p:1/1000, color:"gray" },
+  { mark:"外れ", p: 1-(0.50+0.20+0.10+0.05+0.03+1/300+1/1000), color:"black" }
+];
+
+const prizeMap = {
+  "緑": 1,
+  "黄": 5,
+  "紫": 100,
+  "7": 1000000,
+  "N": 8888888888888
+};
+
+const theory5 = {
+  "赤": 5.794374,
+  "青": 0.05933439,
+  "緑": 0.00185420,
+  "黄": 0.00005794,
+  "紫": 0.00000450,
+  "7": 0.00000004115226,
+  "N": 0.0000000001
+};
+
+const showOrder = ["赤","青","緑","黄","紫","7","N"];
+
+let count = { "赤":0, "青":0, "緑":0, "黄":0, "紫":0, "7":0, "N":0 };
+let totalSpin = 0;
+let slotAuto = null;
+let slotRows = [];
+
+function pick(){
+  let r = Math.random();
+  let acc = 0;
+  for (let o of probs){
+    acc += o.p;
+    if (r <= acc) return o;
+  }
+  return probs[probs.length - 1];
+}
+
+function addRow(){
+  let rowDiv = document.createElement("div");
+  rowDiv.className = "slotRow";
+  let cells = [];
+  for(let i=1;i<=5;i++){
+    let c = document.createElement("div");
+    c.className = "slotCell";
+    c.textContent = "？";
+    rowDiv.appendChild(c);
+    cells.push(c);
+  }
+  const slotContainer = document.getElementById('slotContainer');
+  slotContainer.insertBefore(rowDiv, slotContainer.firstChild);
+  slotRows.unshift({div:rowDiv, cells:cells});
+}
+function removeRow(){
+  if(slotRows.length <= 1) return;
+  let last = slotRows.shift();
+  document.getElementById('slotContainer').removeChild(last.div);
+}
+function spinOnce(){
+  totalSpin += slotRows.length;
+  document.getElementById('totalSpinDisplay').textContent = "総スピン数：" + totalSpin;
+
+  slotRows.forEach(row => {
+    let res = [];
+    row.cells.forEach(cell => {
+      let o = pick();
+      cell.textContent = o.mark;
+      cell.style.color = o.color;
+      res.push(o.mark);
+    });
+
+    if(res.every(v => v === res[0])){
+      count[res[0]]++;
+      const resultEl = document.getElementById('result');
+      let mark = res[0];
+      // award if prizeMap has mapping
+      if(prizeMap[mark]){
+        let amt = prizeMap[mark];
+        balance += amt;
+        saveBalance();
+        appendHistory(`スロット当選：${mark} +${numberWithCommas(amt)} NZ`);
+        resultEl.textContent = `${mark} が揃った！ +${numberWithCommas(amt)} NZ を獲得`;
+        refreshUI();
+        checkGameOver();
+      } else {
+        resultEl.textContent = `当たり：${mark}`;
+      }
+    }
+  });
+
+  updateStats();
+}
+function toggleSlotAuto(){
+  if(slotAuto){
+    cancelAnimationFrame(slotAuto);
+    clearInterval(slotAuto);
+    slotAuto = null;
+    return;
+  }
+  let sp = Number(document.getElementById('speed').value);
+  if(sp === 0){ function loop(){ spinOnce(); slotAuto = requestAnimationFrame(loop); } slotAuto = requestAnimationFrame(loop); return; }
+  if(sp < 1) sp = 1;
+  slotAuto = setInterval(spinOnce, sp);
+}
+function updateStats(){
+  let out = "<div style='font-size:15px;margin-bottom:6px;'>揃いカウンター</div>";
+  for(let key of showOrder){
+    out += `<div style="margin-bottom:4px;color:${probs.find(o=>o.mark===key).color};font-weight:700;">
+      ${key}： ${count[key]}回 （5個揃う確率： ${theory5[key]}%）
+    </div>`;
+  }
+  document.getElementById('stats').innerHTML = out;
+}
+
+/* init slot rows and bindings */
+addRow();
+document.getElementById('plusButton').addEventListener('click', addRow);
+document.getElementById('minusButton').addEventListener('click', removeRow);
+document.getElementById('startButton').addEventListener('click', spinOnce);
+document.getElementById('autoButton').addEventListener('click', toggleSlotAuto);
+
+/* ------------------ JANKEN (top) ------------------ */
+/* persistent balance */
+let balance = 10000;
+let staged = 0; // currently at stake
+let baseBet = 0;
+let currentMultiplier = 1;
+let roundWins = 0;
+let awaitingStart = true;
+let challengeMode = null; // '10x' or '20x' or null
+let lifeAvailable = false; // becomes true when 10x success
+
+// DOM refs
+const balanceEl = document.getElementById('balance');
+const betInput = document.getElementById('betInput');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const stagedEl = document.getElementById('staged');
+const multEl = document.getElementById('mult');
+const choicesEl = document.getElementById('choices');
+const jankenDisplay = document.getElementById('jankenDisplay');
+const enemyHandImg = document.getElementById('enemyHand');
+const historyDiv = document.getElementById('history');
+const tenBtn = document.getElementById('tenX');
+const lifeBtn = document.getElementById('lifeX');
+const halfBtn = document.getElementById('halfBtn');
+const resultLargeEl = document.getElementById('resultLarge');
+const cashoutBtn = document.getElementById('cashoutBtn');
+const soundWin = document.getElementById('soundWin');
+const soundLife = document.getElementById('soundLife');
+
+function refreshUI(){
+  balanceEl.textContent = numberWithCommas(balance);
+  stagedEl.textContent = numberWithCommas(staged);
+  multEl.textContent = currentMultiplier + 'x';
+  tenBtn.classList.toggle('disabled', !(staged>0));
+  lifeBtn.classList.toggle('disabled', !lifeAvailable);
+  // half button controlled by showHalfButton
+}
+function appendHistory(txt){
+  const d = document.createElement('div');
+  d.textContent = txt;
+  historyDiv.insertBefore(d, historyDiv.firstChild);
+}
+
+/* localStorage load */
+loadBalance();
+refreshUI();
+
+/* start/reset */
+startBtn.addEventListener('click', ()=>{
+  const b = Math.max(1, Math.floor(Number(betInput.value)||0));
+  if(b<=0) return alert('ベットを入力してください');
+  if(b>balance) return alert('残高が足りません');
+  baseBet = b;
+  balance -= b;
+  saveBalance();
+  checkGameOver();
+  staged = b;
+  currentMultiplier = 1;
+  roundWins = 0;
+  awaitingStart = false;
+  lifeAvailable = false; // reset life until new 10x success
+  challengeMode = null;
+  historyDiv.innerHTML = '';
+  resultLargeEl.textContent = '';
+  appendHistory('ゲーム開始 ベット: ' + numberWithCommas(b) + ' NZ');
+  refreshUI();
+});
+
+resetBtn.addEventListener('click', ()=>{
+  if(!confirm('リセットして残高10000に戻しますか？')) return;
+  balance = 10000; staged=0; baseBet=0; currentMultiplier=1; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null;
+  saveBalance();
+  historyDiv.innerHTML=''; resultLargeEl.textContent=''; appendHistory('リセット'); refreshUI();
+});
+
+/* janken helpers */
+function randomHand(){ const a=['rock','paper','scissors']; return a[Math.floor(Math.random()*3)]; }
+function handText(h){ if(h==='rock') return 'グー'; if(h==='paper') return 'パー'; return 'チョキ'; }
+function judge(p,c){ if(p===c) return 'あいこ'; if((p==='rock'&&c==='scissors')||(p==='paper'&&c==='rock')||(p==='scissors'&&c==='paper')) return '勝ち'; return '負け'; }
+function delay(ms){ return new Promise(res=>setTimeout(res,ms)); }
+
+/* enemy images */
+const HAND_IMAGES = {
+  rock: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png",
+  scissors: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png",
+  paper: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png"
+};
+
+function showEnemyReady(){
+  // show rock image during "ジャンケン..."
+  enemyHandImg.src = HAND_IMAGES.rock;
+}
+
+function showEnemyFinalHand(randomHand){
+  enemyHandImg.src = HAND_IMAGES[randomHand];
+}
+
+/* show/hide half button */
+function showHalfButton(show){
+  halfBtn.style.display = show ? 'inline-block' : 'none';
+}
+
+/* main click handler for choices (handles normal and challenge) */
+choicesEl.addEventListener('click', async (e)=>{
+  const el = e.target.closest('.choice');
+  if(!el) return;
+  if(awaitingStart){ alert('まずベットしてスタートしてください'); return; }
+  const player = el.dataset.hand;
+  // start animation: show "ジャンケン..." and enemy ready (rock)
+  jankenDisplay.textContent = 'じゃんけん...';
+  resultLargeEl.textContent = '';
+  showHalfButton(false);
+  showEnemyReady();
+  await delay(1000);
+  jankenDisplay.textContent = 'ポイ！';
+  // select enemy random hand
+  const comp = randomHand();
+  showEnemyFinalHand(comp);
+  appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
+  await delay(200); // tiny pause so image updates
+  const res = judge(player, comp);
+  // handle challenge mode
+  if(challengeMode){
+    if(res==='勝ち'){
+      if(challengeMode==='10x'){
+        staged = staged * 10;
+        lifeAvailable = true; // unlock life
+        appendHistory('10倍チャレンジ成功！ 掛けが10倍に→ ' + numberWithCommas(staged) + ' NZ');
+        resultLargeEl.textContent = '10倍成功！人生逆転(20x)が1回解放されました';
+        try{ soundWin.play(); }catch(e){}
+        showHalfButton(true);
+      } else if(challengeMode==='20x'){
+        staged = staged * 20;
+        lifeAvailable = false; // consumed
+        appendHistory('人生逆転成功！ 掛けが20倍に→ ' + numberWithCommas(staged) + ' NZ');
+        resultLargeEl.textContent = '人生逆転成功！';
+        try{ soundLife.play(); }catch(e){}
+        showHalfButton(true);
+      }
+      challengeMode = null;
+      refreshUI();
+    } else {
+      // tie or lose both mean loss in challenges per rules
+      appendHistory('チャレンジ失敗（あいこ/負け）：掛け没収');
+      resultLargeEl.textContent = 'チャレンジ失敗.. 掛け没収';
+      staged = 0; baseBet = 0; awaitingStart = true; challengeMode = null; roundWins = 0; lifeAvailable = false;
+      showHalfButton(false);
+      refreshUI();
+    }
+    return;
+  }
+
+  // normal round
+  if(res==='勝ち'){
+    staged = staged * 2;
+    roundWins++;
+    resultLargeEl.textContent = '勝ち！ 掛けが2倍になった';
+    try{ soundWin.play(); }catch(e){}
+    showHalfButton(true); // per spec: every win shows half-bet
+  } else if(res==='あいこ'){
+    resultLargeEl.textContent = 'あいこ... 掛けはそのまま';
+    showHalfButton(false);
+  } else {
+    resultLargeEl.textContent = '負け.. 掛け没収';
+    staged = 0; baseBet = 0; awaitingStart = true; roundWins = 0; lifeAvailable = false;
+    showHalfButton(false);
+  }
+  refreshUI();
+});
+
+/* challenge buttons */
+tenBtn.addEventListener('click', ()=>{
+  if(staged<=0) return;
+  challengeMode = '10x';
+  resultLargeEl.textContent = '10倍チャレンジを開始 — 手を選んでください';
+  appendHistory('10倍チャレンジに挑戦！');
+});
+lifeBtn.addEventListener('click', ()=>{
+  if(!lifeAvailable || staged<=0) return;
+  challengeMode = '20x';
+  resultLargeEl.textContent = '人生逆転（20x）を開始 — 手を選んでください';
+  appendHistory('人生逆転（20x）に挑戦！');
+});
+
+/* half-bet button: split staged into two: half to balance (bank), half remains as staged */
+halfBtn.addEventListener('click', ()=>{
+  if(staged <= 0) return;
+  const half = Math.floor(staged/2);
+  if(half <= 0) return alert('掛けが小さすぎて半分賭けられません');
+  balance += half;
+  staged = staged - half;
+  saveBalance();
+  appendHistory('半分賭ける：' + numberWithCommas(half) + ' NZ を残高へ、残り ' + numberWithCommas(staged) + ' NZ を掛けに維持');
+  resultLargeEl.textContent = '半分を出金しました';
+  showHalfButton(false);
+  refreshUI();
+  checkGameOver();
+});
+
+/* cashout */
+cashoutBtn.addEventListener('click', ()=>{
+  if(staged<=0) return alert('回収できる掛けがありません');
+  balance += staged;
+  appendHistory('回収: ' + numberWithCommas(staged) + ' NZ を残高へ');
+  staged = 0; baseBet=0; awaitingStart = true; roundWins=0; currentMultiplier=1; lifeAvailable=false; challengeMode=null;
+  saveBalance();
+  showHalfButton(false);
+  refreshUI();
+  checkGameOver();
+});
+
+/* init UI and stats */
+refreshUI();
+updateStats();
+saveBalance();
+
+</script>
+</body>
+</html>
