@@ -12,6 +12,7 @@
   --neon:#00ffcc;
   --gold:#ffdc7a;
   --back-purple:#6b3cff;
+  --black-border:#0b0b0b;
 }
 *{box-sizing:border-box}
 body{
@@ -29,7 +30,7 @@ body{
 .container{width:100%;max-width:980px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
 
 /* title */
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header{display:flex;flex-direction:column;align-items:center;gap:8px}
 .title{
   font-size:40px;font-weight:800;
   background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
@@ -38,14 +39,40 @@ body{
   animation:moveRainbow 6s linear infinite;
 }
 @keyframes moveRainbow{0%{background-position:0%}100%{background-position:-800%}}
-.balance{font-size:16px;color:#ffd6ff}
+/* balance box (under title) */
+.balanceBox{
+  margin-top:4px;
+  padding:6px 12px;
+  border-radius:8px;
+  background: rgba(0,0,0,0.6);
+  border:1px solid rgba(0,0,0,0.8);
+  display:inline-block;
+  min-width:160px;
+}
+.balanceBox span.balanceNumber{
+  font-weight:800;
+  padding:2px 8px;
+  border:1px solid var(--black-border);
+  background:#000;
+  color:#fff;
+  border-radius:6px;
+}
+/* rainbow balance animation */
+.balance-rainbow{
+  background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  background-size: 800%;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation:balanceMove 4s linear infinite;
+}
+@keyframes balanceMove {0%{background-position:0%}100%{background-position:-800%}}
 
 /* sections */
 .section{margin-top:18px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.03)}
 .section h2{margin:0 0 8px 0}
 
 /* janken (top) */
-.jankenControls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.jankenControls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
 input[type=number]{width:120px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0f0710;color:#fff;font-size:14px}
 button.primary{padding:10px 14px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(111,60,255,0.14);transition:all .15s}
 button.primary:hover{background:var(--accent);color:#120018}
@@ -99,7 +126,7 @@ button.primary:hover{background:var(--accent);color:#120018}
 
 /* slot (bottom) */
 #slotArea{margin-top:20px}
-#slotControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#slotControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
 #slotContainer{margin-top:12px;max-height:300px;overflow-y:auto;padding:8px;border-radius:8px;background:#050308;border:1px solid rgba(255,255,255,0.03)}
 .slotRow{display:flex;justify-content:center;margin-bottom:6px}
 .slotCell{width:60px;height:60px;border:2px solid white;margin:3px;display:flex;justify-content:center;align-items:center;font-size:26px;background:#111}
@@ -113,6 +140,23 @@ button.primary:hover{background:var(--accent);color:#120018}
 }
 .neonBtn:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,255,204,0.18);background:rgba(0,255,204,0.06);}
 
+/* nakazawa (888) button styling - rainbow glow */
+.nakazawaBtn{
+  padding:10px 14px;border-radius:12px;border:2px solid rgba(155,89,255,0.9);
+  background:linear-gradient(90deg, rgba(155,89,255,0.08), rgba(107,60,255,0.08));
+  color:#fff;font-weight:900;cursor:pointer;box-shadow:0 6px 26px rgba(155,89,255,0.06);
+  transition:transform .12s, box-shadow .12s, background .12s, opacity .12s;
+  display:none;
+}
+/* rainbow pulse when active */
+.nakazawaBtn.active{
+  display:inline-block;
+  animation:rainPulse 1.6s linear infinite;
+  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
+  -webkit-background-clip:text;color:transparent;border-color:transparent;box-shadow:0 8px 32px rgba(255,255,255,0.04);
+}
+@keyframes rainPulse{0%{filter:brightness(1)}50%{filter:brightness(1.35)}100%{filter:brightness(1)}}
+
 /* prize rainbow list under slot */
 .rainbowPrizeTitle{
   font-size:20px;font-weight:800;margin-top:12px;text-align:center;
@@ -121,6 +165,22 @@ button.primary:hover{background:var(--accent);color:#120018}
 }
 .rainbowPrize{font-size:16px;text-align:center;margin-top:6px;background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);background-size:600%;-webkit-background-clip:text;color:transparent;animation:prizeMove 6s linear infinite;}
 @keyframes prizeMove{0%{background-position:0%}100%{background-position:-600%}}
+
+/* overlay for nakazawa win */
+#nakazawaOverlay{
+  position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:9999;
+}
+#nakazawaOverlay .text{
+  font-size:64px;font-weight:900;color:#000;padding:30px 40px;border-radius:8px;text-align:center;
+  background:linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  background-size:800%;
+  -webkit-background-clip:text;color:transparent;
+}
+
+/* small-screen tweaks for overlay text (space for line breaks) */
+@media(max-width:600px){
+  #nakazawaOverlay .text{font-size:40px;white-space:pre-line}
+}
 
 /* back button */
 .backWrap{display:flex;justify-content:center;margin-top:16px}
@@ -145,19 +205,21 @@ button.primary:hover{background:var(--accent);color:#120018}
 
   <!-- header -->
   <div class="header">
-    <div class="title">NAKAZAWA Casino</div>
-    <div class="balance">残高: <span id="balance">10,000</span> NZ</div>
+    <div class="title">NAKAZAWACasino</div>
+    <!-- balance moved under title, thin black border -->
+    <div class="balanceBox">
+      残高: <span class="balanceNumber" id="balance">10,000</span> NZ
+    </div>
   </div>
 
   <!-- JANKEN (top) -->
   <div id="jankenArea" class="section">
     <h2>人生逆転ジャンケン</h2>
 
-    <!-- embed bet input & start inside janken UI -->
+    <!-- embed bet input - start button removed (auto-start on choice click) -->
     <div class="jankenControls">
       <label>ベット:</label>
       <input id="betInput" type="number" min="1" value="100" step="1">
-      <button id="startBtn" class="primary">スタート</button>
       <button id="resetBtn" class="primary">リセット</button>
 
       <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
@@ -166,8 +228,7 @@ button.primary:hover{background:var(--accent);color:#120018}
       </div>
     </div>
 
-
-
+   
     <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
 
     <!-- enemy hand area -->
@@ -185,6 +246,7 @@ button.primary:hover{background:var(--accent);color:#120018}
     <div class="actionRow">
       <button id="tenX" class="option disabled">10倍チャレンジ</button>
       <button id="lifeX" class="option disabled">人生逆転（20x）</button>
+      <button id="nakazawaBtn" class="nakazawaBtn" title="中澤（888x）">中澤 888x</button>
       <button id="halfBtn" style="display:none">半分賭ける（半分出金）</button>
     </div>
 
@@ -194,10 +256,17 @@ button.primary:hover{background:var(--accent);color:#120018}
 
     <div class="history" id="history"></div>
 
-        <!-- rules -->
-    <div class="rules" id="rules">
-      ルール：ベットしてスタート。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。勝利後は「半分出金」「10倍チャレンジ」を選べます。10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。チャレンジであいこ・負けは掛け没収。いつでも「ここでやめる」で掛けを回収。残高はこの端末に保存されます。
-    </div>
+
+<div class="rules" id="rules">
+  ルール：ベットを入力して、掛けが0のときに手を選ぶと自動でベットを掛けます（自動スタート）。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。
+  勝利後は「半分出金」「10倍チャレンジ」を選べます。
+  10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。
+  人生逆転成功後に「中澤（888x）」が一度だけ解放されます（解放時に中澤降臨）。
+  チャレンジであいこ・負けは掛け没収。
+  いつでも「ここでやめる」で掛けを回収できます。
+  残高はこの端末に保存されます。
+</div>
+
 
   </div>
 
@@ -238,13 +307,21 @@ button.primary:hover{background:var(--accent);color:#120018}
 
 </div>
 
+<!-- overlay for nakazawa win -->
+<div id="nakazawaOverlay"><div class="text" id="nakazawaOverlayText">中澤 に 勝利</div></div>
+
 <!-- sounds -->
 <audio id="soundWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/sgaro2_02.mp3"></audio>
 <audio id="soundLife" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gt_02.mp3"></audio>
+<audio id="soundNakazawaIntro" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_02.mp3"></audio>
+<audio id="soundNakazawaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_04.mp3"></audio>
 
 <script>
 /* ------------------ utility ------------------ */
-function numberWithCommas(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function numberWithCommas(x){
+  // handle big integers
+  return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 function saveBalance(){ try{ localStorage.setItem('nakazawa_balance_v1', String(balance)); }catch(e){} }
 function loadBalance(){
   try{
@@ -269,6 +346,7 @@ function checkGameOver(){
     roundWins = 0;
     lifeAvailable = false;
     challengeMode = null;
+    nakazawaAvailable = false;
     appendHistory('GAME OVER: 自動リセット（残高 10,000）');
     refreshUI();
   }
@@ -412,13 +490,13 @@ let baseBet = 0;
 let currentMultiplier = 1;
 let roundWins = 0;
 let awaitingStart = true;
-let challengeMode = null; // '10x' or '20x' or null
+let challengeMode = null; // '10x' or '20x' or '888x' or null
 let lifeAvailable = false; // becomes true when 10x success
+let nakazawaAvailable = false; // becomes true when life(20x) success; one-time
 
 // DOM refs
 const balanceEl = document.getElementById('balance');
 const betInput = document.getElementById('betInput');
-const startBtn = document.getElementById('startBtn');
 const resetBtn = document.getElementById('resetBtn');
 const stagedEl = document.getElementById('staged');
 const multEl = document.getElementById('mult');
@@ -428,19 +506,40 @@ const enemyHandImg = document.getElementById('enemyHand');
 const historyDiv = document.getElementById('history');
 const tenBtn = document.getElementById('tenX');
 const lifeBtn = document.getElementById('lifeX');
+const nakazawaBtn = document.getElementById('nakazawaBtn');
 const halfBtn = document.getElementById('halfBtn');
 const resultLargeEl = document.getElementById('resultLarge');
 const cashoutBtn = document.getElementById('cashoutBtn');
 const soundWin = document.getElementById('soundWin');
 const soundLife = document.getElementById('soundLife');
+const soundNakazawaIntro = document.getElementById('soundNakazawaIntro');
+const soundNakazawaWin = document.getElementById('soundNakazawaWin');
+const nakazawaOverlay = document.getElementById('nakazawaOverlay');
+const nakazawaOverlayText = document.getElementById('nakazawaOverlayText');
 
 function refreshUI(){
-  balanceEl.textContent = numberWithCommas(balance);
+  // update balance box and style
+  const balNumSpan = document.querySelector('.balanceNumber');
+  balNumSpan.textContent = numberWithCommas(balance);
+  // rainbow when > 100000
+  if(balance > 100000){
+    balNumSpan.classList.add('balance-rainbow');
+  }else{
+    balNumSpan.classList.remove('balance-rainbow');
+  }
+
   stagedEl.textContent = numberWithCommas(staged);
   multEl.textContent = currentMultiplier + 'x';
   tenBtn.classList.toggle('disabled', !(staged>0));
   lifeBtn.classList.toggle('disabled', !lifeAvailable);
-  // half button controlled by showHalfButton
+  // nakazawa button visibility
+  if(nakazawaAvailable){
+    nakazawaBtn.classList.add('active');
+    nakazawaBtn.style.display = 'inline-block';
+  } else {
+    nakazawaBtn.classList.remove('active');
+    nakazawaBtn.style.display = 'none';
+  }
 }
 function appendHistory(txt){
   const d = document.createElement('div');
@@ -452,30 +551,10 @@ function appendHistory(txt){
 loadBalance();
 refreshUI();
 
-/* start/reset */
-startBtn.addEventListener('click', ()=>{
-  const b = Math.max(1, Math.floor(Number(betInput.value)||0));
-  if(b<=0) return alert('ベットを入力してください');
-  if(b>balance) return alert('残高が足りません');
-  baseBet = b;
-  balance -= b;
-  saveBalance();
-  checkGameOver();
-  staged = b;
-  currentMultiplier = 1;
-  roundWins = 0;
-  awaitingStart = false;
-  lifeAvailable = false; // reset life until new 10x success
-  challengeMode = null;
-  historyDiv.innerHTML = '';
-  resultLargeEl.textContent = '';
-  appendHistory('ゲーム開始 ベット: ' + numberWithCommas(b) + ' NZ');
-  refreshUI();
-});
-
+/* reset */
 resetBtn.addEventListener('click', ()=>{
   if(!confirm('リセットして残高10000に戻しますか？')) return;
-  balance = 10000; staged=0; baseBet=0; currentMultiplier=1; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null;
+  balance = 10000; staged=0; baseBet=0; currentMultiplier=1; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null; nakazawaAvailable=false;
   saveBalance();
   historyDiv.innerHTML=''; resultLargeEl.textContent=''; appendHistory('リセット'); refreshUI();
 });
@@ -507,12 +586,39 @@ function showHalfButton(show){
   halfBtn.style.display = show ? 'inline-block' : 'none';
 }
 
+/* AUTO-START behavior:
+   - If staged == 0 and player clicks a hand, auto-start: take betInput amount from balance into staged.
+   - If balance insufficient, alert.
+*/
+
 /* main click handler for choices (handles normal and challenge) */
 choicesEl.addEventListener('click', async (e)=>{
   const el = e.target.closest('.choice');
   if(!el) return;
-  if(awaitingStart){ alert('まずベットしてスタートしてください'); return; }
   const player = el.dataset.hand;
+
+  // Auto-start: if no staged and awaitingStart, start automatically by taking betInput
+  if(staged <= 0){
+    const b = Math.max(1, Math.floor(Number(betInput.value)||0));
+    if(b<=0){ alert('ベットを入力してください'); return; }
+    if(b>balance){ alert('残高が足りません'); return; }
+    // auto-take bet
+    baseBet = b;
+    balance -= b;
+    saveBalance();
+    staged = b;
+    currentMultiplier = 1;
+    roundWins = 0;
+    awaitingStart = false;
+    lifeAvailable = false;
+    challengeMode = null;
+    nakazawaAvailable = false;
+    appendHistory('自動スタート ベット: ' + numberWithCommas(b) + ' NZ');
+    refreshUI();
+  }
+
+  if(awaitingStart){ alert('まずベットしてください'); return; }
+
   // start animation: show "ジャンケン..." and enemy ready (rock)
   jankenDisplay.textContent = 'じゃんけん...';
   resultLargeEl.textContent = '';
@@ -520,18 +626,21 @@ choicesEl.addEventListener('click', async (e)=>{
   showEnemyReady();
   await delay(1000);
   jankenDisplay.textContent = 'ポイ！';
+
   // select enemy random hand
   const comp = randomHand();
   showEnemyFinalHand(comp);
   appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
   await delay(200); // tiny pause so image updates
+
   const res = judge(player, comp);
-  // handle challenge mode
+
+  // handle challenge mode (10x, 20x, 888x)
   if(challengeMode){
     if(res==='勝ち'){
       if(challengeMode==='10x'){
         staged = staged * 10;
-        lifeAvailable = true; // unlock life
+        lifeAvailable = true; // unlock life (20x)
         appendHistory('10倍チャレンジ成功！ 掛けが10倍に→ ' + numberWithCommas(staged) + ' NZ');
         resultLargeEl.textContent = '10倍成功！人生逆転(20x)が1回解放されました';
         try{ soundWin.play(); }catch(e){}
@@ -543,14 +652,32 @@ choicesEl.addEventListener('click', async (e)=>{
         resultLargeEl.textContent = '人生逆転成功！';
         try{ soundLife.play(); }catch(e){}
         showHalfButton(true);
+        // unlock nakazawa (888x) once
+        nakazawaAvailable = true;
+        appendHistory('中澤降臨！ 888倍が解放されました');
+        try{ soundNakazawaIntro.play(); }catch(e){}
+        // show nakazawa button
+        refreshUI();
+      } else if(challengeMode==='888x'){
+        staged = staged * 888;
+        appendHistory('中澤チャレンジ成功！ 掛けが888倍に→ ' + numberWithCommas(staged) + ' NZ');
+        resultLargeEl.textContent = '中澤に勝利！';
+        // log "中澤に勝利"
+        appendHistory('中澤に勝利');
+        // one-time use: consume nakazawaAvailable
+        nakazawaAvailable = false;
+        // play win sound after 1s and show fullscreen overlay for 6s
+        setTimeout(()=>{ try{ soundNakazawaWin.play(); }catch(e){} }, 1000);
+        showNakazawaOverlay();
+        showHalfButton(true);
       }
       challengeMode = null;
       refreshUI();
     } else {
-      // tie or lose both mean loss in challenges per rules
+      // tie or lose both mean loss in challenges per rules -> staged lost
       appendHistory('チャレンジ失敗（あいこ/負け）：掛け没収');
       resultLargeEl.textContent = 'チャレンジ失敗.. 掛け没収';
-      staged = 0; baseBet = 0; awaitingStart = true; challengeMode = null; roundWins = 0; lifeAvailable = false;
+      staged = 0; baseBet = 0; awaitingStart = true; challengeMode = null; roundWins = 0; lifeAvailable = false; nakazawaAvailable = false;
       showHalfButton(false);
       refreshUI();
     }
@@ -569,7 +696,7 @@ choicesEl.addEventListener('click', async (e)=>{
     showHalfButton(false);
   } else {
     resultLargeEl.textContent = '負け.. 掛け没収';
-    staged = 0; baseBet = 0; awaitingStart = true; roundWins = 0; lifeAvailable = false;
+    staged = 0; baseBet = 0; awaitingStart = true; roundWins = 0; lifeAvailable = false; nakazawaAvailable = false;
     showHalfButton(false);
   }
   refreshUI();
@@ -587,6 +714,12 @@ lifeBtn.addEventListener('click', ()=>{
   challengeMode = '20x';
   resultLargeEl.textContent = '人生逆転（20x）を開始 — 手を選んでください';
   appendHistory('人生逆転（20x）に挑戦！');
+});
+nakazawaBtn.addEventListener('click', ()=>{
+  if(!nakazawaAvailable || staged<=0) return;
+  challengeMode = '888x';
+  resultLargeEl.textContent = '中澤（888x）を開始 — 手を選んでください';
+  appendHistory('中澤（888x）に挑戦！');
 });
 
 /* half-bet button: split staged into two: half to balance (bank), half remains as staged */
@@ -609,12 +742,53 @@ cashoutBtn.addEventListener('click', ()=>{
   if(staged<=0) return alert('回収できる掛けがありません');
   balance += staged;
   appendHistory('回収: ' + numberWithCommas(staged) + ' NZ を残高へ');
-  staged = 0; baseBet=0; awaitingStart = true; roundWins=0; currentMultiplier=1; lifeAvailable=false; challengeMode=null;
+  staged = 0; baseBet=0; awaitingStart = true; roundWins=0; currentMultiplier=1; lifeAvailable=false; challengeMode=null; nakazawaAvailable=false;
   saveBalance();
   showHalfButton(false);
   refreshUI();
   checkGameOver();
 });
+
+/* nakazawa overlay show/hide */
+function showNakazawaOverlay(){
+  // Prepare overlay content - large black text on blinking rainbow background
+  const overlay = nakazawaOverlay;
+  const txt = nakazawaOverlayText;
+  // For mobile, insert spaces to force line breaks (user requested)
+  if(window.innerWidth <= 600){
+    txt.textContent = '中澤\nに\n勝利';
+  } else {
+    txt.textContent = '中澤 に 勝利';
+  }
+  overlay.style.display = 'flex';
+  // make background blink rainbow by changing overlay's background via CSS inline
+  overlay.style.background = 'linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet)';
+  overlay.style.animation = 'prizeMove 1s linear infinite';
+  // black text on rainbow: replace with a wrapper that has black text on rainbow bg
+  txt.style.webkitBackgroundClip = 'initial';
+  txt.style.background = 'linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet)';
+  txt.style.backgroundSize = '800%';
+  txt.style.webkitBackgroundClip = 'text';
+  txt.style.color = 'transparent';
+  // But user wanted black text on rainbow flashing background -> we'll set background flashing and text black inside a white box:
+  // create a temporary box appearance:
+  txt.style.background = '';
+  txt.style.color = '#000';
+  txt.style.padding = '30px 40px';
+  txt.style.borderRadius = '8px';
+  txt.style.backgroundImage = 'linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet)';
+  txt.style.WebkitBackgroundClip = 'border-box';
+  txt.style.animation = 'balanceMove 1s linear infinite';
+  // Show for 6 seconds
+  setTimeout(()=>{ hideNakazawaOverlay(); }, 6000);
+}
+function hideNakazawaOverlay(){
+  nakazawaOverlay.style.display = 'none';
+  // reset text style
+  nakazawaOverlayText.style.padding='';
+  nakazawaOverlayText.style.borderRadius='';
+  nakazawaOverlayText.style.animation='';
+}
 
 /* init UI and stats */
 refreshUI();
