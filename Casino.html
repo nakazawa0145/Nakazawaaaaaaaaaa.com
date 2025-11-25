@@ -315,12 +315,14 @@
 
 #staged {
   display: inline-block;
-  max-width: 150px;
-  overflow-x: auto;
-  white-space: nowrap;
+  max-width: 150px;        /* 横スクロールしやすい幅 */
+  max-height: 24px;        /* 少し高さを広げる */
+  overflow-x: auto;        /* 横スクロール */
+  white-space: nowrap;     /* 改行禁止 */
+  font-size: 14px;         /* 少し小さく */
+  padding: 2px 0;          /* スワイプしやすく */
 }
-
-
+    
   </style>
   <script>
     // スマホで残高 / staged が長すぎたら文字サイズを縮小するヘルパー
