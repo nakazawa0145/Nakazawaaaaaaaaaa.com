@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -175,7 +176,7 @@
       font-weight: 800;
       cursor: pointer;
     }
-    #nakazawaBtn.disabled { opacity: 0.35; cursor:not-allowed; pointer-events: none; }
+    #nakazawaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
     #maruyamaBtn {
       padding: 8px 12px;
@@ -186,7 +187,7 @@
       font-weight: 800;
       cursor: pointer;
     }
-    #maruyamaBtn.disabled { opacity: 0.35; cursor:not-allowed; pointer-events: none; }
+    #maruyamaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
     #bet000Btn {
       background: var(--rule-purple);
@@ -300,19 +301,6 @@
     }
     @keyframes prizeMove { 0% { background-position: 0% } 100% { background-position: -600% } }
 
-    /* --- 追加したCSS（#staged の自動縮小・保護） --- */
-    #staged {
-      display: inline-block;
-      vertical-align: middle;
-      font-size: 16px;
-      max-width: 220px; /* デスクトップ時の上限 */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    /* 親の WIN BET 表示で折り返しを防ぐため親にも調整 */
-    .winbetWrap { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
-
     @media (max-width: 740px) {
       .header { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
       .title { font-size: 32px; text-align: center; width: 100%; }
@@ -323,8 +311,6 @@
       .actionRow { justify-content: center; flex-wrap: wrap; }
       #bet000Btn { width: 60px !important; flex-shrink: 0 !important; }
       input[type=number] { width: 60%; max-width: 260px; }
-      /* スマホ時は staged の幅を狭く、JSによる縮小がより効果的になる */
-      #staged { max-width: 120px; font-size: 14px; }
     }
   </style>
   <script>
@@ -335,25 +321,14 @@
       [balanceEl, stagedEl].forEach(el => {
         if (!el) return;
         let fontSize = 16; // 初期想定
-        // staged に対しては 親幅 ではなく、明示的に表示領域に併せる
         el.style.fontSize = fontSize + 'px';
-        // 親の幅を取得。staged の場合は親要素（winbetのラップ）幅を参照
-        let parentWidth = el.parentElement.clientWidth;
-        // staged のとき、親内の他要素（ラベル等）の幅を考慮する
-        if (el.id === 'staged') {
-          const p = el.parentElement;
-          // 親のテキスト全体幅に余裕がないなら maxWidth ベースで調整
-          parentWidth = Math.max(40, el.clientWidth, el.parentElement.clientWidth - 40);
-        }
-        // はみ出すかどうかを確認してフォントを落とす
-        // 最低フォントサイズは 8px とする
-        let attempts = 0;
-        while (el.scrollWidth > parentWidth && fontSize > 8 && attempts < 50) {
+        // 親の幅を取得
+        const parentWidth = el.parentElement.clientWidth;
+        // はみ出すかどうか
+        while (el.scrollWidth > parentWidth && fontSize > 8) {
           fontSize -= 1;
           el.style.fontSize = fontSize + 'px';
-          attempts++;
         }
-        // もしまだはみ出すなら省略表示（CSSのtext-overflowが機能）
       });
     }
   </script>
@@ -377,7 +352,7 @@
       </div>
 
       <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
-        <div class="winbetWrap">WIN BET： <strong id="staged">0</strong> NZ</div>
+        WIN BET： <strong id="staged">0</strong> NZ
         <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>
       </div>
 
@@ -506,11 +481,27 @@
         maruyamaUnlocked = false;
         maruyamaUsed = false;
       }
+      // Load attempt counters (if any)
+      try{
+        const la = localStorage.getItem('life_attempts');
+        const na = localStorage.getItem('nakazawa_attempts');
+        const ma = localStorage.getItem('maruyama_attempts');
+        lifeAttempts = la ? Number(la) : 0;
+        nakazawaAttempts = na ? Number(na) : 0;
+        maruyamaAttempts = ma ? Number(ma) : 0;
+      } catch(e) { lifeAttempts = nakazawaAttempts = maruyamaAttempts = 0; }
     }
     function saveMaruyamaState(){
       try{
         localStorage.setItem('maruyama_unlocked', maruyamaUnlocked.toString());
         localStorage.setItem('maruyama_used', maruyamaUsed.toString());
+      } catch(e){}
+    }
+    function saveAttempts(){
+      try{
+        localStorage.setItem('life_attempts', String(lifeAttempts));
+        localStorage.setItem('nakazawa_attempts', String(nakazawaAttempts));
+        localStorage.setItem('maruyama_attempts', String(maruyamaAttempts));
       } catch(e){}
     }
 
@@ -566,11 +557,20 @@
     let staged = 0n, baseBet = 0n, roundWins = 0;
     let awaitingStart = true;
     let challengeMode = null;
+    // Attempts: number of available single attempts for each higher challenge.
+    // lifeAttempts: available tries for 人生逆転(20x) unlocked by 10x success.
+    // nakazawaAttempts: available tries for 中澤(888x) unlocked by 20x success.
+    // maruyamaAttempts: available tries for 丸山(7777777x) unlocked by 中澤 success.
+    let lifeAttempts = 0;    // integer count
+    let nakazawaAttempts = 0;
+    let maruyamaAttempts = 0;
+    // backward-compat flags (kept but not used for availability logic)
     let lifeAvailable = false;
     let nakazawaUnlocked = false;
     let nakazawaUsed = false;
     let maruyamaUnlocked = false;
     let maruyamaUsed = false;
+    let autoTen = false;
 
     const balanceElem = document.getElementById("balance");
     const stagedElem = document.getElementById("staged");
@@ -581,22 +581,18 @@
     const halfBtnEl = document.getElementById("halfBtn");
     const bet000 = document.getElementById("bet000Btn");
 
-    // --- 追加：不足していたDOM参照を定義（未定義参照によるエラー防止） ---
-    const jankenDisplay = document.getElementById("jankenDisplay");
-    const resultLargeEl = document.getElementById("resultLarge");
-    const enemyHandImg = document.getElementById("enemyHand");
-    const cashoutBtn = document.getElementById("cashoutBtn");
-    const nakazawaOverlay = document.getElementById("nakazawaOverlay");
-    const maruyamaOverlay = document.getElementById("maruyamaOverlay");
-    const nakazawaOverlayText = document.getElementById("nakazawaOverlayText");
-    const maruyamaOverlayText = document.getElementById("maruyamaOverlayText");
-    const soundWin = document.getElementById("soundWin");
-    const soundLife = document.getElementById("soundLife");
-    const soundNakazawaIn = document.getElementById("soundNakazawaIn");
-    const soundNakazawaWin = document.getElementById("soundNakazawaWin");
-    const soundMaruyamaIn = document.getElementById("soundMaruyamaIn");
-    const soundMaruyamaWin = document.getElementById("soundMaruyamaWin");
-    // --- ここまで追加 ---
+    // Additional element references required by game logic
+    const jankenDisplay = document.getElementById('jankenDisplay');
+    const enemyHandImg = document.getElementById('enemyHand');
+    const resultLargeEl = document.getElementById('resultLarge');
+    const nakazawaOverlay = document.getElementById('nakazawaOverlay');
+    const maruyamaOverlay = document.getElementById('maruyamaOverlay');
+    const nakazawaOverlayText = document.getElementById('nakazawaOverlayText');
+    const maruyamaOverlayText = document.getElementById('maruyamaOverlayText');
+    // audio elements referenced elsewhere
+    const soundMaruyamaIn = document.getElementById('soundMaruyamaIn');
+    const soundNakazawaIn = document.getElementById('soundNakazawaIn');
+
 
     function refreshUI(){
       balanceElem.textContent = formatAmount(balance);
@@ -606,9 +602,9 @@
       // 10倍は常に押せる
       tenBtn.classList.remove("disabled");
 
-      lifeBtn.classList.toggle("disabled", !lifeAvailable);
-      nakazawaBtn.classList.toggle("disabled", !(nakazawaUnlocked && !nakazawaUsed));
-      maruyamaBtn.classList.toggle("disabled", !(maruyamaUnlocked && !maruyamaUsed));
+      if(lifeAttempts <= 0 || staged <= 0n){ lifeBtn.classList.add("disabled"); } else { lifeBtn.classList.remove("disabled"); }
+      if(nakazawaAttempts <= 0 || staged <= 0n){ nakazawaBtn.classList.add("disabled"); } else { nakazawaBtn.classList.remove("disabled"); }
+      if(maruyamaAttempts <= 0 || staged <= 0n){ maruyamaBtn.classList.add("disabled"); } else { maruyamaBtn.classList.remove("disabled"); }
     }
 
     function appendHistory(txt){
@@ -695,58 +691,63 @@
 
       if(awaitingStart && staged <= 0n){ alert("ベットをしてから手を選んでください"); return; }
 
-      // jankenDisplay 等が未定義でエラーになるのを防ぐため、事前に取得済みの変数に対して安全に更新
-      if(jankenDisplay) jankenDisplay.textContent = "じゃんけん...";
-      if(resultLargeEl) resultLargeEl.textContent = "";
+      jankenDisplay.textContent = "じゃんけん...";
+      resultLargeEl.textContent = "";
       showHalfButton(false);
       showEnemyReady();
       await delay(1000);
-      if(jankenDisplay) jankenDisplay.textContent = "ポイ！";
+      jankenDisplay.textContent = "ポイ！";
       const comp = randomHand();
       showEnemyFinalHand(comp);
       appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
       await delay(200);
       const res = judge(player, comp);
 
-      if(challengeMode){
+      
+        if(challengeMode){
         if(res === "勝ち"){
           if(challengeMode === "10x"){
+            // 10x success grants one attempt for 人生逆転(20x)
             staged = staged * 10n;
-            lifeAvailable = true;
+            lifeAttempts += 1;
             appendHistory("10倍チャレンジ成功！ 掛けが10倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "10倍成功！人生逆転(20x)が1回解放されました";
-            try { if (soundWin) soundWin.play(); } catch(e){}
+            try { soundWin.play(); } catch(e){}
             showHalfButton(true);
           }
           else if(challengeMode === "20x"){
+            // consume one life attempt
+            if(lifeAttempts > 0) lifeAttempts -= 1;
             staged = staged * 20n;
-            lifeAvailable = false;
-            nakazawaUnlocked = true;
+            // upon success, grant one nakazawa attempt
+            nakazawaAttempts += 1;
             appendHistory("人生逆転成功！ 掛けが20倍に→ " + numberWithCommasBig(staged) + " NZ");
-            resultLargeEl.textContent = "人生逆転成功！ 中澤(888x)が解放されました";
-            try { if (soundLife) soundLife.play(); } catch(e){}
+            resultLargeEl.textContent = "人生逆転成功！ 中澤(888x)が1回解放されました";
+            try { soundLife.play(); } catch(e){}
             showHalfButton(true);
           }
           else if(challengeMode === "888x"){
+            // consume one nakazawa attempt
+            if(nakazawaAttempts > 0) nakazawaAttempts -= 1;
             staged = staged * 888n;
-            nakazawaUsed = true;
-            // 中澤クリアごとに丸山を解放可能に
-            maruyamaUnlocked = true;
+            // upon success, grant one maruyama attempt
+            maruyamaAttempts += 1;
             appendHistory("中澤に勝利！ 掛けが888倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "中澤に勝利！数秒後に中澤降臨演出";
+            try { soundNakazawaWin.play(); } catch(e){}
             setTimeout(()=>{
-              try { if (soundNakazawaWin) soundNakazawaWin.play(); } catch(e){}
               showNakazawaOverlay();
             }, 1000);
             showHalfButton(true);
           }
           else if(challengeMode === "7777777x"){
+            // consume one maruyama attempt
+            if(maruyamaAttempts > 0) maruyamaAttempts -= 1;
             staged = staged * 7777777n;
-            maruyamaUsed = true;
             appendHistory("丸山に勝利！ 掛けが7,777,777倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "丸山に勝利！数秒後に演出";
             setTimeout(()=>{
-              try { if (soundMaruyamaWin) soundMaruyamaWin.play(); } catch(e){}
+              try { soundMaruyamaWin.play(); } catch(e){}
               showMaruyamaVictoryOverlay();
             }, 1000);
             showHalfButton(true);
@@ -754,31 +755,40 @@
 
           // チャレンジ終わったらモードクリア
           challengeMode = null;
+          saveAttempts();
           refreshUI();
         } else {
+          // On failure of a consuming challenge, consume one attempt (if present)
           appendHistory("チャレンジ失敗（" + res + "）：掛け没収");
           resultLargeEl.textContent = "チャレンジ失敗…掛け没収";
+          // consume corresponding attempt if applicable
+          if(challengeMode === "20x"){
+            if(lifeAttempts > 0) lifeAttempts -= 1;
+          } else if(challengeMode === "888x"){
+            if(nakazawaAttempts > 0) nakazawaAttempts -= 1;
+          } else if(challengeMode === "7777777x"){
+            if(maruyamaAttempts > 0) maruyamaAttempts -= 1;
+          }
           staged = 0n;
           baseBet = 0n;
           awaitingStart = true;
           roundWins = 0;
           lifeAvailable = false;
-          // if 888x 失敗しても中澤は “使用済み” に
-          if(challengeMode === "888x") nakazawaUsed = true;
-          if(challengeMode === "7777777x") maruyamaUsed = true;
           challengeMode = null;
           showHalfButton(false);
+          saveAttempts();
           refreshUI();
         }
         return;
       }
+
 
       // 通常ジャンケン勝敗
       if(res === "勝ち"){
         staged = staged * 2n;
         roundWins++;
         resultLargeEl.textContent = "勝ち！ 掛けが2倍になった";
-        try { if (soundWin) soundWin.play(); } catch(e){}
+        try { soundWin.play(); } catch(e){}
         showHalfButton(true);
       } else if(res === "あいこ"){
         resultLargeEl.textContent = "あいこ… 掛けはそのまま";
@@ -796,27 +806,23 @@
       refreshUI();
     });
 
-    tenBtn.addEventListener("click", ()=>{
-      challengeMode = "10x";
-      appendHistory("10倍チャレンジに挑戦！");
-      resultLargeEl.textContent = "10倍チャレンジ中 — 手を選んでください";
-    });
+    tenBtn.addEventListener("click", ()=>{ challengeMode = "10x"; appendHistory("10倍チャレンジに挑戦！"); resultLargeEl.textContent = "10倍チャレンジ中 — 手を選んでください"; });
     lifeBtn.addEventListener("click", ()=>{
-      if(!lifeAvailable || staged <= 0n) return;
+      if(lifeAttempts <= 0 || staged <= 0n) return;
       challengeMode = "20x";
       appendHistory("人生逆転（20x）に挑戦！");
       resultLargeEl.textContent = "20倍チャレンジ中 — 手を選んでください";
     });
     nakazawaBtn.addEventListener("click", ()=>{
-      if(!nakazawaUnlocked || nakazawaUsed || staged <= 0n) return;
+      if(nakazawaAttempts <= 0 || staged <= 0n) return;
       challengeMode = "888x";
       appendHistory("中澤降臨");
       resultLargeEl.textContent = "中澤(888x) チャレンジ開始 — 手を選んでください";
     });
     maruyamaBtn.addEventListener("click", ()=>{
-      if(!maruyamaUnlocked || maruyamaUsed || staged <= 0n) return;
+      if(maruyamaAttempts <= 0 || staged <= 0n) return;
       appendHistory("丸山降臨");
-      try { if (soundMaruyamaIn) soundMaruyamaIn.play(); } catch(e){}
+      try { soundMaruyamaIn.play(); } catch(e){}
       showMaruyamaSetupOverlay();
       setTimeout(() => {
         challengeMode = "7777777x";
@@ -849,10 +855,10 @@
       roundWins = 0;
       lifeAvailable = false;
       challengeMode = null;
-      nakazawaUnlocked = false;
-      // マル山の unlock は消さない（中澤クリアの回数で制御）
+      // do not clear attempts here; attempts are consumed when challenges are attempted
       saveBalance();
       saveMaruyamaState();
+      saveAttempts();
       showHalfButton(false);
       refreshUI();
       checkGameOver();
@@ -881,6 +887,7 @@
     refreshUI();
     saveBalance();
     saveMaruyamaState();
+    saveAttempts();
 
   </script>
 </body>
