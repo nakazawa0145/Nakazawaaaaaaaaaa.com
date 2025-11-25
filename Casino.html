@@ -39,6 +39,10 @@ body{
 }
 @keyframes moveRainbow{0%{background-position:0%}100%{background-position:-800%}}
 
+/* compact header (when numbers very large) */
+.header.compact{flex-direction:column-reverse;align-items:flex-start;}
+.header.compact .title{font-size:28px}
+
 /* balance box */
 .balanceBox{
   border:1px solid rgba(0,0,0,0.6);
@@ -51,14 +55,8 @@ body{
 .balanceBox .label{font-size:12px;color:#ddd}
 .balanceBox .amount{font-weight:800;font-size:16px;color:#fff;display:block}
 
-/* rainbow effect for rich balances */
-.balance-rainbow{
-  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
-  background-size:800%;
-  -webkit-background-clip:text;
-  color:transparent !important;
-  animation:moveRainbow 4s linear infinite;
-}
+/* compact amount style */
+.balanceBox.compact .amount{font-size:12px; font-weight:700}
 
 /* sections */
 .section{margin-top:18px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.03)}
@@ -185,7 +183,7 @@ button.primary:hover{background:var(--accent);color:#120018}
 <div class="container">
 
   <!-- header -->
-  <div class="header">
+  <div class="header" id="headerRoot">
     <div class="title">NAKAZAWACasino</div>
     <div class="balanceBox" id="balanceBox">
       <div class="label">残高</div>
@@ -202,15 +200,11 @@ button.primary:hover{background:var(--accent);color:#120018}
       <label>BET:</label>
       <input id="betInput" type="number" min="1" value="100" step="1">
       <!-- start button removed per request (auto-start on first hand when staged==0) -->
-  
-
-      
     </div>
-         <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
-        WIN BET： <strong id="staged">0</strong> NZ
-      </div>
 
-    
+    <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
+      WIN BET： <strong id="staged">0</strong> NZ
+    </div>
 
     <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
 
@@ -309,27 +303,67 @@ button.primary:hover{background:var(--accent);color:#120018}
 
 <script>
 /* ------------------ utility ------------------ */
-function numberWithCommas(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+/* numberWithCommas now supports BigInt and Number and returns string with commas */
+function numberWithCommasBig(x){
+  if (typeof x === 'bigint') {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  // for Number: avoid exponential by converting to integer string when possible
+  if (typeof x === 'number') {
+    if (!isFinite(x)) return String(x);
+    // round to integer
+    const s = Math.floor(x).toString();
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  // fallback
+  return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+/* Wrapper to format amounts — ensures no exponential notation and uses BigInt if available */
+function formatAmount(val){
+  // val expected to be BigInt or Number
+  if (typeof val === 'bigint') return numberWithCommasBig(val);
+  if (typeof val === 'number') {
+    // if within safe integer, show integer
+    if (Number.isSafeInteger(val)) return numberWithCommasBig(Math.floor(val));
+    // otherwise convert to BigInt via string if possible
+    const s = Math.floor(val).toString();
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  return String(val);
+}
+
 function saveBalance(){ try{ localStorage.setItem('nakazawa_balance_v1', String(balance)); }catch(e){} }
 function loadBalance(){
   try{
     const v = localStorage.getItem('nakazawa_balance_v1');
-    if(v!==null && !isNaN(Number(v))){ balance = Math.floor(Number(v)); }
-    else { balance = 10000; saveBalance(); }
+    if(v!==null){
+      // try parse as BigInt (handles large integers)
+      try{
+        balance = BigInt(v);
+      }catch(e){
+        // fallback to Number
+        balance = Math.floor(Number(v)) || 10000;
+        balance = BigInt(balance);
+      }
+    } else {
+      balance = 10000n;
+      saveBalance();
+    }
   }catch(e){
-    balance = 10000;
+    balance = 10000n;
   }
 }
 
 /* game over check */
 function checkGameOver(){
-  if(typeof balance !== 'number') return;
-  if(balance <= 0){
+  if(typeof balance !== 'bigint') return;
+  if(balance <= 0n){
     alert('GAME OVER — 残高が 0 になりました。残高を 10,000 NZ にリセットします。');
-    balance = 10000;
+    balance = 10000n;
     saveBalance();
-    staged = 0;
-    baseBet = 0;
+    staged = 0n;
+    baseBet = 0n;
     awaitingStart = true;
     roundWins = 0;
     lifeAvailable = false;
@@ -352,12 +386,13 @@ const probs = [
   { mark:"外れ", p: 1-(0.50+0.20+0.10+0.05+0.03+1/300+1/1000), color:"black" }
 ];
 
+/* prizeMap values converted to BigInt so arithmetic stays safe */
 const prizeMap = {
-  "緑": 1,
-  "黄": 5,
-  "紫": 100,
-  "7": 1000000,
-  "N": 8888888888888
+  "緑": 1n,
+  "黄": 5n,
+  "紫": 100n,
+  "7": 1000000n,
+  "N": 8888888888888n
 };
 
 const theory5 = {
@@ -429,8 +464,8 @@ function spinOnce(){
         let amt = prizeMap[mark];
         balance += amt;
         saveBalance();
-        appendHistory(`スロット当選：${mark} +${numberWithCommas(amt)} NZ`);
-        resultEl.textContent = `${mark} が揃った！ +${numberWithCommas(amt)} NZ を獲得`;
+        appendHistory(`スロット当選：${mark} +${numberWithCommasBig(amt)} NZ`);
+        resultEl.textContent = `${mark} が揃った！ +${numberWithCommasBig(amt)} NZ を獲得`;
         refreshUI();
         checkGameOver();
       } else {
@@ -472,9 +507,10 @@ document.getElementById('autoButton').addEventListener('click', toggleSlotAuto);
 
 /* ------------------ JANKEN (top) ------------------ */
 /* persistent balance */
-let balance = 10000;
-let staged = 0; // currently at stake
-let baseBet = 0;
+/* Use BigInt for balances to avoid exponential notation and preserve large integers */
+let balance = 10000n;
+let staged = 0n; // currently at stake (BigInt)
+let baseBet = 0n;
 let roundWins = 0;
 let awaitingStart = true;
 let challengeMode = null; // '10x' or '20x' or '888x' or null
@@ -505,11 +541,12 @@ const soundNakazawaWin = document.getElementById('soundNakazawaWin');
 const nakazawaOverlay = document.getElementById('nakazawaOverlay');
 const ruleToggle = document.getElementById('ruleToggle');
 const rulesBox = document.getElementById('rules');
+const headerRoot = document.getElementById('headerRoot');
 
 function refreshUI(){
-  balanceEl.textContent = numberWithCommas(balance);
-  stagedEl.textContent = numberWithCommas(staged);
-  tenBtn.classList.toggle('disabled', !(staged>0));
+  balanceEl.textContent = formatAmount(balance);
+  stagedEl.textContent = formatAmount(staged);
+  tenBtn.classList.toggle('disabled', !(staged>0n));
   lifeBtn.classList.toggle('disabled', !lifeAvailable);
   // nakazawa button state
   if(nakazawaUnlocked && !nakazawaUsed){
@@ -519,11 +556,18 @@ function refreshUI(){
     nakazawaBtn.classList.add('disabled');
     nakazawaBtn.disabled = true;
   }
-  // balance rainbow when >= 100000
-  if(balance >= 100000){
-    balanceEl.classList.add('balance-rainbow');
+  // remove any rainbow effect on balance (per request: always white)
+  balanceEl.classList.remove('balance-rainbow');
+
+  // Compact mode when numbers too large (e.g. length > 12)
+  const balLen = balance.toString().replace('-', '').length;
+  const stagedLen = staged.toString().replace('-', '').length;
+  if (balLen > 12 || stagedLen > 12) {
+    headerRoot.classList.add('compact');
+    balanceBox.classList.add('compact');
   } else {
-    balanceEl.classList.remove('balance-rainbow');
+    headerRoot.classList.remove('compact');
+    balanceBox.classList.remove('compact');
   }
 }
 function appendHistory(txt){
@@ -548,11 +592,10 @@ ruleToggle.addEventListener('click', ()=>{
 loadBalance();
 refreshUI();
 
-/* start/reset behavior: user requested no start button; auto-start when user clicks a hand and staged==0 */
 /* reset */
 resetBtn.addEventListener('click', ()=>{
   if(!confirm('リセットして残高10000に戻しますか？')) return;
-  balance = 10000; staged=0; baseBet=0; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false; nakazawaUsed=false;
+  balance = 10000n; staged=0n; baseBet=0n; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false; nakazawaUsed=false;
   saveBalance();
   historyDiv.innerHTML=''; resultLargeEl.textContent=''; appendHistory('リセット'); refreshUI();
 });
@@ -571,7 +614,6 @@ const HAND_IMAGES = {
 };
 
 function showEnemyReady(){
-  // show rock image during "ジャンケン..."
   enemyHandImg.src = HAND_IMAGES.rock;
 }
 function showEnemyFinalHand(randomHand){
@@ -590,9 +632,10 @@ choicesEl.addEventListener('click', async (e)=>{
   const player = el.dataset.hand;
 
   // Auto-start: if no staged and bet value present, take from balance
-  if(staged === 0){
-    const b = Math.max(1, Math.floor(Number(betInput.value)||0));
-    if(b<=0){ alert('ベットを入力してください'); return; }
+  if(staged === 0n){
+    const bNum = Math.max(1, Math.floor(Number(betInput.value)||0));
+    if(bNum<=0){ alert('ベットを入力してください'); return; }
+    const b = BigInt(bNum);
     if(b>balance){ alert('残高が足りません'); return; }
     baseBet = b;
     balance -= b;
@@ -605,11 +648,11 @@ choicesEl.addEventListener('click', async (e)=>{
     nakazawaUnlocked = false;
     nakazawaUsed = false;
     historyDiv.innerHTML = '';
-    appendHistory('自動スタート ベット: ' + numberWithCommas(b) + ' NZ');
+    appendHistory('自動スタート ベット: ' + numberWithCommasBig(b) + ' NZ');
     refreshUI();
   }
 
-  if(awaitingStart && staged<=0){ alert('ベットをしてから手を選んでください'); return; }
+  if(awaitingStart && staged<=0n){ alert('ベットをしてから手を選んでください'); return; }
 
   // start animation: show "ジャンケン..." and enemy ready (rock)
   jankenDisplay.textContent = 'じゃんけん...';
@@ -618,39 +661,36 @@ choicesEl.addEventListener('click', async (e)=>{
   showEnemyReady();
   await delay(1000);
   jankenDisplay.textContent = 'ポイ！';
-  // select enemy random hand
   const comp = randomHand();
   showEnemyFinalHand(comp);
   appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
-  await delay(200); // tiny pause so image updates
+  await delay(200);
   const res = judge(player, comp);
 
   // handle challenge mode (10x, 20x, 888x)
   if(challengeMode){
     if(res==='勝ち'){
       if(challengeMode==='10x'){
-        staged = staged * 10;
+        staged = staged * 10n;
         lifeAvailable = true; // unlock life (20x)
-        appendHistory('10倍チャレンジ成功！ 掛けが10倍に→ ' + numberWithCommas(staged) + ' NZ');
+        appendHistory('10倍チャレンジ成功！ 掛けが10倍に→ ' + numberWithCommasBig(staged) + ' NZ');
         resultLargeEl.textContent = '10倍成功！人生逆転(20x)が1回解放されました';
         try{ soundWin.play(); }catch(e){}
         showHalfButton(true);
       } else if(challengeMode==='20x'){
-        staged = staged * 20;
+        staged = staged * 20n;
         lifeAvailable = false;
         nakazawaUnlocked = true; // after 20x success, nakazawa available
-        appendHistory('人生逆転成功！ 掛けが20倍に→ ' + numberWithCommas(staged) + ' NZ');
+        appendHistory('人生逆転成功！ 掛けが20倍に→ ' + numberWithCommasBig(staged) + ' NZ');
         resultLargeEl.textContent = '人生逆転成功！ 中澤(888x)が解放されました（押すと中澤降臨）';
         try{ soundLife.play(); }catch(e){}
-        // log nakazawa unlock but do NOT play降臨 sound yet (user requested降臨 sound when pressing 888)
         appendHistory('中澤が解放されました（中澤ボタンを押すと降臨）');
         showHalfButton(true);
       } else if(challengeMode==='888x'){
         // Nakazawa challenge: win => staged *= 888 and trigger full-screen sequence
-        staged = staged * 888;
-        appendHistory('中澤に勝利！ 掛けが888倍に→ ' + numberWithCommas(staged) + ' NZ');
+        staged = staged * 888n;
+        appendHistory('中澤に勝利！ 掛けが888倍に→ ' + numberWithCommasBig(staged) + ' NZ');
         resultLargeEl.textContent = '中澤に勝利！数秒後に演出が始まります';
-        // mark used
         nakazawaUsed = true;
         // after 1s, play win sound and show overlay 6s
         setTimeout(()=>{
@@ -662,10 +702,9 @@ choicesEl.addEventListener('click', async (e)=>{
       challengeMode = null;
       refreshUI();
     } else {
-      // tie or lose both mean loss in challenges per rules
       appendHistory('チャレンジ失敗（あいこ/負け）：掛け没収');
       resultLargeEl.textContent = 'チャレンジ失敗.. 掛け没収';
-      staged = 0; baseBet = 0; awaitingStart = true; challengeMode = null; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
+      staged = 0n; baseBet = 0n; awaitingStart = true; challengeMode = null; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
       showHalfButton(false);
       refreshUI();
     }
@@ -674,17 +713,17 @@ choicesEl.addEventListener('click', async (e)=>{
 
   // normal round
   if(res==='勝ち'){
-    staged = staged * 2;
+    staged = staged * 2n;
     roundWins++;
     resultLargeEl.textContent = '勝ち！ 掛けが2倍になった';
     try{ soundWin.play(); }catch(e){}
-    showHalfButton(true); // per spec: every win shows half-bet
+    showHalfButton(true);
   } else if(res==='あいこ'){
     resultLargeEl.textContent = 'あいこ... 掛けはそのまま';
     showHalfButton(false);
   } else {
     resultLargeEl.textContent = '負け.. 掛け没収';
-    staged = 0; baseBet = 0; awaitingStart = true; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
+    staged = 0n; baseBet = 0n; awaitingStart = true; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
     showHalfButton(false);
   }
   refreshUI();
@@ -692,37 +731,35 @@ choicesEl.addEventListener('click', async (e)=>{
 
 /* challenge buttons */
 tenBtn.addEventListener('click', ()=>{
-  if(staged<=0) return;
+  if(staged<=0n) return;
   challengeMode = '10x';
   resultLargeEl.textContent = '10倍チャレンジを開始 — 手を選んでください';
   appendHistory('10倍チャレンジに挑戦！');
 });
 lifeBtn.addEventListener('click', ()=>{
-  if(!lifeAvailable || staged<=0) return;
+  if(!lifeAvailable || staged<=0n) return;
   challengeMode = '20x';
   resultLargeEl.textContent = '人生逆転（20x）を開始 — 手を選んでください';
   appendHistory('人生逆転（20x）に挑戦！');
 });
 nakazawaBtn.addEventListener('click', ()=>{
-  if(!nakazawaUnlocked || nakazawaUsed || staged<=0) return;
+  if(!nakazawaUnlocked || nakazawaUsed || staged<=0n) return;
   // pressing nakazawa triggers "降臨" sound and log, then enables 888 challenge
   appendHistory('中澤降臨');
   try{ soundNakazawaIn.play(); }catch(e){}
-  // unlock challenge mode when user next picks a hand
   challengeMode = '888x';
   resultLargeEl.textContent = '中澤（888x）チャレンジ開始 — 手を選んでください';
-  // visually mark button used after success/fail in handler
 });
 
 /* half-bet button: split staged into two: half to balance (bank), half remains as staged */
 halfBtn.addEventListener('click', ()=>{
-  if(staged <= 0) return;
-  const half = Math.floor(staged/2);
-  if(half <= 0) return alert('掛けが小さすぎて半分賭けられません');
+  if(staged <= 0n) return;
+  const half = staged / 2n;
+  if(half <= 0n) return alert('掛けが小さすぎて半分賭けられません');
   balance += half;
   staged = staged - half;
   saveBalance();
-  appendHistory('半分賭ける：' + numberWithCommas(half) + ' NZ を残高へ、残り ' + numberWithCommas(staged) + ' NZ を掛けに維持');
+  appendHistory('半分賭ける：' + numberWithCommasBig(half) + ' NZ を残高へ、残り ' + numberWithCommasBig(staged) + ' NZ を掛けに維持');
   resultLargeEl.textContent = '半分を出金しました';
   showHalfButton(false);
   refreshUI();
@@ -731,10 +768,10 @@ halfBtn.addEventListener('click', ()=>{
 
 /* cashout */
 cashoutBtn.addEventListener('click', ()=>{
-  if(staged<=0) return alert('回収できる掛けがありません');
+  if(staged<=0n) return alert('回収できる掛けがありません');
   balance += staged;
-  appendHistory('回収: ' + numberWithCommas(staged) + ' NZ を残高へ');
-  staged = 0; baseBet=0; awaitingStart = true; roundWins=0; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false;
+  appendHistory('回収: ' + numberWithCommasBig(staged) + ' NZ を残高へ');
+  staged = 0n; baseBet=0n; awaitingStart = true; roundWins=0; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false;
   saveBalance();
   showHalfButton(false);
   refreshUI();
@@ -744,7 +781,6 @@ cashoutBtn.addEventListener('click', ()=>{
 /* nakazawa overlay show/hide */
 function showNakazawaOverlay(){
   nakazawaOverlay.style.display = 'flex';
-  // for accessibility on mobile, center and allow wrapping
   setTimeout(()=>{ nakazawaOverlay.style.display = 'none'; }, 6000); // 6 seconds
 }
 
