@@ -1,680 +1,843 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NAKAZAWA Casino — スロット & 人生逆転ジャンケン</title>
-<style>
-:root{
-  --bg:#0f0016;
-  --panel:#1f0b1f;
-  --accent:#9b59ff;
-  --neon:#00ffcc;
-  --gold:#ffdc7a;
-  --back-purple:#6b3cff;
-  --maruyama-red: #ff0000; /* 丸山チャレンジのボタン色を定義 */
-  --rule-purple: #6a00ff;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background: radial-gradient(circle at 10% 10%, #2a003a 0%, var(--bg) 40%), #000;
-  color:#fff;
-  font-family: "Segoe UI", Meiryo, "Hiragino Kaku Gothic ProN", sans-serif;
-  min-height:100vh;
-  padding:20px;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-}
-.container{width:100%;max-width:980px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.title{
-  font-size:40px;font-weight:800;
-  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
-  background-size:800%;
-  -webkit-background-clip:text;color:transparent;
-  animation:moveRainbow 15s linear infinite;
-}
-@keyframes moveRainbow{0%{background-position:0%}100%{background-position:-800%}}
-.header.compact{flex-direction:column-reverse;align-items:flex-start;}
-.header.compact .title{font-size:28px}
-.balanceBox{
-  border:1px solid rgba(0,0,0,0.6);
-  background:rgba(0,0,0,0.6);
-  padding:6px 10px;
-  border-radius:8px;
-  min-width:140px;
-  text-align:center;
-}
-.balanceBox .label{font-size:12px;color:#ddd}
-.balanceBox .amount{font-weight:800;font-size:16px;color:#fff;display:block}
-.balanceBox.compact .amount{font-size:12px; font-weight:700}
-.section{margin-top:18px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.03)}
-.section h2{margin:0 0 8px 0}
-.jankenControls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-input[type=number]{width:200px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0f0710;color:#fff;font-size:14px}
-button.primary{padding:10px 14px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(111,60,255,0.14);transition:all .15s}
-button.primary:hover{background:var(--accent);color:#120018}
-.jankenDisplay{height:60px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:#08040a;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-.rules{margin-top:8px;font-size:14px;color:#ddd;line-height:1.5}
-#enemyArea{display:flex;flex-direction:column;align-items:center;margin-top:10px}
-#enemyHand{width:120px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#050308;padding:6px}
-.choices{display:flex;gap:12px;justify-content:center;margin-top:12px;flex-direction:row;}
-.choice{width:110px;height:82px;border-radius:12px;background:#0b0610;border:2px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s, box-shadow .12s;}
-.choice img{max-width:100%;max-height:100%;object-fit:contain}
-.choice:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(155,89,255,0.12)}
-.actionRow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
-.option{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;cursor:pointer}
-.option.disabled{opacity:0.35;cursor:not-allowed}
-#halfBtn{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#2b1b3a;color:#fff;cursor:pointer;}
-#nakazawaBtn{padding:8px 12px;border-radius:8px;border:2px solid #ff99ff;background:linear-gradient(90deg,#7a2bff33,#ff66ff11);color:#ff99ff;font-weight:800;cursor:pointer;}
-#nakazawaBtn.disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
-#maruyamaBtn{padding:8px 12px;border-radius:8px;border:2px solid var(--maruyama-red);background:linear-gradient(90deg,rgba(255,0,0,0.15),rgba(255,0,0,0.06));color:var(--maruyama-red);font-weight:800;cursor:pointer;}
-#maruyamaBtn.disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
-#bet000Btn{
-  background:var(--rule-purple);
-  color:#fff;
-  width:60px;
-  padding:6px 0;
-  border-radius:8px;
-  border:none;
-  cursor:pointer;
-  font-weight:700;
-  text-align:center;
-  flex-shrink:0;
-}
-#nakazawaOverlay{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:9999;}
-#nakazawaOverlay .inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;animation:blinkRainbow 0.5s linear infinite;}
-@keyframes blinkRainbow{0%{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet)}50%{background:linear-gradient(90deg,violet,blue,cyan,green,yellow,orange,red)}100%{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet)}}
-#nakazawaOverlay .inner span{font-size:64px;font-weight:900;color:black;padding:6px 12px;border-radius:8px}
-#maruyamaOverlay{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:9999;}
-#maruyamaOverlay.setup .inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;animation:blinkBlackWhite 0.1s linear infinite;}
-@keyframes blinkBlackWhite{0%{background-color:black}50%{background-color:white}100%{background-color:black}}
-#maruyamaOverlay.setup .inner span{font-size:64px;font-weight:900;color:var(--maruyama-red);padding:6px 12px;border-radius:8px}
-#maruyamaOverlay.victory .inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;animation:blinkMaruyamaVictory 0.05s linear infinite;}
-@keyframes blinkMaruyamaVictory{0%{background:white}33%{background:black}66%{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet)}100%{background:white}}
-#maruyamaOverlay.victory .inner span{font-size:64px;font-weight:900;animation:blinkMaruyamaText 0.1s linear infinite;padding:6px 12px;border-radius:8px;}
-@keyframes blinkMaruyamaText{0%{color:black}50%{color:white}100%{color:black}}
-.resultLarge{font-size:20px;font-weight:800;text-align:center;margin-top:12px;color:#fff}
-.history{max-height:160px;overflow:auto;padding:8px;background:rgba(0,0,0,0.25);border-radius:8px;margin-top:12px}
-.history::-webkit-scrollbar{width:8px;height:8px}
-.history::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:8px}
-.cashout{margin-top:10px;display:flex;justify-content:center}
-.cashout button{padding:10px 18px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
-#slotArea{margin-top:20px}
-#slotControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-#slotContainer{margin-top:12px;max-height:300px;overflow-y:auto;padding:8px;border-radius:8px;background:#050308;border:1px solid rgba(255,255,255,0.03)}
-.slotRow{display:flex;justify-content:center;margin-bottom:6px}
-.slotCell{width:60px;height:60px;border:2px solid white;margin:3px;display:flex;justify-content:center;align-items:center;font-size:26px;background:#111}
-.neonBtn{padding:10px 14px;border-radius:12px;border:2px solid rgba(0,255,204,0.8);background:linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2));color:var(--neon);font-weight:800;cursor:pointer;box-shadow:0 6px 26px rgba(0,255,204,0.08);transition:transform .12s, box-shadow .12s, background .12s;}
-.neonBtn:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,255,204,0.18);background:rgba(0,255,204,0.06);}
-.rainbowPrizeTitle{font-size:20px;font-weight:800;margin-top:12px;text-align:center;background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);background-size:600%;-webkit-background-clip:text;color:transparent;animation:prizeMove 6s linear infinite;}
-.rainbowPrize{font-size:16px;text-align:center;margin-top:6px;background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);background-size:600%;-webkit-background-clip:text;color:transparent;animation:prizeMove 6s linear infinite;}
-@keyframes prizeMove{0%{background-position:0%}100%{background-position:-600%}}
-@media(max-width:740px){
-  .header{width: 100%;display: flex;flex-direction: column;align-items: center;justify-content: center;gap: 4px;}
-  .title{font-size: 32px;text-align: center;width: 100%;}
-  .balanceBox{width: 100%;max-width: 240px;text-align: center;}
-  .header.compact{flex-direction: column;align-items: center;}
-  .header.compact .title{font-size:28px;}
-  .choice{width: 80px;height: 64px;}
-  .actionRow{justify-content: center;flex-wrap: wrap;}
-  #bet000Btn{width:60px !important;flex-shrink:0 !important;}
-  input[type=number]{ width: 60%; max-width:260px; }
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NAKAZAWA Casino — スロット & 人生逆転ジャンケン</title>
+  <style>
+    :root {
+      --bg: #0f0016;
+      --panel: #1f0b1f;
+      --accent: #9b59ff;
+      --neon: #00ffcc;
+      --gold: #ffdc7a;
+      --maruyama-red: #ff0000;
+      --rule-purple: #6a00ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 10% 10%, #2a003a 0%, var(--bg) 40%), #000;
+      color: #fff;
+      font-family: "Segoe UI", Meiryo, "Hiragino Kaku Gothic ProN", sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .container {
+      width: 100%;
+      max-width: 980px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .title {
+      font-size: 40px;
+      font-weight: 800;
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      background-size: 800%;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: moveRainbow 15s linear infinite;
+    }
+    @keyframes moveRainbow { 0% { background-position: 0% } 100% { background-position: -800% } }
+
+    .header.compact { flex-direction: column-reverse; align-items: flex-start; }
+    .header.compact .title { font-size: 28px; }
+
+    .balanceBox {
+      border: 1px solid rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.6);
+      padding: 6px 10px;
+      border-radius: 8px;
+      min-width: 140px;
+      text-align: center;
+      /* 動的に font-size を変えるので初期値は制限なし */
+    }
+    .balanceBox .label { font-size: 12px; color: #ddd; }
+    .balanceBox .amount {
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      display: block;
+      white-space: nowrap;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .section h2 { margin: 0 0 8px 0; }
+
+    .jankenControls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type=number] {
+      width: 200px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: #0f0710;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    button.primary { padding: 10px 14px; border-radius: 10px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgba(111,60,255,0.14); transition: all .15s; }
+    button.primary:hover { background: var(--accent); color: #120018; }
+
+    .jankenDisplay {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      background: #08040a;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .rules { margin-top: 8px; font-size: 14px; color: #ddd; line-height: 1.5; }
+
+    #enemyArea { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
+    #enemyHand { width: 120px; height: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04); background: #050308; padding: 6px; }
+
+    .choices {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 12px;
+      flex-direction: row;
+    }
+    .choice {
+      width: 110px;
+      height: 82px;
+      border-radius: 12px;
+      background: #0b0610;
+      border: 2px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .12s;
+    }
+    .choice img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .choice:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(155,89,255,0.12); }
+
+    .actionRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .option {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+    }
+    .option.disabled { opacity: 0.35; cursor: not-allowed; }
+
+    #halfBtn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: #2b1b3a;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #nakazawaBtn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid #ff99ff;
+      background: linear-gradient(90deg, #7a2bff33, #ff66ff11);
+      color: #ff99ff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    #nakazawaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    #maruyamaBtn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid var(--maruyama-red);
+      background: linear-gradient(90deg, rgba(255,0,0,0.15), rgba(255,0,0,0.06));
+      color: var(--maruyama-red);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    #maruyamaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    #bet000Btn {
+      background: var(--rule-purple);
+      color: #fff;
+      width: 60px;
+      padding: 6px 0;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    #nakazawaOverlay {
+      position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    #nakazawaOverlay .inner {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      animation: blinkRainbow 0.5s linear infinite;
+    }
+    @keyframes blinkRainbow {
+      0% { background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet); }
+      50% { background: linear-gradient(90deg, violet, blue, cyan, green, yellow, orange, red); }
+      100% { background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet); }
+    }
+    #nakazawaOverlay .inner span {
+      font-size: 64px;
+      font-weight: 900;
+      color: black;
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    #maruyamaOverlay {
+      position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    #maruyamaOverlay.setup .inner {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      animation: blinkBlackWhite 0.1s linear infinite;
+    }
+    @keyframes blinkBlackWhite {
+      0% { background-color: black; }
+      50% { background-color: white; }
+      100% { background-color: black; }
+    }
+    #maruyamaOverlay.setup .inner span {
+      font-size: 64px; font-weight: 900; color: var(--maruyama-red); padding: 6px 12px; border-radius: 8px;
+    }
+    #maruyamaOverlay.victory .inner {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      animation: blinkMaruyamaVictory 0.05s linear infinite;
+    }
+    @keyframes blinkMaruyamaVictory {
+      0% { background: white; }
+      33% { background: black; }
+      66% { background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet); }
+      100% { background: white; }
+    }
+    #maruyamaOverlay.victory .inner span {
+      font-size: 64px; font-weight: 900; animation: blinkMaruyamaText 0.1s linear infinite; padding: 6px 12px; border-radius: 8px;
+    }
+    @keyframes blinkMaruyamaText {
+      0% { color: black; }
+      50% { color: white; }
+      100% { color: black; }
+    }
+
+    .resultLarge { font-size: 20px; font-weight: 800; text-align: center; margin-top: 12px; color: #fff; }
+    .history { max-height: 160px; overflow: auto; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-top: 12px; }
+    .history::-webkit-scrollbar { width: 8px; height: 8px; }
+    .history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; }
+
+    .cashout { margin-top: 10px; display: flex; justify-content: center; }
+    .cashout button { padding: 10px 18px; border-radius: 12px; border: 2px solid var(--gold); background: transparent; color: var(--gold); cursor: pointer; }
+
+    #slotArea { margin-top: 20px; }
+    #slotControls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #slotContainer { margin-top: 12px; max-height: 300px; overflow-y: auto; padding: 8px; border-radius: 8px; background: #050308; border: 1px solid rgba(255,255,255,0.03); }
+    .slotRow { display: flex; justify-content: center; margin-bottom: 6px; }
+    .slotCell { width: 60px; height: 60px; border: 2px solid white; margin: 3px; display: flex; justify-content: center; align-items: center; font-size: 26px; background: #111; }
+
+    .neonBtn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid rgba(0,255,204,0.8);
+      background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2));
+      color: var(--neon);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 26px rgba(0,255,204,0.08);
+      transition: transform .12s, box-shadow .12s, background .12s;
+    }
+    .neonBtn:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,255,204,0.18); background: rgba(0,255,204,0.06); }
+
+    .rainbowPrizeTitle {
+      font-size: 20px; font-weight: 800; margin-top: 12px; text-align: center;
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      background-size: 600%;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: prizeMove 6s linear infinite;
+    }
+    .rainbowPrize {
+      font-size: 16px; text-align: center; margin-top: 6px;
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      background-size: 600%;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: prizeMove 6s linear infinite;
+    }
+    @keyframes prizeMove { 0% { background-position: 0% } 100% { background-position: -600% } }
+
+    @media (max-width: 740px) {
+      .header { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+      .title { font-size: 32px; text-align: center; width: 100%; }
+      .balanceBox { width: 100%; max-width: 240px; text-align: center; }
+      .header.compact { flex-direction: column; align-items: center; }
+      .header.compact .title { font-size: 28px; }
+      .choice { width: 80px; height: 64px; }
+      .actionRow { justify-content: center; flex-wrap: wrap; }
+      #bet000Btn { width: 60px !important; flex-shrink: 0 !important; }
+      input[type=number] { width: 60%; max-width: 260px; }
+    }
+  </style>
+  <script>
+    // スマホで残高 / staged が長すぎたら文字サイズを縮小するヘルパー
+    function adjustBalanceStagedFont() {
+      const balanceEl = document.querySelector('.balanceBox .amount');
+      const stagedEl = document.getElementById('staged');
+      [balanceEl, stagedEl].forEach(el => {
+        if (!el) return;
+        let fontSize = 16; // 初期想定
+        el.style.fontSize = fontSize + 'px';
+        // 親の幅を取得
+        const parentWidth = el.parentElement.clientWidth;
+        // はみ出すかどうか
+        while (el.scrollWidth > parentWidth && fontSize > 8) {
+          fontSize -= 1;
+          el.style.fontSize = fontSize + 'px';
+        }
+      });
+    }
+  </script>
 </head>
 <body>
-<div class="container">
-
+  <div class="container">
     <div class="header" id="headerRoot">
-    <div class="title">NAKAZAWACasino</div>
-    <div class="balanceBox" id="balanceBox">
-      <div class="label">残高</div>
-      <div class="amount" id="balance">10,000</div>
-    </div>
-  </div>
-
-    <div id="jankenArea" class="section">
-    <h2>人生逆転ジャンケン</h2>
-
-        <div class="jankenControls">
-  <label>BET:</label>
-  <input id="betInput" type="number" min="1" value="100" step="1">
-  <!-- 000ボタン -->
-  <button id="bet000Btn" title="ベットに000を追加">000</button>
-          </div>
-
-    <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
-      WIN BET： <strong id="staged">0</strong> NZ
-      <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>     </div>
-
-    <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
-
-        <div id="enemyArea">
-    <div style="color:#ccc;font-size:13px">相手の手</div>
-    <img id="enemyHand" src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="相手の手">
-    </div>
-
-    <div class="choices" id="choices">
-      <div class="choice" data-hand="rock" title="グー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="グー"></div>
-      <div class="choice" data-hand="scissors" title="チョキ"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png" alt="チョキ"></div>
-      <div class="choice" data-hand="paper" title="パー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png" alt="パー"></div>
-    </div>
-
-    <div class="actionRow">
-      <button id="tenX" class="option">10倍チャレンジ</button>
-      <button id="lifeX" class="option disabled">人生逆転（20x）</button>
-      <button id="nakazawaBtn" class="option disabled">中澤（888x）</button>
-      <button id="maruyamaBtn" class="option disabled">丸山（7777777x）</button>       <button id="halfBtn" style="display:none">半分賭ける（半分出金）</button>
-    </div>
-
-    <div class="resultLarge" id="resultLarge"></div>
-
-    <div class="cashout"><button id="cashoutBtn">ここでやめる（回収）</button></div>
-
-    <div class="history" id="history"></div>
-    <div class="rule-row" style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px;">
-
-    <button id="ruleToggle" class="rule-toggle-btn"
-      style="padding:8px 12px;border-radius:8px;background:var(--rule-purple);border:none;color:white;cursor:pointer">
-      ルールを見る
-    </button>
-
-    <button id="resetBtn" class="primary"
-      style="padding:8px 12px;border-radius:8px;background:#ff0077;border:none;color:white;cursor:pointer">
-      リセット
-    </button>
-
-</div>
-
-<div class="rules" id="rules"
-  style="max-height:0;overflow:hidden;margin-top:8px;border-radius:8px;border:1px solid rgba(107,60,255,0.18)">
-  <div style="padding:0 12px; color:#ddd">
-    ルール：ベットを入力して、掛けが0のときに手を選ぶと自動でベットを掛けます（自動スタート）。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。勝利後は「半分出金」「10倍チャレンジ」を選べます。10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。人生逆転成功後に「中澤（888x）」が一度だけ解放されます（解放時に中澤降臨）。中澤成功後に「丸山（7777777x）」が一度だけ解放されます（解放時に丸山降臨）。チャレンジであいこ・負けは掛け没収。いつでも「ここでやめる」で掛けを回収。残高はこの端末に保存されます。
-  </div>
-</div>
-
-
-    <div id="slotArea" class="section">
-    <h2>中澤スロット</h2>
-
-    <div id="slotControls">
-      <button id="startButton" class="neonBtn">スロット開始</button>
-      <button id="autoButton" class="neonBtn">自動 ON/OFF</button>
-      <button id="plusButton" class="neonBtn">効率 ＋</button>
-      <button id="minusButton" class="neonBtn">効率 －</button>
-
-      <div style="margin-left:10px">
-        速度(ms)：<input type="number" id="speed" value="50" min="0" max="1000" style="font-size:14px;width:100px;">
+      <div class="title">NAKAZAWACasino</div>
+      <div class="balanceBox" id="balanceBox">
+        <div class="label">残高</div>
+        <div class="amount" id="balance">10,000</div>
       </div>
     </div>
 
-    <div id="totalSpinDisplay" style="margin-top:8px">総スピン数：0</div>
-    <div id="slotContainer"></div>
+    <div id="jankenArea" class="section">
+      <h2>人生逆転ジャンケン</h2>
+      <div class="jankenControls">
+        <label>BET:</label>
+        <input id="betInput" type="number" min="1" value="100" step="1">
+        <button id="bet000Btn" title="ベットに000を追加">000</button>
+      </div>
 
-    <div id="result" style="margin-top:12px;font-size:16px;"></div>
-    <div id="stats" style="margin-top:10px;font-size:13px;"></div>
+      <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
+        WIN BET： <strong id="staged">0</strong> NZ
+        <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>
+      </div>
 
-        <div class="rainbowPrizeTitle">スロット当選額一覧</div>
-    <div class="rainbowPrize">緑：+1 NZ</div>
-    <div class="rainbowPrize">黄：+5 NZ</div>
-    <div class="rainbowPrize">紫：+100 NZ</div>
-    <div class="rainbowPrize">7：+1,000,000 NZ</div>
-    <div class="rainbowPrize">N：+8,888,888,888,888 NZ</div>
-  </div>
+      <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
+      <div id="enemyArea">
+        <div style="color:#ccc;font-size:13px">相手の手</div>
+        <img id="enemyHand" src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="相手の手">
+      </div>
+
+      <div class="choices" id="choices">
+        <div class="choice" data-hand="rock" title="グー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png" alt="グー"></div>
+        <div class="choice" data-hand="scissors" title="チョキ"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png" alt="チョキ"></div>
+        <div class="choice" data-hand="paper" title="パー"><img src="https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png" alt="パー"></div>
+      </div>
+
+      <div class="actionRow">
+        <button id="tenX" class="option">10倍チャレンジ</button>
+        <button id="lifeX" class="option disabled">人生逆転（20x）</button>
+        <button id="nakazawaBtn" class="option disabled">中澤（888x）</button>
+        <button id="maruyamaBtn" class="option disabled">丸山（7777777x）</button>
+        <button id="halfBtn" style="display:none">半分賭ける（半分出金）</button>
+      </div>
+
+      <div class="resultLarge" id="resultLarge"></div>
+      <div class="cashout"><button id="cashoutBtn">ここでやめる（回収）</button></div>
+      <div class="history" id="history"></div>
+
+      <div class="rule-row" style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px;">
+        <button id="ruleToggle" class="rule-toggle-btn" style="padding:8px 12px;border-radius:8px;background:var(--rule-purple);border:none;color:white;cursor:pointer">ルールを見る</button>
+        <button id="resetBtn" class="primary" style="padding:8px 12px;border-radius:8px;background:#ff0077;border:none;color:white;cursor:pointer">リセット</button>
+      </div>
+
+      <div class="rules" id="rules" style="max-height:0;overflow:hidden;margin-top:8px;border-radius:8px;border:1px solid rgba(107,60,255,0.18)">
+        <div style="padding:0 12px; color:#ddd">
+          ルール：ベットを入力して、掛けが0のときに手を選ぶと自動でベットを掛けます（自動スタート）。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。勝利後は「半分出金」「10倍チャレンジ」を選べます。10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。人生逆転成功後に「中澤（888x）」が一度だけ解放されます（押すと中澤降臨）。中澤成功後に「丸山（7777777x）」が解放されます（丸山降臨）。チャレンジであいこ・負けは掛け没収。いつでも「ここでやめる」で掛けを回収。残高はこの端末に保存されます。
+        </div>
+      </div>
+
+    </div>
+
+    <!-- スロット部分は省略せず元通り -->
+    <div id="slotArea" class="section">
+      <h2>中澤スロット</h2>
+      <div id="slotControls">
+        <button id="startButton" class="neonBtn">スロット開始</button>
+        <button id="autoButton" class="neonBtn">自動 ON/OFF</button>
+        <button id="plusButton" class="neonBtn">効率 ＋</button>
+        <button id="minusButton" class="neonBtn">効率 －</button>
+        <div style="margin-left:10px">
+          速度(ms)：<input type="number" id="speed" value="50" min="0" max="1000" style="font-size:14px;width:100px;">
+        </div>
+      </div>
+      <div id="totalSpinDisplay" style="margin-top:8px">総スピン数：0</div>
+      <div id="slotContainer"></div>
+      <div id="result" style="margin-top:12px;font-size:16px;"></div>
+      <div id="stats" style="margin-top:10px;font-size:13px;"></div>
+
+      <div class="rainbowPrizeTitle">スロット当選額一覧</div>
+      <div class="rainbowPrize">緑：+1 NZ</div>
+      <div class="rainbowPrize">黄：+5 NZ</div>
+      <div class="rainbowPrize">紫：+100 NZ</div>
+      <div class="rainbowPrize">7：+1,000,000 NZ</div>
+      <div class="rainbowPrize">N：+8,888,888,888,888 NZ</div>
+    </div>
 
     <div class="backWrap">
-    <a class="backBtn" href="index.html">Nakazawaaaaaaaaaa.com に戻る</a>
+      <a class="backBtn" href="index.html">Nakazawaaaaaaaaaa.com に戻る</a>
+    </div>
+
   </div>
 
-</div>
+  <div id="nakazawaOverlay"><div class="inner"><span id="nakazawaOverlayText">中澤 に 勝利</span></div></div>
+  <div id="maruyamaOverlay"><div class="inner"><span id="maruyamaOverlayText">丸山 降臨</span></div></div>
 
-<div id="nakazawaOverlay"><div class="inner"><span id="nakazawaOverlayText">中澤 に 勝利</span></div></div>
+  <audio id="soundWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/sgaro2_02.mp3"></audio>
+  <audio id="soundLife" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gt_02.mp3"></audio>
+  <audio id="soundNakazawaIn" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_02.mp3"></audio>
+  <audio id="soundNakazawaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_04.mp3"></audio>
+  <audio id="soundMaruyamaIn" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_goldstorm_06.mp3"></audio>
+  <audio id="soundMaruyamaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gi_04.mp3"></audio>
 
-<div id="maruyamaOverlay"><div class="inner"><span id="maruyamaOverlayText">丸山 降臨</span></div></div>
-
-
-<audio id="soundWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/sgaro2_02.mp3"></audio>
-<audio id="soundLife" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gt_02.mp3"></audio>
-<audio id="soundNakazawaIn" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_02.mp3"></audio>
-<audio id="soundNakazawaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo12_04.mp3"></audio>
-<audio id="soundMaruyamaIn" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_goldstorm_06.mp3"></audio>
-<audio id="soundMaruyamaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gi_04.mp3"></audio>
-
-<script>
-/* ------------------ utility ------------------ */
-function numberWithCommasBig(x){
-  if (typeof x === 'bigint') {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  if (typeof x === 'number') {
-    if (!isFinite(x)) return String(x);
-    const s = Math.floor(x).toString();
-    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-function formatAmount(val){
-  if (typeof val === 'bigint') return numberWithCommasBig(val);
-  if (typeof val === 'number') {
-    if (Number.isSafeInteger(val)) return numberWithCommasBig(Math.floor(val));
-    const s = Math.floor(val).toString();
-    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  return String(val);
-}
-
-function saveBalance(){ try{ localStorage.setItem('nakazawa_balance_v1', String(balance)); }catch(e){} }
-function loadBalance(){
-  try{
-    const v = localStorage.getItem('nakazawa_balance_v1');
-    if(v!==null){
-      try{
-        balance = BigInt(v);
-      }catch(e){
-        balance = Math.floor(Number(v)) || 10000;
-        balance = BigInt(balance);
+  <script>
+    function numberWithCommasBig(x){
+      if (typeof x === 'bigint') {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       }
-    } else {
-      balance = 10000n;
-      saveBalance();
+      if (typeof x === 'number') {
+        if (!isFinite(x)) return String(x);
+        const s = Math.floor(x).toString();
+        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+      return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
-  }catch(e){
-    balance = 10000n;
-  }
-  try{
-    const m = localStorage.getItem('maruyama_unlocked');
-    const u = localStorage.getItem('maruyama_used');
-    maruyamaUnlocked = m === 'true';
-    maruyamaUsed = u === 'true';
-  } catch(e) {
-    maruyamaUnlocked = false;
-    maruyamaUsed = false;
-  }
-}
-function saveMaruyamaState(){
-  try{
-    localStorage.setItem('maruyama_unlocked', maruyamaUnlocked.toString());
-    localStorage.setItem('maruyama_used', maruyamaUsed.toString());
-  } catch(e){}
-}
+    function formatAmount(val){
+      if (typeof val === 'bigint') return numberWithCommasBig(val);
+      if (typeof val === 'number') {
+        if (Number.isSafeInteger(val)) return numberWithCommasBig(Math.floor(val));
+        const s = Math.floor(val).toString();
+        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+      return String(val);
+    }
 
-function checkGameOver(){
-  if(typeof balance !== 'bigint') return;
-  if(balance <= 0n){
-    alert('GAME OVER — 残高が 0 になりました。残高を 10,000 NZ にリセットします。');
-    balance = 10000n;
-    saveBalance();
-    staged = 0n;
-    baseBet = 0n;
-    awaitingStart = true;
-    roundWins = 0;
-    lifeAvailable = false;
-    challengeMode = null;
-    nakazawaUnlocked = false;
-    nakazawaUsed = false;
-    maruyamaUnlocked = false;
-    maruyamaUsed = false;
-    saveMaruyamaState();
-    appendHistory('GAME OVER: 自動リセット（残高 10,000）');
-    refreshUI();
-  }
-}
+    function saveBalance(){ try{ localStorage.setItem('nakazawa_balance_v1', String(balance)); }catch(e){} }
+    function loadBalance(){
+      try{
+        const v = localStorage.getItem('nakazawa_balance_v1');
+        if(v!==null){
+          try{
+            balance = BigInt(v);
+          }catch(e){
+            balance = BigInt(Math.floor(Number(v)));
+          }
+        } else {
+          balance = 10000n;
+        }
+      }catch(e){
+        balance = 10000n;
+      }
+      try{
+        const m = localStorage.getItem('maruyama_unlocked');
+        const u = localStorage.getItem('maruyama_used');
+        maruyamaUnlocked = m === 'true';
+        maruyamaUsed = u === 'true';
+      } catch(e) {
+        maruyamaUnlocked = false;
+        maruyamaUsed = false;
+      }
+    }
+    function saveMaruyamaState(){
+      try{
+        localStorage.setItem('maruyama_unlocked', maruyamaUnlocked.toString());
+        localStorage.setItem('maruyama_used', maruyamaUsed.toString());
+      } catch(e){}
+    }
 
-/* ------------------ slot etc (unchanged) ------------------ */
-const probs = [
-  { mark:"赤", p:0.50, color:"red" },
-  { mark:"青", p:0.20, color:"cyan" },
-  { mark:"緑", p:0.10, color:"lime" },
-  { mark:"黄", p:0.05, color:"yellow" },
-  { mark:"紫", p:0.03, color:"violet" },
-  { mark:"7",  p:1/300, color:"white" },
-  { mark:"N",  p:1/1000, color:"gray" },
-  { mark:"外れ", p: 1-(0.50+0.20+0.10+0.05+0.03+1/300+1/1000), color:"black" }
-];
-const prizeMap = {"緑":1n,"黄":5n,"紫":100n,"7":1000000n,"N":8888888888888n};
-const theory5 = {"赤":5.794374,"青":0.05933439,"緑":0.00185420,"黄":0.00005794,"紫":0.00000450,"7":0.00000004115226,"N":0.0000000001};
-const showOrder = ["赤","青","緑","黄","紫","7","N"];
-let count = { "赤":0, "青":0, "緑":0, "黄":0, "紫":0, "7":0, "N":0 };
-let totalSpin = 0;
-let slotAuto = null;
-let slotRows = [];
-function pick(){ let r=Math.random(),acc=0; for(let o of probs){acc+=o.p; if(r<=acc) return o;} return probs[probs.length-1]; }
-function addRow(){ let rowDiv=document.createElement("div"); rowDiv.className="slotRow"; let cells=[]; for(let i=1;i<=5;i++){let c=document.createElement("div");c.className="slotCell";c.textContent="？";rowDiv.appendChild(c);cells.push(c);} document.getElementById('slotContainer').insertBefore(rowDiv, document.getElementById('slotContainer').firstChild); slotRows.unshift({div:rowDiv,cells:cells}); }
-function removeRow(){ if(slotRows.length<=1) return; let last=slotRows.shift(); document.getElementById('slotContainer').removeChild(last.div); }
-function spinOnce(){ totalSpin+=slotRows.length; document.getElementById('totalSpinDisplay').textContent="総スピン数：" + totalSpin; slotRows.forEach(row=>{let res=[]; row.cells.forEach(cell=>{let o=pick(); cell.textContent=o.mark; cell.style.color=o.color; res.push(o.mark);}); if(res.every(v=>v===res[0])){ count[res[0]]++; const resultEl=document.getElementById('result'); let mark=res[0]; if(prizeMap[mark]){ let amt=prizeMap[mark]; balance+=amt; saveBalance(); appendHistory(`スロット当選：${mark} +${numberWithCommasBig(amt)} NZ`); resultEl.textContent=`${mark} が揃った！ +${numberWithCommasBig(amt)} NZ を獲得`; refreshUI(); checkGameOver(); } else { resultEl.textContent=`当たり：${mark}`; } } }); updateStats(); }
-function toggleSlotAuto(){ if(slotAuto){ cancelAnimationFrame(slotAuto); clearInterval(slotAuto); slotAuto=null; return; } let sp=Number(document.getElementById('speed').value); if(sp===0){ function loop(){ spinOnce(); slotAuto=requestAnimationFrame(loop);} slotAuto=requestAnimationFrame(loop); return; } if(sp<1) sp=1; slotAuto=setInterval(spinOnce, sp); }
-function updateStats(){ let out="<div style='font-size:15px;margin-bottom:6px;'>揃いカウンター</div>"; for(let key of showOrder){ out += `<div style="margin-bottom:4px;color:${probs.find(o=>o.mark===key).color};font-weight:700;"> ${key}： ${count[key]}回 （5個揃う確率： ${theory5[key]}%） </div>`; } document.getElementById('stats').innerHTML = out; }
-addRow();
-document.getElementById('plusButton').addEventListener('click', addRow);
-document.getElementById('minusButton').addEventListener('click', removeRow);
-document.getElementById('startButton').addEventListener('click', spinOnce);
-document.getElementById('autoButton').addEventListener('click', toggleSlotAuto);
-
-/* ------------------ JANKEN ------------------ */
-let balance = 10000n;
-let staged = 0n;
-let baseBet = 0n;
-let roundWins = 0;
-let awaitingStart = true;
-let challengeMode = null; // '10x','20x','888x','7777777x'
-let lifeAvailable = false;
-let nakazawaUnlocked = false;
-let nakazawaUsed = false;
-let maruyamaUnlocked = false;
-let maruyamaUsed = false;
-
-const balanceEl = document.getElementById('balance');
-const balanceBox = document.getElementById('balanceBox');
-const betInput = document.getElementById('betInput');
-const resetBtn = document.getElementById('resetBtn');
-const stagedEl = document.getElementById('staged');
-const choicesEl = document.getElementById('choices');
-const jankenDisplay = document.getElementById('jankenDisplay');
-const enemyHandImg = document.getElementById('enemyHand');
-const historyDiv = document.getElementById('history');
-const tenBtn = document.getElementById('tenX');
-const lifeBtn = document.getElementById('lifeX');
-const nakazawaBtn = document.getElementById('nakazawaBtn');
-const maruyamaBtn = document.getElementById('maruyamaBtn');
-const halfBtn = document.getElementById('halfBtn');
-const resultLargeEl = document.getElementById('resultLarge');
-const cashoutBtn = document.getElementById('cashoutBtn');
-const soundWin = document.getElementById('soundWin');
-const soundLife = document.getElementById('soundLife');
-const soundNakazawaIn = document.getElementById('soundNakazawaIn');
-const soundNakazawaWin = document.getElementById('soundNakazawaWin');
-const soundMaruyamaIn = document.getElementById('soundMaruyamaIn');
-const soundMaruyamaWin = document.getElementById('soundMaruyamaWin');
-const nakazawaOverlay = document.getElementById('nakazawaOverlay');
-const maruyamaOverlay = document.getElementById('maruyamaOverlay');
-const maruyamaOverlayText = document.getElementById('maruyamaOverlayText');
-const ruleToggle = document.getElementById('ruleToggle');
-const rulesBox = document.getElementById('rules');
-const headerRoot = document.getElementById('headerRoot');
-const maruyamaAvailText = document.getElementById('maruyamaAvailText');
-const bet000Btn = document.getElementById('bet000Btn');
-
-function refreshUI(){
-  balanceEl.textContent = formatAmount(balance);
-  stagedEl.textContent = formatAmount(staged);
-
-  // tenBtn should always be usable (user requested "いつでもできる")
-  tenBtn.classList.remove('disabled');
-
-  lifeBtn.classList.toggle('disabled', !lifeAvailable);
-
-  if(nakazawaUnlocked && !nakazawaUsed){
-    nakazawaBtn.classList.remove('disabled');
-    nakazawaBtn.disabled = false;
-  } else {
-    nakazawaBtn.classList.add('disabled');
-    nakazawaBtn.disabled = true;
-  }
-
-  if(maruyamaUnlocked && !maruyamaUsed){
-    maruyamaBtn.classList.remove('disabled');
-    maruyamaBtn.disabled = false;
-    maruyamaAvailText.textContent = '（丸山解禁中！）';
-  } else {
-    maruyamaBtn.classList.add('disabled');
-    maruyamaBtn.disabled = true;
-    maruyamaAvailText.textContent = '';
-  }
-
-  const balLen = balance.toString().replace('-', '').length;
-  const stagedLen = staged.toString().replace('-', '').length;
-  if (window.innerWidth > 740 && (balLen > 12 || stagedLen > 12)) {
-    headerRoot.classList.add('compact');
-    balanceBox.classList.add('compact');
-  } else {
-    headerRoot.classList.remove('compact');
-    balanceBox.classList.remove('compact');
-  }
-}
-function appendHistory(txt){
-  const d = document.createElement('div');
-  d.textContent = txt;
-  historyDiv.insertBefore(d, historyDiv.firstChild);
-}
-
-ruleToggle.addEventListener('click', ()=>{
-  rulesBox.classList.toggle('open');
-  if(rulesBox.classList.contains('open')){
-    rulesBox.style.maxHeight = '400px';
-    ruleToggle.textContent = 'ルールを閉じる';
-  } else {
-    rulesBox.style.maxHeight = '0';
-    ruleToggle.textContent = 'ルールを見る';
-  }
-});
-
-/* 000ボタン */
-bet000Btn.addEventListener('click', ()=>{
-  betInput.value = String(betInput.value) + "000";
-});
-
-/* load/save */
-loadBalance();
-refreshUI();
-
-/* reset */
-resetBtn.addEventListener('click', ()=>{
-  if(!confirm('リセットして残高10000に戻しますか？')) return;
-  balance = 10000n; staged=0n; baseBet=0n; roundWins=0; awaitingStart=true; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false; nakazawaUsed=false;
-  maruyamaUnlocked = false; maruyamaUsed = false;
-  saveBalance();
-  saveMaruyamaState();
-  historyDiv.innerHTML=''; resultLargeEl.textContent=''; appendHistory('リセット'); refreshUI();
-});
-
-/* helpers */
-function randomHand(){ const a=['rock','paper','scissors']; return a[Math.floor(Math.random()*3)]; }
-function handText(h){ if(h==='rock') return 'グー'; if(h==='paper') return 'パー'; return 'チョキ'; }
-function judge(p,c){ if(p===c) return 'あいこ'; if((p==='rock'&&c==='scissors')||(p==='paper'&&c==='rock')||(p==='scissors'&&c==='paper')) return '勝ち'; return '負け'; }
-function delay(ms){ return new Promise(res=>setTimeout(res,ms)); }
-const HAND_IMAGES = {
-  rock: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png",
-  scissors: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png",
-  paper: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png"
-};
-function showEnemyReady(){ enemyHandImg.src = HAND_IMAGES.rock; }
-function showEnemyFinalHand(randomHand){ enemyHandImg.src = HAND_IMAGES[randomHand]; }
-function showHalfButton(show){ halfBtn.style.display = show ? 'inline-block' : 'none'; }
-
-/* choices click: IMPORTANT — do NOT clear challengeMode on auto-start anymore */
-choicesEl.addEventListener('click', async (e)=>{
-  const el = e.target.closest('.choice');
-  if(!el) return;
-  const player = el.dataset.hand;
-
-  // Auto-start: if no staged and bet value present, take from balance
-  if(staged === 0n){
-    const bNum = Math.max(1, Math.floor(Number(betInput.value)||0));
-    if(bNum<=0){ alert('ベットを入力してください'); return; }
-    const b = BigInt(bNum);
-    if(b>balance){ alert('残高が足りません'); return; }
-    baseBet = b;
-    balance -= b;
-    saveBalance();
-    staged = b;
-    awaitingStart = false;
-    roundWins = 0;
-    lifeAvailable = false;
-    // DO NOT reset challengeMode here — user may have clicked 10x before hand.
-    // DO NOT reset nakazawa/maruyama unlock/usages here — preserve state across rounds.
-    // nakazawaUnlocked = false;
-    // nakazawaUsed = false;
-    // maruyamaUnlocked = maruyamaUnlocked && !maruyamaUsed;
-    historyDiv.innerHTML = '';
-    appendHistory('自動スタート ベット: ' + numberWithCommasBig(b) + ' NZ');
-    refreshUI();
-  }
-
-  if(awaitingStart && staged<=0n){ alert('ベットをしてから手を選んでください'); return; }
-
-  jankenDisplay.textContent = 'じゃんけん...';
-  resultLargeEl.textContent = '';
-  showHalfButton(false);
-  showEnemyReady();
-  await delay(1000);
-  jankenDisplay.textContent = 'ポイ！';
-  const comp = randomHand();
-  showEnemyFinalHand(comp);
-  appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
-  await delay(200);
-  const res = judge(player, comp);
-
-  if(challengeMode){
-    if(res==='勝ち'){
-      if(challengeMode==='10x'){
-        staged = staged * 10n;
-        lifeAvailable = true;
-        appendHistory('10倍チャレンジ成功！ 掛けが10倍に→ ' + numberWithCommasBig(staged) + ' NZ');
-        resultLargeEl.textContent = '10倍成功！人生逆転(20x)が1回解放されました';
-        try{ soundWin.play(); }catch(e){}
-        showHalfButton(true);
-      } else if(challengeMode==='20x'){
-        staged = staged * 20n;
+    function checkGameOver(){
+      if(typeof balance !== 'bigint') return;
+      if(balance <= 0n){
+        alert('GAME OVER — 残高が 0 になりました。残高を 10,000 NZ にリセットします。');
+        balance = 10000n;
+        saveBalance();
+        staged = 0n;
+        baseBet = 0n;
+        awaitingStart = true;
+        roundWins = 0;
         lifeAvailable = false;
-        nakazawaUnlocked = true;
-        appendHistory('人生逆転成功！ 掛けが20倍に→ ' + numberWithCommasBig(staged) + ' NZ');
-        resultLargeEl.textContent = '人生逆転成功！ 中澤(888x)が解放されました（押すと中澤降臨）';
-        try{ soundLife.play(); }catch(e){}
-        appendHistory('中澤が解放されました（中澤ボタンを押すと降臨）');
-        showHalfButton(true);
-      } else if(challengeMode==='888x'){
-        staged = staged * 888n;
-        maruyamaUnlocked = true;
-        appendHistory('中澤に勝利！ 掛けが888倍に→ ' + numberWithCommasBig(staged) + ' NZ');
-        resultLargeEl.textContent = '中澤に勝利！数秒後に演出が始まります';
-        nakazawaUsed = true;
-        setTimeout(()=>{
-          try{ soundNakazawaWin.play(); }catch(e){}
-          showNakazawaOverlay();
-        }, 1000);
-        appendHistory('丸山（7777777x）が解放されました');
+        challengeMode = null;
+        nakazawaUnlocked = false;
+        nakazawaUsed = false;
+        maruyamaUnlocked = false;
+        maruyamaUsed = false;
         saveMaruyamaState();
-        showHalfButton(true);
-      } else if(challengeMode==='7777777x'){
-        staged = staged * 7777777n;
-        appendHistory('丸山に勝利！ 掛けが7,777,777倍に→ ' + numberWithCommasBig(staged) + ' NZ');
-        resultLargeEl.textContent = '丸山に勝利！数秒後に演出が始まります';
-        maruyamaUsed = true;
-        saveMaruyamaState();
-        setTimeout(()=>{
-          try{ soundMaruyamaWin.play(); }catch(e){}
-          showMaruyamaVictoryOverlay();
-        }, 1000);
-        showHalfButton(true);
+        appendHistory('GAME OVER: 自動リセット（残高 10,000）');
+        refreshUI();
+      }
+    }
+
+    // スロット周りは省略せず…
+    const probs = [
+      { mark:"赤", p:0.50, color:"red" },
+      { mark:"青", p:0.20, color:"cyan" },
+      { mark:"緑", p:0.10, color:"lime" },
+      { mark:"黄", p:0.05, color:"yellow" },
+      { mark:"紫", p:0.03, color:"violet" },
+      { mark:"7",  p:1/300, color:"white" },
+      { mark:"N",  p:1/1000, color:"gray" },
+      { mark:"外れ", p:1-(0.50+0.20+0.10+0.05+0.03+1/300+1/1000), color:"black" }
+    ];
+    const prizeMap = { "緑":1n, "黄":5n, "紫":100n, "7":1000000n, "N":8888888888888n };
+    const theory5 = { "赤":5.794374, "青":0.05933439, "緑":0.00185420, "黄":0.00005794, "紫":0.00000450, "7":0.00000004115226, "N":0.0000000001 };
+    const showOrder = ["赤","青","緑","黄","紫","7","N"];
+    let count = { "赤":0, "青":0, "緑":0, "黄":0, "紫":0, "7":0, "N":0 };
+    let totalSpin = 0;
+    let slotAuto = null;
+    let slotRows = [];
+    function pick(){ let r=Math.random(), acc=0; for(let o of probs){ acc += o.p; if(r <= acc) return o; } return probs[probs.length - 1]; }
+    function addRow(){ let row = document.createElement("div"); row.className = "slotRow"; let cells = []; for(let i=0;i<5;i++){ let c = document.createElement("div"); c.className = "slotCell"; c.textContent = "？"; row.appendChild(c); cells.push(c); } document.getElementById("slotContainer").insertBefore(row, document.getElementById("slotContainer").firstChild); slotRows.unshift({div: row, cells: cells}); }
+    function removeRow(){ if(slotRows.length <= 1) return; let last = slotRows.shift(); document.getElementById("slotContainer").removeChild(last.div); }
+    function spinOnce(){ totalSpin += slotRows.length; document.getElementById("totalSpinDisplay").textContent = "総スピン数：" + totalSpin; slotRows.forEach(rw => { let res = []; rw.cells.forEach(c => { let o = pick(); c.textContent = o.mark; c.style.color = o.color; res.push(o.mark); }); if(res.every(v => v === res[0])){ count[res[0]]++; const resultEl = document.getElementById("result"); let mk = res[0]; if(prizeMap[mk]){ let amt = prizeMap[mk]; balance += amt; saveBalance(); appendHistory(`スロット当選：${mk} +${numberWithCommasBig(amt)} NZ`); resultEl.textContent = `${mk} が揃った！ +${numberWithCommasBig(amt)} NZ を獲得`; refreshUI(); checkGameOver(); } else { resultEl.textContent = `当たり：${mk}`; } } }); updateStats(); }
+    function toggleSlotAuto(){ if(slotAuto){ cancelAnimationFrame(slotAuto); clearInterval(slotAuto); slotAuto = null; return; } let sp = Number(document.getElementById("speed").value); if(sp === 0){ function loop(){ spinOnce(); slotAuto = requestAnimationFrame(loop); } slotAuto = requestAnimationFrame(loop); return; } if(sp < 1) sp = 1; slotAuto = setInterval(spinOnce, sp); }
+    function updateStats(){ let out = "<div style='font-size:15px;margin-bottom:6px;'>揃いカウンター</div>"; for(let key of showOrder){ out += `<div style="margin-bottom:4px;color:${probs.find(o=>o.mark===key).color};font-weight:700;">${key}： ${count[key]}回 （5個揃う確率： ${theory5[key]}%）</div>`; } document.getElementById("stats").innerHTML = out; }
+    addRow(); document.getElementById("plusButton").addEventListener("click", addRow); document.getElementById("minusButton").addEventListener("click", removeRow); document.getElementById("startButton").addEventListener("click", spinOnce); document.getElementById("autoButton").addEventListener("click", toggleSlotAuto);
+
+    // ジャンケン変数
+    let staged = 0n, baseBet = 0n, roundWins = 0;
+    let awaitingStart = true;
+    let challengeMode = null;
+    let lifeAvailable = false;
+    let nakazawaUnlocked = false;
+    let nakazawaUsed = false;
+    let maruyamaUnlocked = false;
+    let maruyamaUsed = false;
+
+    const balanceElem = document.getElementById("balance");
+    const stagedElem = document.getElementById("staged");
+    const tenBtn = document.getElementById("tenX");
+    const lifeBtn = document.getElementById("lifeX");
+    const nakazawaBtn = document.getElementById("nakazawaBtn");
+    const maruyamaBtn = document.getElementById("maruyamaBtn");
+    const halfBtnEl = document.getElementById("halfBtn");
+    const bet000 = document.getElementById("bet000Btn");
+
+    function refreshUI(){
+      balanceElem.textContent = formatAmount(balance);
+      stagedElem.textContent = formatAmount(staged);
+      adjustBalanceStagedFont(); // フォントサイズを調整
+
+      // 10倍は常に押せる
+      tenBtn.classList.remove("disabled");
+
+      lifeBtn.classList.toggle("disabled", !lifeAvailable);
+      nakazawaBtn.classList.toggle("disabled", !(nakazawaUnlocked && !nakazawaUsed));
+      maruyamaBtn.classList.toggle("disabled", !(maruyamaUnlocked && !maruyamaUsed));
+    }
+
+    function appendHistory(txt){
+      const d = document.createElement("div");
+      d.textContent = txt;
+      document.getElementById("history").insertBefore(d, document.getElementById("history").firstChild);
+    }
+
+    document.getElementById("ruleToggle").addEventListener("click", ()=>{
+      const box = document.getElementById("rules");
+      box.classList.toggle("open");
+      if(box.classList.contains("open")){
+        box.style.maxHeight = "400px";
+        document.getElementById("ruleToggle").textContent = "ルールを閉じる";
+      } else {
+        box.style.maxHeight = "0";
+        document.getElementById("ruleToggle").textContent = "ルールを見る";
+      }
+    });
+
+    bet000.addEventListener("click", ()=>{
+      document.getElementById("betInput").value = String(document.getElementById("betInput").value) + "000";
+    });
+
+    loadBalance();
+    refreshUI();
+
+    document.getElementById("resetBtn").addEventListener("click", ()=>{
+      if(!confirm("リセットして残高10000に戻しますか？")) return;
+      balance = 10000n;
+      staged = 0n;
+      baseBet = 0n;
+      awaitingStart = true;
+      roundWins = 0;
+      lifeAvailable = false;
+      challengeMode = null;
+      nakazawaUnlocked = false;
+      nakazawaUsed = false;
+      maruyamaUnlocked = false;
+      maruyamaUsed = false;
+      saveBalance();
+      saveMaruyamaState();
+      appendHistory("リセット");
+      refreshUI();
+    });
+
+    function randomHand(){ const a=["rock","paper","scissors"]; return a[Math.floor(Math.random()*3)]; }
+    function handText(h){ if(h==="rock") return "グー"; if(h==="paper") return "パー"; return "チョキ"; }
+    function judge(p, c){ if(p===c) return "あいこ"; if((p==="rock"&&c==="scissors")||(p==="paper"&&c==="rock")||(p==="scissors"&&c==="paper")) return "勝ち"; return "負け"; }
+    function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+    const HAND_IMAGES = {
+      rock: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14296-508x381.png",
+      scissors: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14297-508x381.png",
+      paper: "https://illustcenter.com/wp-content/uploads/2022/05/rdesign_14298-508x381.png"
+    };
+
+    function showEnemyReady(){ enemyHandImg.src = HAND_IMAGES.rock; }
+    function showEnemyFinalHand(h){ enemyHandImg.src = HAND_IMAGES[h]; }
+    function showHalfButton(show){ halfBtnEl.style.display = show ? "inline-block" : "none"; }
+
+    document.getElementById("choices").addEventListener("click", async (e)=>{
+      const el = e.target.closest(".choice");
+      if(!el) return;
+      const player = el.dataset.hand;
+
+      if(staged === 0n){
+        const bNum = Math.max(1, Math.floor(Number(document.getElementById("betInput").value) || 0));
+        if(bNum <= 0){ alert("ベットを入力してください"); return; }
+        const b = BigInt(bNum);
+        if(b > balance){ alert("残高が足りません"); return; }
+        baseBet = b;
+        balance -= b;
+        saveBalance();
+        staged = b;
+        awaitingStart = false;
+        roundWins = 0;
+        lifeAvailable = false;
+        // ここでは challengeMode や unlock 状態をリセットしない → 中澤 / 丸山状態を保持
+        document.getElementById("history").innerHTML = "";
+        appendHistory("自動スタート ベット: " + numberWithCommasBig(b) + " NZ");
+        refreshUI();
       }
 
-      challengeMode = null;
+      if(awaitingStart && staged <= 0n){ alert("ベットをしてから手を選んでください"); return; }
+
+      jankenDisplay.textContent = "じゃんけん...";
+      resultLargeEl.textContent = "";
+      showHalfButton(false);
+      showEnemyReady();
+      await delay(1000);
+      jankenDisplay.textContent = "ポイ！";
+      const comp = randomHand();
+      showEnemyFinalHand(comp);
+      appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
+      await delay(200);
+      const res = judge(player, comp);
+
+      if(challengeMode){
+        if(res === "勝ち"){
+          if(challengeMode === "10x"){
+            staged = staged * 10n;
+            lifeAvailable = true;
+            appendHistory("10倍チャレンジ成功！ 掛けが10倍に→ " + numberWithCommasBig(staged) + " NZ");
+            resultLargeEl.textContent = "10倍成功！人生逆転(20x)が1回解放されました";
+            try { soundWin.play(); } catch(e){}
+            showHalfButton(true);
+          }
+          else if(challengeMode === "20x"){
+            staged = staged * 20n;
+            lifeAvailable = false;
+            nakazawaUnlocked = true;
+            appendHistory("人生逆転成功！ 掛けが20倍に→ " + numberWithCommasBig(staged) + " NZ");
+            resultLargeEl.textContent = "人生逆転成功！ 中澤(888x)が解放されました";
+            try { soundLife.play(); } catch(e){}
+            showHalfButton(true);
+          }
+          else if(challengeMode === "888x"){
+            staged = staged * 888n;
+            nakazawaUsed = true;
+            // 中澤クリアごとに丸山を解放可能に
+            maruyamaUnlocked = true;
+            appendHistory("中澤に勝利！ 掛けが888倍に→ " + numberWithCommasBig(staged) + " NZ");
+            resultLargeEl.textContent = "中澤に勝利！数秒後に中澤降臨演出";
+            setTimeout(()=>{
+              try { soundNakazawaWin.play(); } catch(e){}
+              showNakazawaOverlay();
+            }, 1000);
+            showHalfButton(true);
+          }
+          else if(challengeMode === "7777777x"){
+            staged = staged * 7777777n;
+            maruyamaUsed = true;
+            appendHistory("丸山に勝利！ 掛けが7,777,777倍に→ " + numberWithCommasBig(staged) + " NZ");
+            resultLargeEl.textContent = "丸山に勝利！数秒後に演出";
+            setTimeout(()=>{
+              try { soundMaruyamaWin.play(); } catch(e){}
+              showMaruyamaVictoryOverlay();
+            }, 1000);
+            showHalfButton(true);
+          }
+
+          // チャレンジ終わったらモードクリア
+          challengeMode = null;
+          refreshUI();
+        } else {
+          appendHistory("チャレンジ失敗（" + res + "）：掛け没収");
+          resultLargeEl.textContent = "チャレンジ失敗…掛け没収";
+          staged = 0n;
+          baseBet = 0n;
+          awaitingStart = true;
+          roundWins = 0;
+          lifeAvailable = false;
+          // if 888x 失敗しても中澤は “使用済み” に
+          if(challengeMode === "888x") nakazawaUsed = true;
+          if(challengeMode === "7777777x") maruyamaUsed = true;
+          challengeMode = null;
+          showHalfButton(false);
+          refreshUI();
+        }
+        return;
+      }
+
+      // 通常ジャンケン勝敗
+      if(res === "勝ち"){
+        staged = staged * 2n;
+        roundWins++;
+        resultLargeEl.textContent = "勝ち！ 掛けが2倍になった";
+        try { soundWin.play(); } catch(e){}
+        showHalfButton(true);
+      } else if(res === "あいこ"){
+        resultLargeEl.textContent = "あいこ… 掛けはそのまま";
+        showHalfButton(false);
+      } else {
+        resultLargeEl.textContent = "負け… 掛け没収";
+        staged = 0n;
+        baseBet = 0n;
+        awaitingStart = true;
+        roundWins = 0;
+        lifeAvailable = false;
+        nakazawaUnlocked = false;
+        showHalfButton(false);
+      }
       refreshUI();
-    } else {
-      appendHistory('チャレンジ失敗（あいこ/負け）：掛け没収');
-      resultLargeEl.textContent = 'チャレンジ失敗.. 掛け没収';
-      staged = 0n; baseBet = 0n; awaitingStart = true; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
-      // mark used for these challenge types to avoid reuse on fail
-      if(challengeMode==='888x'){ nakazawaUsed = true; }
-      if(challengeMode==='7777777x'){ maruyamaUsed = true; saveMaruyamaState(); }
-      challengeMode = null;
+    });
+
+    tenBtn.addEventListener("click", ()=>{
+      challengeMode = "10x";
+      appendHistory("10倍チャレンジに挑戦！");
+      resultLargeEl.textContent = "10倍チャレンジ中 — 手を選んでください";
+    });
+    lifeBtn.addEventListener("click", ()=>{
+      if(!lifeAvailable || staged <= 0n) return;
+      challengeMode = "20x";
+      appendHistory("人生逆転（20x）に挑戦！");
+      resultLargeEl.textContent = "20倍チャレンジ中 — 手を選んでください";
+    });
+    nakazawaBtn.addEventListener("click", ()=>{
+      if(!nakazawaUnlocked || nakazawaUsed || staged <= 0n) return;
+      challengeMode = "888x";
+      appendHistory("中澤降臨");
+      resultLargeEl.textContent = "中澤(888x) チャレンジ開始 — 手を選んでください";
+    });
+    maruyamaBtn.addEventListener("click", ()=>{
+      if(!maruyamaUnlocked || maruyamaUsed || staged <= 0n) return;
+      appendHistory("丸山降臨");
+      try { soundMaruyamaIn.play(); } catch(e){}
+      showMaruyamaSetupOverlay();
+      setTimeout(() => {
+        challengeMode = "7777777x";
+        resultLargeEl.textContent = "丸山(7777777x) チャレンジ開始 — 手を選んでください";
+        refreshUI();
+      }, 3000);
+    });
+
+    halfBtnEl.addEventListener("click", ()=>{
+      if(staged <= 0n) return;
+      const half = staged / 2n;
+      if(half <= 0n){ alert("掛けが小さすぎて半分賭けられません"); return; }
+      balance += half;
+      staged -= half;
+      saveBalance();
+      appendHistory("半分出金：" + numberWithCommasBig(half) + " NZ、残り " + numberWithCommasBig(staged));
+      resultLargeEl.textContent = "半分を出金しました";
       showHalfButton(false);
       refreshUI();
+      checkGameOver();
+    });
+
+    cashoutBtn.addEventListener("click", ()=>{
+      if(staged <= 0n) { alert("回収できる掛けがありません"); return; }
+      balance += staged;
+      appendHistory("回収：" + numberWithCommasBig(staged) + " NZ");
+      staged = 0n;
+      baseBet = 0n;
+      awaitingStart = true;
+      roundWins = 0;
+      lifeAvailable = false;
+      challengeMode = null;
+      nakazawaUnlocked = false;
+      // マル山の unlock は消さない（中澤クリアの回数で制御）
+      saveBalance();
+      saveMaruyamaState();
+      showHalfButton(false);
+      refreshUI();
+      checkGameOver();
+    });
+
+    function showNakazawaOverlay(){
+      nakazawaOverlay.style.display = "flex";
+      setTimeout(()=>{ nakazawaOverlay.style.display = "none"; }, 6000);
     }
-    return;
-  }
+    function showMaruyamaSetupOverlay(){
+      maruyamaOverlay.classList.remove("victory");
+      maruyamaOverlay.classList.add("setup");
+      maruyamaOverlayText.textContent = "丸山 降臨";
+      maruyamaOverlay.style.display = "flex";
+      setTimeout(()=>{ maruyamaOverlay.style.display = "none"; }, 3000);
+    }
+    function showMaruyamaVictoryOverlay(){
+      maruyamaOverlay.classList.remove("setup");
+      maruyamaOverlay.classList.add("victory");
+      maruyamaOverlayText.textContent = "丸山 に 勝利";
+      maruyamaOverlay.style.display = "flex";
+      setTimeout(()=>{ maruyamaOverlay.style.display = "none"; }, 10000);
+    }
 
-  if(res==='勝ち'){
-    staged = staged * 2n;
-    roundWins++;
-    resultLargeEl.textContent = '勝ち！ 掛けが2倍になった';
-    try{ soundWin.play(); }catch(e){}
-    showHalfButton(true);
-  } else if(res==='あいこ'){
-    resultLargeEl.textContent = 'あいこ... 掛けはそのまま';
-    showHalfButton(false);
-  } else {
-    resultLargeEl.textContent = '負け.. 掛け没収';
-    staged = 0n; baseBet = 0n; awaitingStart = true; roundWins = 0; lifeAvailable = false; nakazawaUnlocked = false;
-    showHalfButton(false);
-  }
-  refreshUI();
-});
-
-/* challenge buttons: remove staged check from 10x so it's always usable */
-tenBtn.addEventListener('click', ()=>{
-  // いつでも開始できるようにする（ベットがまだなら、次に手を押したときに自動スタートされる）
-  challengeMode = '10x';
-  resultLargeEl.textContent = '10倍チャレンジを開始 — 手を選んでください';
-  appendHistory('10倍チャレンジに挑戦！');
-});
-lifeBtn.addEventListener('click', ()=>{
-  if(!lifeAvailable || staged<=0n) return;
-  challengeMode = '20x';
-  resultLargeEl.textContent = '人生逆転（20x）を開始 — 手を選んでください';
-  appendHistory('人生逆転（20x）に挑戦！');
-});
-nakazawaBtn.addEventListener('click', ()=>{
-  if(!nakazawaUnlocked || nakazawaUsed || staged<=0n) return;
-  appendHistory('中澤降臨');
-  try{ soundNakazawaIn.play(); }catch(e){}
-  challengeMode = '888x';
-  resultLargeEl.textContent = '中澤（888x）チャレンジ開始 — 手を選んでください';
-});
-maruyamaBtn.addEventListener('click', ()=>{
-  if(!maruyamaUnlocked || maruyamaUsed || staged<=0n) return;
-  appendHistory('丸山降臨');
-  try{ soundMaruyamaIn.play(); }catch(e){}
-  showMaruyamaSetupOverlay();
-  setTimeout(()=>{
-    challengeMode = '7777777x';
-    resultLargeEl.textContent = '丸山（7777777x）チャレンジ開始 — 手を選んでください';
+    // 初期化
     refreshUI();
-  }, 3000);
-});
+    saveBalance();
+    saveMaruyamaState();
 
-/* half-bet: do NOT clear maruyama unlocked state — preserve it */
-halfBtn.addEventListener('click', ()=>{
-  if(staged <= 0n) return;
-  const half = staged / 2n;
-  if(half <= 0n) return alert('掛けが小さすぎて半分賭けられません');
-  balance += half;
-  staged = staged - half;
-  saveBalance();
-  appendHistory('半分賭ける：' + numberWithCommasBig(half) + ' NZ を残高へ、残り ' + numberWithCommasBig(staged) + ' NZ を掛けに維持');
-  resultLargeEl.textContent = '半分を出金しました';
-  showHalfButton(false);
-  refreshUI();
-  checkGameOver();
-});
-
-/* cashout: preserve maruyamaUnlocked unless purposely used */
-cashoutBtn.addEventListener('click', ()=>{
-  if(staged<=0n) return alert('回収できる掛けがありません');
-  balance += staged;
-  appendHistory('回収: ' + numberWithCommasBig(staged) + ' NZ を残高へ');
-  staged = 0n; baseBet=0n; awaitingStart = true; roundWins=0; lifeAvailable=false; challengeMode=null; nakazawaUnlocked=false;
-  // keep maruyamaUnlocked as-is (do not clear here) — only clear if maruyamaUsed is true
-  // maruyamaUnlocked = maruyamaUnlocked && !maruyamaUsed; // <-- removed to avoid accidental clearing
-  saveBalance();
-  saveMaruyamaState();
-  showHalfButton(false);
-  refreshUI();
-  checkGameOver();
-});
-
-/* overlays */
-function showNakazawaOverlay(){ nakazawaOverlay.style.display = 'flex'; setTimeout(()=>{ nakazawaOverlay.style.display = 'none'; }, 6000); }
-function showMaruyamaSetupOverlay(){ maruyamaOverlay.classList.remove('victory'); maruyamaOverlay.classList.add('setup'); maruyamaOverlayText.textContent = '丸山 降臨'; maruyamaOverlay.style.display = 'flex'; setTimeout(()=>{ maruyamaOverlay.style.display = 'none'; }, 3000); }
-function showMaruyamaVictoryOverlay(){ maruyamaOverlay.classList.remove('setup'); maruyamaOverlay.classList.add('victory'); maruyamaOverlayText.textContent = '丸山 に 勝利'; maruyamaOverlay.style.display = 'flex'; setTimeout(()=>{ maruyamaOverlay.style.display = 'none'; }, 10000); }
-
-refreshUI();
-updateStats();
-saveBalance();
-saveMaruyamaState();
-</script>
+  </script>
 </body>
 </html>
