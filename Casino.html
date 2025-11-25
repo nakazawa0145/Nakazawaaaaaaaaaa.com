@@ -320,14 +320,25 @@
   height: 28px;
   overflow-x: auto;
   white-space: nowrap;
-  font-size: 12px;   /* ← ここを小さくするだけ */
+  font-size: 12px;
   padding: 0 3px;
 }
+
 #staged {
-  font-size: 12px !important; 
+  font-size: 12px !important;
+  width: 100% !important;   /* ← ！ */
+}
+    
+#balanceLarge {
+  display: flex;
+  align-items: center;
+  width: 100% !important;      /* 横幅をスマホ最大にする */
+  overflow-x: auto;            /* 横スワイプ可能 */
+  white-space: nowrap;         /* 改行させない */
+  font-size: 14px !important;  /* 数字が大きいとき少し小さくする */
+  padding: 0 3px;
 }
 
-    
   </style>
   <script>
     // スマホで残高 / staged が長すぎたら文字サイズを縮小するヘルパー
@@ -454,6 +465,8 @@
   <audio id="soundMaruyamaIn" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_goldstorm_06.mp3"></audio>
   <audio id="soundMaruyamaWin" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gi_04.mp3"></audio>
 
+
+  
   <script>
     function numberWithCommasBig(x){
       if (typeof x === 'bigint') {
