@@ -312,6 +312,15 @@
       #bet000Btn { width: 60px !important; flex-shrink: 0 !important; }
       input[type=number] { width: 60%; max-width: 260px; }
     }
+
+#staged {
+  display: inline-block;
+  max-width: 150px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+
   </style>
   <script>
     // スマホで残高 / staged が長すぎたら文字サイズを縮小するヘルパー
@@ -331,6 +340,7 @@
         }
       });
     }
+    
   </script>
 </head>
 <body>
@@ -355,6 +365,7 @@
         WIN BET： <strong id="staged">0</strong> NZ
         <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>
       </div>
+      
 
       <div class="jankenDisplay" id="jankenDisplay">じゃんけんしてね</div>
       <div id="enemyArea">
@@ -390,6 +401,8 @@
           ルール：ベットを入力して、掛けが0のときに手を選ぶと自動でベットを掛けます（自動スタート）。勝ち→掛けが2倍、あいこ→掛け維持、負け→掛け没収。勝利後は「半分出金」「10倍チャレンジ」を選べます。10倍成功で「人生逆転（20x）」が1回だけ解禁され、成功すると掛けが×20になります。人生逆転成功後に「中澤（888x）」が一度だけ解放されます（押すと中澤降臨）。中澤成功後に「丸山（7777777x）」が解放されます（丸山降臨）。チャレンジであいこ・負けは掛け没収。いつでも「ここでやめる」で掛けを回収。残高はこの端末に保存されます。
         </div>
       </div>
+
+      
 
     </div>
 
