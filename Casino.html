@@ -175,7 +175,7 @@
       font-weight: 800;
       cursor: pointer;
     }
-    #nakazawaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+    #nakazawaBtn.disabled { opacity: 0.35; cursor:not-allowed; pointer-events: none; }
 
     #maruyamaBtn {
       padding: 8px 12px;
@@ -186,7 +186,7 @@
       font-weight: 800;
       cursor: pointer;
     }
-    #maruyamaBtn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+    #maruyamaBtn.disabled { opacity: 0.35; cursor:not-allowed; pointer-events: none; }
 
     #bet000Btn {
       background: var(--rule-purple);
@@ -300,6 +300,19 @@
     }
     @keyframes prizeMove { 0% { background-position: 0% } 100% { background-position: -600% } }
 
+    /* --- 追加したCSS（#staged の自動縮小・保護） --- */
+    #staged {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 16px;
+      max-width: 220px; /* デスクトップ時の上限 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* 親の WIN BET 表示で折り返しを防ぐため親にも調整 */
+    .winbetWrap { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+
     @media (max-width: 740px) {
       .header { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
       .title { font-size: 32px; text-align: center; width: 100%; }
@@ -310,6 +323,8 @@
       .actionRow { justify-content: center; flex-wrap: wrap; }
       #bet000Btn { width: 60px !important; flex-shrink: 0 !important; }
       input[type=number] { width: 60%; max-width: 260px; }
+      /* スマホ時は staged の幅を狭く、JSによる縮小がより効果的になる */
+      #staged { max-width: 120px; font-size: 14px; }
     }
   </style>
   <script>
@@ -320,14 +335,25 @@
       [balanceEl, stagedEl].forEach(el => {
         if (!el) return;
         let fontSize = 16; // 初期想定
+        // staged に対しては 親幅 ではなく、明示的に表示領域に併せる
         el.style.fontSize = fontSize + 'px';
-        // 親の幅を取得
-        const parentWidth = el.parentElement.clientWidth;
-        // はみ出すかどうか
-        while (el.scrollWidth > parentWidth && fontSize > 8) {
+        // 親の幅を取得。staged の場合は親要素（winbetのラップ）幅を参照
+        let parentWidth = el.parentElement.clientWidth;
+        // staged のとき、親内の他要素（ラベル等）の幅を考慮する
+        if (el.id === 'staged') {
+          const p = el.parentElement;
+          // 親のテキスト全体幅に余裕がないなら maxWidth ベースで調整
+          parentWidth = Math.max(40, el.clientWidth, el.parentElement.clientWidth - 40);
+        }
+        // はみ出すかどうかを確認してフォントを落とす
+        // 最低フォントサイズは 8px とする
+        let attempts = 0;
+        while (el.scrollWidth > parentWidth && fontSize > 8 && attempts < 50) {
           fontSize -= 1;
           el.style.fontSize = fontSize + 'px';
+          attempts++;
         }
+        // もしまだはみ出すなら省略表示（CSSのtext-overflowが機能）
       });
     }
   </script>
@@ -351,7 +377,7 @@
       </div>
 
       <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
-        WIN BET： <strong id="staged">0</strong> NZ
+        <div class="winbetWrap">WIN BET： <strong id="staged">0</strong> NZ</div>
         <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>
       </div>
 
@@ -555,6 +581,23 @@
     const halfBtnEl = document.getElementById("halfBtn");
     const bet000 = document.getElementById("bet000Btn");
 
+    // --- 追加：不足していたDOM参照を定義（未定義参照によるエラー防止） ---
+    const jankenDisplay = document.getElementById("jankenDisplay");
+    const resultLargeEl = document.getElementById("resultLarge");
+    const enemyHandImg = document.getElementById("enemyHand");
+    const cashoutBtn = document.getElementById("cashoutBtn");
+    const nakazawaOverlay = document.getElementById("nakazawaOverlay");
+    const maruyamaOverlay = document.getElementById("maruyamaOverlay");
+    const nakazawaOverlayText = document.getElementById("nakazawaOverlayText");
+    const maruyamaOverlayText = document.getElementById("maruyamaOverlayText");
+    const soundWin = document.getElementById("soundWin");
+    const soundLife = document.getElementById("soundLife");
+    const soundNakazawaIn = document.getElementById("soundNakazawaIn");
+    const soundNakazawaWin = document.getElementById("soundNakazawaWin");
+    const soundMaruyamaIn = document.getElementById("soundMaruyamaIn");
+    const soundMaruyamaWin = document.getElementById("soundMaruyamaWin");
+    // --- ここまで追加 ---
+
     function refreshUI(){
       balanceElem.textContent = formatAmount(balance);
       stagedElem.textContent = formatAmount(staged);
@@ -652,12 +695,13 @@
 
       if(awaitingStart && staged <= 0n){ alert("ベットをしてから手を選んでください"); return; }
 
-      jankenDisplay.textContent = "じゃんけん...";
-      resultLargeEl.textContent = "";
+      // jankenDisplay 等が未定義でエラーになるのを防ぐため、事前に取得済みの変数に対して安全に更新
+      if(jankenDisplay) jankenDisplay.textContent = "じゃんけん...";
+      if(resultLargeEl) resultLargeEl.textContent = "";
       showHalfButton(false);
       showEnemyReady();
       await delay(1000);
-      jankenDisplay.textContent = "ポイ！";
+      if(jankenDisplay) jankenDisplay.textContent = "ポイ！";
       const comp = randomHand();
       showEnemyFinalHand(comp);
       appendHistory(`あなた: ${handText(player)} / 相手: ${handText(comp)} → 判定中...`);
@@ -671,7 +715,7 @@
             lifeAvailable = true;
             appendHistory("10倍チャレンジ成功！ 掛けが10倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "10倍成功！人生逆転(20x)が1回解放されました";
-            try { soundWin.play(); } catch(e){}
+            try { if (soundWin) soundWin.play(); } catch(e){}
             showHalfButton(true);
           }
           else if(challengeMode === "20x"){
@@ -680,7 +724,7 @@
             nakazawaUnlocked = true;
             appendHistory("人生逆転成功！ 掛けが20倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "人生逆転成功！ 中澤(888x)が解放されました";
-            try { soundLife.play(); } catch(e){}
+            try { if (soundLife) soundLife.play(); } catch(e){}
             showHalfButton(true);
           }
           else if(challengeMode === "888x"){
@@ -691,7 +735,7 @@
             appendHistory("中澤に勝利！ 掛けが888倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "中澤に勝利！数秒後に中澤降臨演出";
             setTimeout(()=>{
-              try { soundNakazawaWin.play(); } catch(e){}
+              try { if (soundNakazawaWin) soundNakazawaWin.play(); } catch(e){}
               showNakazawaOverlay();
             }, 1000);
             showHalfButton(true);
@@ -702,7 +746,7 @@
             appendHistory("丸山に勝利！ 掛けが7,777,777倍に→ " + numberWithCommasBig(staged) + " NZ");
             resultLargeEl.textContent = "丸山に勝利！数秒後に演出";
             setTimeout(()=>{
-              try { soundMaruyamaWin.play(); } catch(e){}
+              try { if (soundMaruyamaWin) soundMaruyamaWin.play(); } catch(e){}
               showMaruyamaVictoryOverlay();
             }, 1000);
             showHalfButton(true);
@@ -734,7 +778,7 @@
         staged = staged * 2n;
         roundWins++;
         resultLargeEl.textContent = "勝ち！ 掛けが2倍になった";
-        try { soundWin.play(); } catch(e){}
+        try { if (soundWin) soundWin.play(); } catch(e){}
         showHalfButton(true);
       } else if(res === "あいこ"){
         resultLargeEl.textContent = "あいこ… 掛けはそのまま";
@@ -772,7 +816,7 @@
     maruyamaBtn.addEventListener("click", ()=>{
       if(!maruyamaUnlocked || maruyamaUsed || staged <= 0n) return;
       appendHistory("丸山降臨");
-      try { soundMaruyamaIn.play(); } catch(e){}
+      try { if (soundMaruyamaIn) soundMaruyamaIn.play(); } catch(e){}
       showMaruyamaSetupOverlay();
       setTimeout(() => {
         challengeMode = "7777777x";
