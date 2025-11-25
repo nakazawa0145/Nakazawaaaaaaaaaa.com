@@ -348,6 +348,24 @@
   font-size: 14px !important;  /* 文字少し小さく */
   padding: 0 3px;
 }
+#balanceBox {
+  width: 100% !important;      /* 親ボックス自体を横幅最大にする */
+}
+
+#balance {
+  width: 100% !important;      /* 子も最大に広げる */
+  max-width: 100% !important;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 14px !important;
+  padding: 0 3px;
+}
+
+#balance {
+  font-size: 10px !important;   /* ← ここで好きなサイズに変更 */
+}
 
 
   </style>
