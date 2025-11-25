@@ -314,14 +314,19 @@
     }
 
 #staged {
-  display: inline-block;
-  max-width: 150px;        /* 横スクロールしやすい幅 */
-  max-height: 24px;        /* 少し高さを広げる */
-  overflow-x: auto;        /* 横スクロール */
-  white-space: nowrap;     /* 改行禁止 */
-  font-size: 14px;         /* 少し小さく */
-  padding: 2px 0;          /* スワイプしやすく */
+  display: flex;
+  align-items: center;
+  max-width: 150px;
+  height: 28px;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 12px;   /* ← ここを小さくするだけ */
+  padding: 0 3px;
 }
+#staged {
+  font-size: 12px !important; 
+}
+
     
   </style>
   <script>
@@ -350,7 +355,7 @@
     <div class="header" id="headerRoot">
       <div class="title">NAKAZAWACasino</div>
       <div class="balanceBox" id="balanceBox">
-        <div class="label">残高</div>
+        <div class="label">残高(NZ)</div>
         <div class="amount" id="balance">10,000</div>
       </div>
     </div>
@@ -364,7 +369,7 @@
       </div>
 
       <div style="margin-left:auto;color:#ddd;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)">
-        WIN BET： <strong id="staged">0</strong> NZ
+        WIN BET <strong id="staged">0</strong> NZ
         <span style="font-size:10px;color:lightgray" id="maruyamaAvailText"></span>
       </div>
       
