@@ -328,6 +328,30 @@
   }
 }
 
+    .raceSection { margin-top: 18px; padding: 12px; border-radius: 10px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.03); }
+    .race-track { width:100%; background:#071021; border-radius:8px; padding:10px; box-sizing:border-box; overflow:hidden; }
+    .race-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .race-horse {
+      width:64px; height:64px; border-radius:8px; background:#111; overflow:hidden; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .horse-runner { position:relative; width:100%; height:64px; background:linear-gradient(90deg,#06060a,#0c0f12); border-radius:8px; overflow:hidden; }
+    .horse-track-line { position:absolute; left:0; top:0; bottom:0; right:0; display:flex; align-items:center; gap:8px; padding:6px; box-sizing:border-box; }
+    .horse-item { width:64px; height:64px; border-radius:6px; background-size:cover; background-position:center; flex-shrink:0; transition: transform .2s linear; }
+    .race-controls { display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap;}
+    .overlay-full { position:fixed; left:0; top:0; right:0; bottom:0; display:none; align-items:center; justify-content:center; z-index:99999; }
+    .overlay-center { background:rgba(0,0,0,0.85); color:#fff; padding:20px; border-radius:8px; text-align:center; max-width:90%; }
+    .horse-winner-img { width:60%; max-width:640px; border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,0.8); }
+    .small-muted { font-size:12px; color:#bbb; }
+
+    /* flashing backgrounds for special horses */
+    .flash-blackwhite { animation: flashBW 0.12s steps(2) infinite; }
+    @keyframes flashBW { 0% { background: #000; } 50% { background: #fff; } 100% { background: #000; } }
+    .flash-bluewhite { animation: flashBlue 0.16s steps(2) infinite; }
+    @keyframes flashBlue { 0% { background: #002040; } 50% { background: #aaddff; } 100% { background: #002040; } }
+    .flash-rainbow { animation: flashRainbow 0.2s linear infinite; background-size:400%;}
+    @keyframes flashRainbow { 0%{background-position:0%}100%{background-position:400%} }
+
 
 #staged {
   display: flex;
@@ -469,7 +493,8 @@
 
     <!-- スロット部分は省略せず元通り -->
     <div id="slotArea" class="section">
-      <h2>中澤スロット</h2>
+      <h2>中澤スロット(無料)
+      </h2>
       <div id="slotControls">
         <button id="startButton" class="neonBtn">スロット開始</button>
         <button id="autoButton" class="neonBtn">自動 ON/OFF</button>
@@ -493,9 +518,10 @@
     </div>
 
     <!-- ===== 総資産ボックス（スロット直下） ===== -->
-    <div id="totalAssetsBox" style="margin-top:12px;padding:8px;border-radius:8px;background:#1a1d26;color:white;text-align:center;font-size:16px;font-weight:bold;">
-      総資産: <span id="totalAssets">0 NZ</span>
-    </div>
+<div id="totalAssetsBox" style="margin-top:12px;padding:8px;border-radius:8px;background:#1a1d26;color:white;text-align:center;font-size:16px;font-weight:bold;overflow-x:auto;white-space:nowrap;">
+  総資産: <span id="totalAssets" style="font-size:14px !important;padding:0 3px;display:inline-block;min-width:max-content;">0 NZ</span>
+</div>
+
 
     <!-- === Ari/AliTrading セクション（スロット直下にそのまま貼る） === -->
 <section id="aliTrading" style="width:100%;box-sizing:border-box;margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.03);">
@@ -953,12 +979,477 @@
   // save before unload
   window.addEventListener('beforeunload', ()=> saveState());
 })();
+
+
 </script>
 <!-- === /Ari/AliTrading セクション === -->
 
-    <div class="backWrap">
-      <a class="backBtn" href="index.html">Nakazawaaaaaaaaaa.com に戻る</a>
+<section id="nakazawa-race" class="raceSection" aria-label="中澤競馬">
+  <h2 style="margin:0 0 8px 0;color:#ffcc00;font-weight:900;">中澤競馬</h2>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="flex:1; min-width:320px;">
+      <div class="race-track" id="raceTrack">
+        <!-- 8 horses rows -->
+        <div class="race-row">
+          <div style="width:80px">
+            <div style="font-weight:800">馬レース</div>
+            <div class="small-muted">自動/通常で走ります</div>
+          </div>
+        </div>
+
+        <div id="horsesContainer">
+          <!-- JS will build 8 rows here -->
+        </div>
+
+      </div>
+
+      <div class="race-controls">
+        <input id="race_bet" type="number" min="1" value="100" style="padding:8px;border-radius:6px;background:#050812;color:#fff;border:1px solid rgba(255,255,255,0.04);width:160px;">
+        <button id="race_start" class="neonBtn">レース開始</button>
+        <button id="race_auto" class="neonBtn">自動：OFF</button>
+        <div id="race_status" style="margin-left:8px;color:#ddd;font-weight:700;"></div>
+      </div>
     </div>
+
+    <div style="width:320px;min-width:260px;">
+      <div style="padding:10px;border-radius:8px;background:#071021;border:1px solid rgba(255,255,255,0.04);color:#ddd;">
+        <div style="font-weight:800;color:#fff;margin-bottom:6px;">オッズ & 確率（固定）</div>
+        <div id="race_info" style="font-size:14px;line-height:1.4;">
+          <!-- JS fills info -->
+        </div>
+      </div>
+
+      <div style="margin-top:10px;padding:10px;border-radius:8px;background:#071021;border:1px solid rgba(255,255,255,0.04);color:#ddd;">
+        <div style="font-weight:800;margin-bottom:6px;">直近勝者</div>
+        <div id="race_last_result" style="font-size:14px;color:#fff;">まだ実行されていません</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- full-screen overlay for winner -->
+<div id="raceOverlay" class="overlay-full" style="display:none;align-items:center;justify-content:center;">
+  <div id="raceOverlayInner" class="overlay-center">
+    <div id="raceOverlayTitle" style="font-size:28px;font-weight:900;margin-bottom:12px;"></div>
+    <img id="raceWinnerImg" class="horse-winner-img" src="" alt="winner">
+    <div id="raceOverlayMsg" style="margin-top:12px;font-size:18px;"></div>
+  </div>
+</div>
+
+  <div class="backWrap" style="margin-top:12px;">
+    <a class="backBtn" href="index.html" style="color:#ccc;">Nakazawaaaaaaaaaa.com に戻る</a>
+  </div>
+
+  </div>
+
+  <!-- 音声 resources -->
+  <audio id="race_sound_special1" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo11_st_03.mp3"></audio>
+  <audio id="race_sound_special2" preload="auto" src="https://www.sansei-rd.com/p_garo_archive/images/download/sound/garo_gt_02.mp3"></audio>
+  <!-- 7/8 は音なしと指定 -->
+
+<script>
+/*
+  競馬セクションの挙動を含むスクリプト
+  ・8頭の馬を表示、確率と倍率はユーザー指示に基づく
+  ・ユーザーは馬を選べない（仕様）：賭け金を入れて「レース開始」
+  ・1位になった馬の倍率をかけて残高に反映（勝利 or 払戻 or 失う）
+  ・自動モードは演出完了後 1 秒で再実行（ユーザー指定）
+  ・演出：1〜3位は特別演出（音・点滅）を使用（あなたは代替を拒否したため実装）
+  ・馬画像は指定のURLをそのまま使用（あなたの指示）。
+*/
+
+(function(){
+  // ---------- 設定（あなた指定の馬情報） ----------
+  // 馬配列：{ id, name, img, oddsMultiplier, probabilityDenominator }
+  // 仕様からの変換：確率 = 1 / denominator
+  const horses = [
+    { id:1, name:"馬1", img:"https://i0.wp.com/equia.jp/wp-content/uploads/2021/10/1015-004.jpg?fit=1280%2C780&ssl=1", denom:1000, multiplier: 8888888888888888n, special: 'bw' },
+    { id:2, name:"馬2", img:"https://stat.ameba.jp/user_images/20120910/15/ritadental-jp/b6/e2/p/o0224027312181153646.png", denom:500, multiplier: 77777777n, special: 'blue' },
+    { id:3, name:"馬3", img:"https://truth.bahamut.com.tw/s01/201808/0e40c846510670f6d585451a6ccad0ec.JPG", denom:200, multiplier: 6666666n, special: 'rainbow' },
+    { id:4, name:"馬4", img:"https://www.greenbokujo.jp/uploads/2018/06/DSC_8079-828x578.jpg", denom:100, multiplier: 1000n, special: null },
+    { id:5, name:"馬5", img:"https://www.greenbokujo.jp/uploads/2018/06/DSC_8066-e1528967715793-828x578.jpg", denom:20, multiplier: 80n, special: null },
+    { id:6, name:"馬6", img:"https://i.pinimg.com/236x/07/f0/8d/07f08deebcd84c1457ff84548af42d28.jpg", denom:5, multiplier: 2n, special: null },
+    { id:7, name:"馬7", img:"https://img.freepik.com/premium-photo/goat-with-glasses-that-says-i-love-goats_876023-210.jpg", denom:null, multiplier: 0n, special: null },
+    { id:8, name:"馬8", img:"https://upload.wikimedia.org/wikipedia/commons/3/39/Irish_Goat.jpg", denom:null, multiplier: 1n, special: null }
+  ];
+
+  
+  // Interpretation notes:
+  // - For horses with denom=null (7 and 8), their probability will be set as "remaining probability".
+  // - Horse7 multiplier is "bet lost" -> 0 payout.
+  // - Horse8 multiplier is "1x (full return)" -> returns bet.
+  // - The "ヤギ確率：折半でOK" instruction -> if there remains probability mass for horses 7 and 8, split evenly.
+
+  // ---------- DOM ----------
+  const horsesContainer = document.getElementById('horsesContainer');
+  const raceInfo = document.getElementById('race_info');
+  const raceBetEl = document.getElementById('race_bet');
+  const raceStartBtn = document.getElementById('race_start');
+  const raceAutoBtn = document.getElementById('race_auto');
+  const raceStatus = document.getElementById('race_status');
+  const raceOverlay = document.getElementById('raceOverlay');
+  const raceOverlayTitle = document.getElementById('raceOverlayTitle');
+  const raceOverlayMsg = document.getElementById('raceOverlayMsg');
+  const raceWinnerImg = document.getElementById('raceWinnerImg');
+  const raceLastResult = document.getElementById('race_last_result');
+
+  const soundSpecial1 = document.getElementById('race_sound_special1'); // for horse1 special (long flash)
+  const soundSpecial2 = document.getElementById('race_sound_special2'); // for horse2/3 shorter
+
+  // Integration hooks with main balance/total functions
+  // Expect global `balance` (BigInt), saveBalance(), refreshUI(), updateTotalAssets(), appendHistory(), checkGameOver()
+  function safeCall(fn){ try{ if(typeof fn === 'function') fn(); }catch(e){ console.error('safeCall error', e); } }
+
+  // ---------- 確率配分 ----------
+  // compute probability weights for specified denom horses
+  // For horses with denom set, weight = 1/denom
+  // Remaining probability goes to horses 7 & 8 split equally
+  function computeProbabilities(){
+    let fixed = 0;
+    let weights = new Array(horses.length).fill(0);
+    for(let i=0;i<horses.length;i++){
+      const h = horses[i];
+      if(h.denom && Number.isFinite(h.denom)){
+        weights[i] = 1 / Number(h.denom);
+        fixed += weights[i];
+      }
+    }
+    let remaining = 1 - fixed;
+    if(remaining < 0) remaining = 0; // safety
+    // split equally to horse7 and horse8
+    const idx7 = horses.findIndex(h=>h.id===7);
+    const idx8 = horses.findIndex(h=>h.id===8);
+    if(idx7>=0 && idx8>=0){
+      weights[idx7] = remaining/2;
+      weights[idx8] = remaining/2;
+    }
+    // convert to cumulative array for selection
+    let cum = [];
+    let s=0;
+    for(let i=0;i<weights.length;i++){
+      s+=weights[i];
+      cum.push(s);
+    }
+    // ensure last is 1
+    cum[cum.length-1]=1;
+    return { weights, cum };
+  }
+
+  const { weights, cum } = computeProbabilities();
+
+  // build UI horse rows
+  function buildHorseRows(){
+    horsesContainer.innerHTML = '';
+    horses.forEach((h, idx) => {
+      const row = document.createElement('div');
+      row.className = 'race-row';
+      row.style.alignItems = 'center';
+      row.style.gap = '12px';
+      // left: horse box + name/odds
+      const left = document.createElement('div');
+      left.style.width='80px';
+      left.innerHTML = `<div style="font-weight:800">${h.name}</div><div class="small-muted">odds: ${h.multiplier.toString()}<br>prob: ${ (weights[idx]*100).toFixed(3) }%</div>`;
+      // center: runner track
+      const runnerWrap = document.createElement('div');
+      runnerWrap.className = 'horse-runner';
+      runnerWrap.style.height = '64px';
+      runnerWrap.style.position = 'relative';
+      runnerWrap.style.flex = '1';
+      runnerWrap.style.overflow = 'hidden';
+      const trackLine = document.createElement('div');
+      trackLine.className = 'horse-track-line';
+      trackLine.style.transition = 'transform 10s linear';
+      // horse item
+      const horseItem = document.createElement('div');
+      horseItem.className = 'horse-item';
+      horseItem.style.backgroundImage = `url('${h.img.replace(/'/g,"\\'")}')`;
+      horseItem.dataset.horseId = h.id;
+      horseItem.style.width='64px';
+      horseItem.style.height='64px';
+      horseItem.style.flexShrink='0';
+      trackLine.appendChild(horseItem);
+      runnerWrap.appendChild(trackLine);
+
+      row.appendChild(left);
+      row.appendChild(runnerWrap);
+      horsesContainer.appendChild(row);
+    });
+  }
+
+  buildHorseRows();
+
+  // render info box
+  function renderRaceInfo(){
+    let html = '<ol style="padding-left:16px;margin:0">';
+    for(let i=0;i<horses.length;i++){
+      const h = horses[i];
+      html += `<li style="margin-bottom:6px;">${h.name} — 確率: ${(weights[i]*100).toFixed(3)}% ／ 倍率: ${h.multiplier.toString()}</li>`;
+    }
+    html += '</ol>';
+    raceInfo.innerHTML = html;
+  }
+  renderRaceInfo();
+
+  // ---------- レースロジック ----------
+  let autoMode = false;
+  let running = false;
+
+  function weightedPick(cumArray){
+    const r = Math.random();
+    for(let i=0;i<cumArray.length;i++){
+      if(r <= cumArray[i]) return i;
+    }
+    return cumArray.length - 1;
+  }
+
+  function randomFinishOrder(){
+    // We'll produce a finish order respecting probabilities by sampling winners without replacement:
+    // pick first by weights, then remove and renormalize for next picks.
+    const remaining = horses.map((h,i)=>({i, w: weights[i]}));
+    const order = [];
+    while(remaining.length > 0){
+      const tot = remaining.reduce((s,x)=>s+x.w,0);
+      let r = Math.random()*tot;
+      let pick = 0;
+      let acc = 0;
+      for(let k=0;k<remaining.length;k++){
+        acc += remaining[k].w;
+        if(r <= acc){ pick = k; break; }
+      }
+      order.push(remaining[pick].i);
+      remaining.splice(pick,1);
+      // renormalize by leaving weights as-is (we want independent winners probabilities)
+      // For simplicity we keep their original weights among remaining — acceptable for game feel.
+    }
+    return order; // array of indices into horses array in finishing order (first = order[0])
+  }
+
+  function resetTrackVisuals(){
+    // reset transform for each trackLine
+    const trackLines = document.querySelectorAll('.horse-track-line');
+    trackLines.forEach(t => {
+      t.style.transition = 'none';
+      t.style.transform = 'translateX(0px)';
+      // reset horse-item scale
+      const item = t.querySelector('.horse-item');
+      if(item) item.style.transform = 'scale(1)';
+      // remove flashes
+      t.classList.remove('flash-blackwhite','flash-bluewhite','flash-rainbow');
+    });
+  }
+
+  function animateRace(order){
+    // order: array of indices into horses (first = winner)
+    // We'll animate each horse's track transform to different distances over 10 seconds,
+    // controlling speed randomly but ensuring final ordering matches `order`.
+    return new Promise(resolve=>{
+      const trackLines = document.querySelectorAll('.horse-track-line');
+      // compute widths
+      const runner = document.querySelector('.horse-runner');
+      const trackWidth = runner ? runner.clientWidth : 600;
+      // map horse index to target translateX (larger translate = moved right)
+      // We'll assign larger targets to winners; ensure ordering preserved
+      const baseTargets = new Array(horses.length).fill(0);
+      // allocate descending distances
+      const maxMove = Math.max(trackWidth - 80, 200);
+      for(let p=0;p<order.length;p++){
+        const idx = order[p];
+        // winners (p=0) gets ~maxMove, last gets ~some smaller
+        const frac = 1 - (p / (order.length)); // winner near 1
+        baseTargets[idx] = Math.floor( (0.3 + 0.7*frac) * maxMove );
+      }
+
+      // now animate each
+      const durations = []; // per horse
+      for(let i=0;i<horses.length;i++){
+        // randomize duration a bit so motion varies but ensure final position matches
+        const dur = 6 + Math.random()*4; // between 6s and 10s
+        durations.push(dur);
+      }
+
+      // apply transitions
+      trackLines.forEach((t, idx) => {
+        const target = baseTargets[idx];
+        t.style.transition = `transform ${durations[idx]}s linear`;
+        t.style.transform = `translateX(${target}px)`;
+      });
+
+      // also animate horse image scale for winner at end
+      // wait for max duration then resolve
+      const maxDur = Math.max(...durations) * 1000 + 300; // plus small buffer
+      setTimeout(()=> resolve(), maxDur);
+    });
+  }
+
+  function showWinnerOverlay(winnerIdx, payout, bet){
+    const winnerHorse = horses[winnerIdx];
+    raceOverlayTitle.textContent = `${winnerHorse.name} が1位！`;
+    raceOverlayMsg.textContent = `賭け金 ${bet} NZ → 結果: ${payout} NZ`;
+    raceWinnerImg.src = winnerHorse.img;
+    raceOverlay.style.display = 'flex';
+
+    // special visual effects and sounds for horse1/2/3 as specified
+    const inner = document.getElementById('raceOverlayInner');
+    inner.className = 'overlay-center';
+    inner.style.background = 'rgba(0,0,0,0.85)';
+
+    if(winnerHorse.id === 1){
+      // full-screen black-white flashing + long audio
+      document.body.classList.add('flash-blackwhite'); // not defined globally, so we'll add local style
+      raceOverlayInner.classList.add('flash-blackwhite');
+      // play long audio
+      try{ soundSpecial1.currentTime = 0; soundSpecial1.play(); }catch(e){}
+      raceOverlayTitle.style.color = '#ff0000';
+      raceOverlayMsg.style.fontWeight = '900';
+      // remove after 12s
+      setTimeout(()=>{ raceOverlay.style.display='none'; raceOverlayInner.classList.remove('flash-blackwhite'); try{ soundSpecial1.pause(); }catch(e){} }, 12000);
+    } else if(winnerHorse.id === 2){
+      raceOverlayInner.classList.add('flash-bluewhite');
+      try{ soundSpecial2.currentTime = 0; soundSpecial2.play(); }catch(e){}
+      setTimeout(()=>{ raceOverlay.style.display='none'; raceOverlayInner.classList.remove('flash-bluewhite'); try{ soundSpecial2.pause(); }catch(e){} }, 5000);
+    } else if(winnerHorse.id === 3){
+      raceOverlayInner.classList.add('flash-rainbow');
+      try{ soundSpecial2.currentTime = 0; soundSpecial2.play(); }catch(e){}
+      setTimeout(()=>{ raceOverlay.style.display='none'; raceOverlayInner.classList.remove('flash-rainbow'); try{ soundSpecial2.pause(); }catch(e){} }, 5000);
+    } else {
+      setTimeout(()=>{ raceOverlay.style.display='none'; }, 2000);
+    }
+  }
+
+  function updateLastResultText(text){
+    raceLastResult.textContent = text;
+  }
+
+  async function runRaceOnce(){
+    if(running) return;
+    running = true;
+    resetTrackVisuals();
+    raceStatus.textContent = 'レース実行中...';
+    safeCall(()=>appendHistory('競馬：レース開始'));
+    const bet = Math.max(1, Math.floor(Number(raceBetEl.value) || 0));
+    // pick finish order using weighted sampling
+    const order = randomFinishOrder(); // array of indices
+    // animate to reflect order
+    await animateRace(order);
+
+    // compute winner (first)
+    const winnerIdx = order[0];
+    const winnerHorse = horses[winnerIdx];
+    // payout logic:
+    // - multiplier as BigInt: payout = bet * multiplier (but multiplier may be 0 or 1)
+    // - treat all payouts in NZ units (we assume 1 NZ = 1 JPY as earlier)
+    let payout = 0n;
+    try{
+      const betBig = BigInt(Math.floor(bet));
+      payout = betBig * BigInt(winnerHorse.multiplier);
+    }catch(e){
+      payout = BigInt(Math.floor(bet)) * BigInt(winnerHorse.multiplier);
+    }
+
+    // user spec: "馬は選べなくて一位になった馬の倍率がかかる"
+    // so the user's bet is applied to the winning horse multiplier automatically.
+    // update balance accordingly:
+    // - user had not necessarily subtracted bet before race; to keep consistent with other systems, we'll deduct bet at start then add payout.
+    // But the user requested simply "一位になった馬の倍率がかかる" -> we'll treat as:
+    //   BEFORE: deduct bet from balance; AFTER: add payout (could be larger or smaller).
+    // To be safe, we will deduct bet upfront. If balance insufficient, reject.
+    try{
+      // deduct bet first
+      if(typeof balance === 'bigint'){
+        if(BigInt(bet) > balance){
+          alert('残高不足：賭けられません');
+          running = false;
+          raceStatus.textContent = '残高不足';
+          return;
+        }
+        balance = balance - BigInt(bet);
+      } else {
+        // coerce
+        balance = BigInt(Number(balance) - bet);
+      }
+      safeCall(()=>saveBalance());
+      safeCall(()=>refreshUI());
+    }catch(e){
+      console.error('bet deduction error', e);
+    }
+
+    // apply payout
+    // Some multipliers are astronomically large — clamp when applying? User insisted exact; we'll attempt to add BigInt.
+    try{
+      // If payout is > 0, add to balance
+      if(typeof balance === 'bigint'){
+        balance = balance + payout;
+      } else {
+        balance = BigInt(Number(balance) + Number(payout));
+      }
+      safeCall(()=>saveBalance());
+      safeCall(()=>refreshUI());
+    }catch(e){
+      console.error('payout apply error', e);
+    }
+
+    // Show overlay and message
+    const payoutStr = payout.toString();
+    showWinnerOverlay(winnerIdx, payoutStr, bet);
+    updateLastResultText(`${horses[winnerIdx].name} が勝利。払戻: ${payoutStr} NZ`);
+    safeCall(()=>appendHistory(`競馬：${horses[winnerIdx].name} が勝利。賭け ${bet} NZ → 払戻 ${payoutStr} NZ`));
+    safeCall(()=>updateTotalAssets());
+    // check bankruptcy: if balance <= 0 then trigger game over behavior
+    try{ checkGameOver(); }catch(e){}
+
+    // wait until overlay hides (we timed durations above). Wait extra 1s, then if autoMode true, start again
+    const waitFor = (horses[order[0]].id === 1) ? 12500 : (horses[order[0]].id === 2 || horses[order[0]].id === 3 ? 5500 : 2200);
+    setTimeout(()=>{
+      running = false;
+      raceStatus.textContent = '待機中';
+      if(autoMode){
+        // 1s pause then restart
+        setTimeout(()=>{ if(!running) runRaceOnce(); }, 1000);
+      }
+    }, waitFor + 300);
+  }
+
+  // UI handlers
+  raceStartBtn.addEventListener('click', ()=> {
+    // start single race
+    // but check balance: bet must be <= balance
+    const bet = Math.max(1, Math.floor(Number(raceBetEl.value) || 0));
+    if(typeof balance === 'bigint'){
+      if(BigInt(bet) > balance){ alert('残高不足です'); return; }
+    } else {
+      if(bet > Number(balance)){ alert('残高不足です'); return; }
+    }
+    runRaceOnce();
+  });
+
+  raceAutoBtn.addEventListener('click', ()=> {
+    autoMode = !autoMode;
+    raceAutoBtn.textContent = `自動：${autoMode ? 'ON' : 'OFF'}`;
+    if(autoMode && !running){
+      // small delay then start
+      setTimeout(()=> runRaceOnce(), 300);
+    }
+  });
+
+  // initial status
+  raceStatus.textContent = '待機中';
+
+  // close overlay when clicked
+  raceOverlay.addEventListener('click', ()=> {
+    raceOverlay.style.display = 'none';
+    raceOverlayInner.classList.remove('flash-blackwhite','flash-bluewhite','flash-rainbow');
+  });
+
+  // expose functions to global for debugging
+  window.nakazawaRace = {
+    runRaceOnce,
+    setAuto: (v)=>{ autoMode = !!v; raceAutoBtn.textContent = `自動：${autoMode ? 'ON' : 'OFF'}`; }
+  };
+
+})();
+</script>
+
 
   </div>
 
@@ -1422,6 +1913,7 @@
       maruyamaOverlay.style.display = "flex";
       setTimeout(()=>{ maruyamaOverlay.style.display = "none"; }, 10000);
     }
+    
 
     // 初期化
     refreshUI();
