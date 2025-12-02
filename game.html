@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>NakazawaControl</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { margin:0; font-family: Arial,Helvetica,sans-serif; text-align:center; background:#222; color:#fff; overflow:hidden;}
+  #gameCanvas { background:#333; display:block; margin: 0 auto; touch-action: none; position: relative; }
+  #bossGif { position: absolute; pointer-events: none; }
+  #ui { margin-top:10px; }
+  #mobCounter { font-size:30px; margin:5px; font-weight:bold; }
+  #speedLabel { font-size:16px; margin:3px; }
+  button { font-size:16px; padding:5px 10px; margin:3px;}
+  input[type=range] { vertical-align: middle; }
+  #pauseBtnContainer { position: absolute; top:10px; left:10px; text-align:center; }
+  #pauseBtn { font-size:16px; padding:5px 10px; }
+  #pauseKeyLabel { font-size:12px; color:#ccc; }
+  #gameOverOverlay {
+    display:none;
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color:black;
+    color:white;
+    font-size:60px;
+    text-align:center;
+    line-height:100vh;
+    z-index:1000;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1 id="title">NakazawaControl</h1>
+
+<div id="ui">
+  <button id="startBtn">スタート</button>
+  <span id="speedLabel">速度: 1倍</span><br>
+  <input type="range" id="speedSlider" min="1" max="50" value="1">
+  <div id="mobCounter">mob数: 0</div>
+</div>
+
+<div id="pauseBtnContainer">
+  <button id="pauseBtn">一時停止</button><br>
+  <span id="pauseKeyLabel">Eキー</span>
+</div>
+
+<div style="position:relative; width:800px; height:600px; margin:0 auto;">
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <img id="bossGif" src="fortnite.gif" width="40" height="40">
+</div>
+
+<div id="gameOverOverlay">死亡確認</div>
+
+<audio id="bgmAudio" src="bgm.mp3" loop></audio>
+<audio id="startAudio" src="スタート.mp3"></audio>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const bossGif = document.getElementById('bossGif');
+const speedSlider = document.getElementById('speedSlider');
+const speedLabel = document.getElementById('speedLabel');
+const pauseBtn = document.getElementById('pauseBtn');
+const gameOverOverlay = document.getElementById('gameOverOverlay');
+
+let startMob = 10;
+let gameRunning = false;
+let gamePaused = false;
+let hue = 0;
+let speedMultiplier = 1; // 落下速度倍率
+
+speedSlider.addEventListener('input', ()=>{
+  speedMultiplier = parseInt(speedSlider.value);
+  speedLabel.innerText = `速度: ${speedMultiplier}倍`;
+});
+
+// Web Audio API
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let correctBuffer, wrongBuffer;
+
+function loadAudio(url, callback) {
+  fetch(url).then(r=>r.arrayBuffer())
+  .then(arrayBuffer=>audioCtx.decodeAudioData(arrayBuffer))
+  .then(decoded=>callback(decoded));
+}
+
+loadAudio('正解.mp3', buf=>correctBuffer=buf);
+loadAudio('不正解.mp3', buf=>wrongBuffer=buf);
+
+function playBuffer(buffer){
+  if(!buffer) return;
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(audioCtx.destination);
+  source.start(0);
+}
+
+// ボスとモブ
+let boss = { x: 400, y: 480, radius: 20 };
+let smallMobs = []; 
+let fallingObjects = [];
+const BASE_SPEED = 3;
+
+// ランダム値
+function getRandomValue(type) {
+  if(type==='+') return Math.floor(10 + Math.random()*100);
+  if(type==='-') return Math.floor(100 + Math.random()*9901);
+  if(type==='×') return (Math.random()*20.9+0.1).toFixed(1);
+  return 0;
+}
+
+function resetGame() {
+  smallMobs = [];
+  for(let i=0;i<startMob;i++) addMiniMob();
+  fallingObjects = [];
+  const initialObjects = [
+    {type:'+','count':100},
+    {type:'×','count':2},
+    {type:'-','count':6},
+    {type:'死亡','count':4}
+  ];
+  for(let obj of initialObjects){
+    for(let i=0;i<obj.count;i++){
+      spawnObject(obj.type);
+    }
+  }
+  updateMobCounter();
+  gameOverOverlay.style.display = 'none'; // ゲーム開始でオーバーレイ非表示
+}
+
+function addMiniMob() {
+  const rangeX = 600;
+  const rangeY = 150; 
+  const x = boss.x - rangeX/2 + Math.random()*rangeX;
+  const y = boss.y + boss.radius + 5 + Math.random()*rangeY;
+  smallMobs.push({x, y, offsetX: x - boss.x, offsetY: y - boss.y});
+}
+
+function spawnObject(type=null) {
+  const types = ['+','-','×','死亡'];
+  if(type===null) type = types[Math.floor(Math.random()*types.length)];
+  const value = getRandomValue(type);
+  fallingObjects.push({
+    x: Math.random()*(canvas.width-50),
+    y: -Math.random()*300,
+    width: 60,
+    height: 40,
+    type: type,
+    value: value,
+    speed: BASE_SPEED
+  });
+}
+
+// ボス移動
+function moveBoss(x) { 
+  boss.x = Math.min(Math.max(x, boss.radius), canvas.width-boss.radius); 
+  bossGif.style.left = (boss.x - boss.radius) + 'px';
+  bossGif.style.top = (boss.y - boss.radius) + 'px';
+}
+canvas.addEventListener('mousemove', e=>{
+  const rect=canvas.getBoundingClientRect(); 
+  moveBoss(e.clientX-rect.left); 
+});
+canvas.addEventListener('touchmove', e=>{
+  e.preventDefault(); 
+  const rect=canvas.getBoundingClientRect(); 
+  moveBoss(e.touches[0].clientX-rect.left); 
+}, {passive:false});
+
+// ミニモブ描画
+function drawMiniMobs() {
+  for(let mob of smallMobs){
+    mob.x = boss.x + mob.offsetX;
+    mob.y = boss.y + mob.offsetY;
+    ctx.beginPath();
+    ctx.arc(mob.x, mob.y, 2.5, 0, Math.PI*2);
+    ctx.fillStyle='black';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(mob.x, mob.y, 2, 0, Math.PI*2);
+    ctx.fillStyle='#39FF14';
+    ctx.fill();
+  }
+}
+
+// mob数更新（虹色）
+function updateMobCounter() {
+  hue = (hue+2)%360;
+  document.getElementById('mobCounter').style.color = `hsl(${hue},100%,50%)`;
+  document.getElementById('mobCounter').innerText = 'mob数: ' + smallMobs.length;
+}
+
+// 一時停止切替
+function togglePause(){
+  if(!gameRunning) return;
+  gamePaused = !gamePaused;
+  pauseBtn.innerText = gamePaused ? "再開" : "一時停止";
+}
+pauseBtn.addEventListener('click', togglePause);
+document.addEventListener('keydown', e=>{
+  if(e.key.toLowerCase() === 'e') togglePause();
+});
+
+// オーバーレイを閉じる関数
+function closeGameOverOverlay(){
+  gameOverOverlay.style.display = 'none';
+}
+gameOverOverlay.addEventListener('click', closeGameOverOverlay);
+
+// ゲームループ
+function loop() {
+  if(!gameRunning) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawMiniMobs();
+
+  if(!gamePaused){
+    fallingObjects.forEach(obj=>{
+      obj.y += obj.speed * speedMultiplier;
+
+      let bgColor,textColor;
+      if(obj.type==='死亡'){ bgColor='black'; textColor='red'; }
+      else if(obj.type==='-'){ bgColor='red'; textColor='black'; }
+      else if(obj.type==='×'){ bgColor='blue'; textColor='black'; }
+      else{ bgColor='yellow'; textColor='black'; }
+
+      ctx.fillStyle=bgColor;
+      ctx.fillRect(obj.x,obj.y,obj.width,obj.height);
+      ctx.fillStyle=textColor;
+      ctx.font='20px Arial';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      if(obj.type==='死亡') ctx.fillText(obj.type,obj.x+obj.width/2,obj.y+obj.height/2);
+      else ctx.fillText(obj.type+obj.value,obj.x+obj.width/2,obj.y+obj.height/2);
+
+      const dx = boss.x - Math.max(obj.x,Math.min(boss.x,obj.x+obj.width));
+      const dy = boss.y - Math.max(obj.y,Math.min(boss.y,obj.y+obj.height));
+
+      if(dx*dx + dy*dy <= boss.radius*boss.radius){
+        if(obj.type==='+'){ for(let i=0;i<obj.value;i++) addMiniMob(); playBuffer(correctBuffer);}
+        else if(obj.type==='×'){ let current=smallMobs.length; let times=Math.floor(current*obj.value)-current; for(let i=0;i<times;i++) addMiniMob(); playBuffer(correctBuffer);}
+        else if(obj.type==='-'){ smallMobs.splice(0,Math.min(obj.value,smallMobs.length)); playBuffer(wrongBuffer);}
+        else if(obj.type==='死亡'){ smallMobs=[]; playBuffer(wrongBuffer);}
+        obj.y=-Math.random()*300;
+        obj.x=Math.random()*(canvas.width-50);
+        obj.value=getRandomValue(obj.type);
+        updateMobCounter();
+      }
+
+      if(obj.y > canvas.height){
+        obj.y=-Math.random()*300;
+        obj.x=Math.random()*(canvas.width-50);
+        obj.value=getRandomValue(obj.type);
+      }
+    });
+  }
+
+  updateMobCounter();
+
+  if(smallMobs.length<=0){
+    gameRunning=false;
+    document.getElementById('bgmAudio').pause();
+    gameOverOverlay.style.display = 'block';
+    setTimeout(closeGameOverOverlay, 2000); // 2秒後自動閉じ
+    return;
+  }
+
+  requestAnimationFrame(loop);
+};
+
+// スタートボタン
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(!gameRunning){
+    gameRunning = true;
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    document.getElementById('bgmAudio').currentTime=0;
+    document.getElementById('bgmAudio').play();
+    const startAudio = document.getElementById('startAudio').cloneNode();
+    startAudio.play();
+    resetGame();
+    loop();
+  }
+});
+</script>
+</body>
+</html>
