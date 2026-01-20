@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>生態系Plus</title>
+
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+}
+h1,h2{ margin:4px; }
+
+.rainbow-text{
+  font-size:42px;
+  font-weight:bold;
+  background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  background-size:400%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation: rainbow 4s linear infinite;
+}
+@keyframes rainbow{
+  0%{background-position:0%}
+  100%{background-position:400%}
+}
+
+#container{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+}
+
+canvas{
+  border:1px solid #555;
+}
+
+#field{
+  background:#efe6c8;
+}
+
+button{
+  margin:2px;
+  padding:4px 8px;
+}
+
+input{ width:80px }
+
+#fps{
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Javalab</h2>
+<h2>Science Simulations</h2>
+<div class="rainbow-text">生態系Plus</div>
+
+<div id="container">
+
+<div>
+<canvas id="field" width="500" height="500"></canvas>
+
+<div id="counts">
+草: 0　
+ウサギ: 0　
+オオカミ: 0　
+<span id="fps">FPS: 0</span>
+</div>
+
+<div>
+<button onclick="toggleRun()">実行 / 停止</button>
+<button onclick="history.length=0">グラフ消去</button>
+<button onclick="extinction()">絶滅</button><br>
+
+増加数 <input id="amount" type="number" value="1"><br>
+
+<button onclick="addRabbit()">ウサギ＋</button>
+<button onclick="removeRabbit()">ウサギ−</button><br>
+<button onclick="addWolf()">オオカミ＋</button>
+<button onclick="removeWolf()">オオカミ−</button><br>
+
+速度倍率 <input id="speed" type="number" step="0.1" value="1"><br>
+草繁殖/秒 <input id="grassRate" type="number" value="60"><br>
+</div>
+</div>
+
+<canvas id="graph" width="300" height="200"></canvas>
+</div>
+
+<script>
+const field=document.getElementById("field");
+const ctx=field.getContext("2d");
+const graph=document.getElementById("graph");
+const gctx=graph.getContext("2d");
+const counts=document.getElementById("counts");
+const fpsEl=document.getElementById("fps");
+
+const imgR=new Image(); imgR.src="usagi.png";
+const imgW=new Image(); imgW.src="ookami.png";
+const imgG=new Image(); imgG.src="kusa.png";
+
+const W=500,H=500;
+let run=true;
+
+const grass=[], rabbits=[], wolves=[], history=[];
+
+function rand(a,b){return Math.random()*(b-a)+a}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+class Animal{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.vx=rand(-1,1); this.vy=rand(-1,1);
+    this.hp=100; this.st=100;
+  }
+  move(tx,ty,s){
+    const dx=tx-this.x, dy=ty-this.y;
+    const d=Math.hypot(dx,dy)+0.01;
+    this.vx+=dx/d*0.05;
+    this.vy+=dy/d*0.05;
+    const v=Math.hypot(this.vx,this.vy);
+    const sp=s*Number(speed.value);
+    this.vx=this.vx/v*sp;
+    this.vy=this.vy/v*sp;
+    this.x+=this.vx; this.y+=this.vy;
+
+    if(this.x<16||this.x>W-16) this.vx*=-1;
+    if(this.y<16||this.y>H-16) this.vy*=-1;
+  }
+}
+
+class Rabbit extends Animal{
+  update(){
+    let t={x:this.x+this.vx*20,y:this.y+this.vy*20};
+    grass.forEach(g=>{ if(dist(this,g)<120) t=g });
+    this.move(t.x,t.y,1.6);
+    grass.forEach((g,i)=>{
+      if(dist(this,g)<14){
+        grass.splice(i,1);
+        rabbits.push(new Rabbit(this.x+rand(-10,10), this.y+rand(-10,10)));
+      }
+    });
+  }
+}
+
+class Wolf extends Animal{
+  update(){
+    let t={x:this.x+this.vx*20,y:this.y+this.vy*20};
+    let d=999;
+    rabbits.forEach(r=>{
+      const dd=dist(this,r);
+      if(dd<d){d=dd;t=r}
+    });
+    this.move(t.x,t.y,2.4);
+    rabbits.forEach((r,i)=>{
+      if(dist(this,r)<18){
+        rabbits.splice(i,1);
+        wolves.push(new Wolf(this.x+rand(-10,10), this.y+rand(-10,10)));
+      }
+    });
+  }
+}
+
+function addRabbit(){
+  for(let i=0;i<amount.value;i++)
+    rabbits.push(new Rabbit(rand(20,W-20),rand(20,H-20)));
+}
+function addWolf(){
+  for(let i=0;i<amount.value;i++)
+    wolves.push(new Wolf(rand(20,W-20),rand(20,H-20)));
+}
+function removeRabbit(){ rabbits.length=Math.max(0,rabbits.length-amount.value) }
+function removeWolf(){ wolves.length=Math.max(0,wolves.length-amount.value) }
+
+function toggleRun(){ run=!run }
+
+function extinction(){
+  grass.length=0;
+  rabbits.length=0;
+  wolves.length=0;
+}
+
+for(let i=0;i<60;i++) grass.push({x:rand(20,W-20),y:rand(20,H-20)});
+
+let grassAccumulator=0;
+
+// FPS計測
+let lastTime=performance.now(), frames=0, fps=0;
+
+function update(){
+  if(!run) return;
+
+  grassAccumulator += Number(grassRate.value)/60;
+  while(grassAccumulator>=1){
+    grass.push({x:rand(20,W-20),y:rand(20,H-20)});
+    grassAccumulator--;
+  }
+
+  rabbits.forEach(r=>r.update());
+  wolves.forEach(w=>w.update());
+
+  history.push([grass.length,rabbits.length,wolves.length]);
+  if(history.length>300) history.shift();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  grass.forEach(g=>ctx.drawImage(imgG,g.x-10,g.y-10,20,20));
+  rabbits.forEach(r=>ctx.drawImage(imgR,r.x-16,r.y-16,32,32));
+  wolves.forEach(w=>ctx.drawImage(imgW,w.x-20,w.y-20,40,40));
+
+  counts.innerHTML=
+    `草: ${grass.length}　
+     ウサギ: ${rabbits.length}　
+     オオカミ: ${wolves.length}　
+     <span id="fps">FPS: ${fps}</span>`;
+
+  const fpsSpan=document.getElementById("fps");
+  fpsSpan.style.color = fps>=30 ? "lime" : fps<=10 ? "red" : "yellow";
+
+  gctx.clearRect(0,0,300,200);
+  history.forEach((h,i)=>{
+    gctx.fillStyle="green"; gctx.fillRect(i,200-h[0],1,1);
+    gctx.fillStyle="gray"; gctx.fillRect(i,200-h[1],1,1);
+    gctx.fillStyle="orange"; gctx.fillRect(i,200-h[2],1,1);
+  });
+}
+
+function loop(now){
+  frames++;
+  if(now-lastTime>=1000){
+    fps=frames;
+    frames=0;
+    lastTime=now;
+  }
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
