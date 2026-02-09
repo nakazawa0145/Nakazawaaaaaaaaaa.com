@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>中澤帝国</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:"Yu Gothic","Meiryo",sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(0,0,0,0.8), rgba(2,10,6,0.9) 50000%),
+    url("haikei111.webp") center/cover fixed;
+  color:#caffea;
+}
+
+.overlay{
+  background:rgba(0,0,0,0.7);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:0 0 20px;
+}
+
+/* ★ コイン固定バー */
+.moneyBar{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  width:100%;
+  text-align:center;
+  padding:16px 0 10px;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.9),
+    rgba(0,0,0,0.65),
+    rgba(0,0,0,0)
+  );
+  backdrop-filter:blur(6px);
+}
+
+#money{
+  font-size:56px;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+  text-shadow:0 0 18px #00ff9c;
+}
+
+.panel{
+  margin-top:14px;
+  background:rgba(0,255,160,0.12);
+  padding:14px 22px;
+  border-radius:14px;
+  backdrop-filter:blur(8px);
+  text-align:center;
+  min-width:340px;
+}
+
+button{
+  margin-top:6px;
+  padding:8px 14px;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#00ff9c,#0a7f55);
+}
+button:disabled{opacity:0.4}
+.small{font-size:12px;opacity:0.9}
+</style>
+</head>
+
+<body>
+<div class="overlay">
+
+  <!-- 💰 固定表示 -->
+  <div class="moneyBar">
+    <div id="money">0</div>
+    <div class="small">↑ クリックで資金獲得</div>
+  </div>
+
+  <div class="panel">
+    <h3>🏰 帝国</h3>
+    <div id="empireName"></div>
+    <div class="small">自動収入: <span id="autoIncome"></span> / 秒</div>
+    <button onclick="upgradeEmpire()">帝国アップグレード</button>
+    <div class="small">Cost: <span id="empireCost"></span></div>
+  </div>
+
+  <div class="panel">
+    <h3>🎁 10分ボーナス</h3>
+    <button id="bonusBtn" onclick="claimBonus()">ボーナス獲得</button>
+    <div class="small">次まで: <span id="bonusTimer"></span></div>
+  </div>
+
+  <div class="panel">
+    <h3>🤖 オートクリッカー</h3>
+    <div class="small">Lv.<span id="autoClickLv"></span></div>
+    <div class="small">毎秒クリック量: <span id="autoClickPower"></span></div>
+    <button onclick="upgradeAutoClick()">強化</button>
+    <div class="small">Cost: <span id="autoClickCost"></span></div>
+  </div>
+
+  <div class="panel">
+    <h3>💪 クリック強化</h3>
+    <div class="small">クリック力: <span id="clickPower"></span></div>
+    <button onclick="upgradeClick()">強化</button>
+    <div class="small">Cost: <span id="clickCost"></span></div>
+  </div>
+
+  <div class="panel">
+    <h3>🧬 中澤</h3>
+    <div><b id="nakazawaName"></b></div>
+    <div class="small" id="nakazawaEffect"></div>
+    <div class="small">Lv.<span id="nakazawaLv"></span> / 50</div>
+    <button onclick="upgradeNakazawa()">アップグレード</button>
+    <div class="small">Cost: <span id="nakazawaCost"></span></div>
+  </div>
+
+  <div class="panel">
+    <h3>🔁 転生</h3>
+    <div class="small">転生コイン: <span id="rebirthCoin"></span></div>
+    <div class="small">生涯収入倍率: ×<span id="lifeMoneyMul"></span></div>
+    <div class="small">クリック倍率: ×<span id="lifeClickMul"></span></div>
+    <div class="small">今転生すると: <span id="rebirthPreview"></span> コイン（最低1m）</div>
+    <button onclick="rebirth()">転生する</button>
+    <div id="rebirthShop" class="small"></div>
+  </div>
+
+</div>
+
+<script>
+const SAVE_KEY="nakazawa_idle_final_fix";
+
+/* 帝国名 */
+const empires=[
+"中澤の村","中澤の街","中澤の都市","中澤の地方","中澤の王国",
+"中澤の帝国","中澤の超帝国","中澤の覇権国家","中澤の世界国家","中澤の神域",
+"中澤の超神域","中澤の原初神域","中澤の太古神域","中澤の星界神域","中澤の銀河神域",
+"中澤の超銀河神域","中澤の次元神域","中澤の多次元神域","中澤の高次神域","中澤の虚空神域",
+"中澤の概念神域","中澤の因果神域","中澤の運命神域","中澤の絶対神域","中澤の無限神域",
+"中澤の永劫神域","中澤の時空神域","中澤の全知神域","中澤の全能神域","中澤の超越神域",
+"中澤の神王領域","中澤の神皇領域","中澤の神帝領域","中澤の神祖領域","中澤の原神領域",
+"中澤の始源領域","中澤の根源領域","中澤の真理領域","中澤の法則領域","中澤の支配領域",
+"中澤の全宇宙","中澤の全多元宇宙","中澤の全存在","中澤の全概念","中澤の絶対存在",
+"中澤の唯一存在","中澤の終焉点","中澤の起源点","中澤の無限点","中澤エロス"
+];
+
+const nakazawaUpgrades=[];
+for(let i=1;i<=50;i++){
+  nakazawaUpgrades.push({
+    name:`中澤DNA Lv${i}`,
+    effect:`クリック×${Math.pow(1.15,i).toFixed(2)} / 自動収入×${Math.pow(1.12,i).toFixed(2)}`
+  });
+}
+
+let save=JSON.parse(localStorage.getItem(SAVE_KEY))||{
+  money:0, empire:0, clickLv:0, nakazawaLv:0,
+  autoClickerLv:0, rebirthCoin:0,
+  rebirthBonus:{money:1,click:1},
+  lastBonus:0
+};
+
+let {money,empire,clickLv,nakazawaLv,autoClickerLv,rebirthCoin,rebirthBonus,lastBonus}=save;
+
+function format(n){
+  if(n<1000) return Math.floor(n);
+  const u=["k","m","b","t","q"];
+  let t=Math.floor(Math.log10(n)/3)-1;
+  if(t<u.length) return (n/Math.pow(1000,t+1)).toFixed(2)+u[t];
+  return Math.floor(n);
+}
+
+const clickPower=()=>1*Math.pow(2,clickLv)*Math.pow(1.15,nakazawaLv)*rebirthBonus.click;
+const autoIncome=()=>5*Math.pow(2.2,empire)*Math.pow(1.12,nakazawaLv)*rebirthBonus.money;
+const autoClickPower=()=>autoClickerLv*clickPower()*0.8;
+
+const empireCost=()=>Math.pow(12,empire+2);
+const clickCost=()=>Math.pow(10,clickLv+2);
+const nakazawaCost=()=>Math.pow(18,nakazawaLv+1);
+
+function upgradeEmpire(){if(money>=empireCost()){money-=empireCost();empire++;update();}}
+function upgradeClick(){if(money>=clickCost()){money-=clickCost();clickLv++;update();}}
+function upgradeAutoClick(){let c=Math.pow(25,autoClickerLv+1);if(money>=c){money-=c;autoClickerLv++;update();}}
+function upgradeNakazawa(){if(nakazawaLv<50&&money>=nakazawaCost()){money-=nakazawaCost();nakazawaLv++;update();}}
+
+document.getElementById("money").onclick=()=>{money+=clickPower();update();};
+
+function rebirth(){
+ if(money<1e6) return;
+ let g=Math.floor(Math.sqrt(money/1e6));
+ rebirthCoin+=g;
+ money=0;empire=0;clickLv=0;nakazawaLv=0;autoClickerLv=0;
+ update();
+}
+
+function buyRebirth(t){
+ if(rebirthCoin<1) return;
+ rebirthCoin--;
+ if(t==='money')rebirthBonus.money*=1.2;
+ else rebirthBonus.click*=1.5;
+ update();
+}
+
+function claimBonus(){
+ if(Date.now()-lastBonus<600000) return;
+ money+=autoIncome()*600;
+ lastBonus=Date.now();
+ update();
+}
+
+let last=performance.now();
+function loop(now){
+ let dt=(now-last)/1000;
+ last=now;
+ money+=autoIncome()*dt;
+ money+=autoClickPower()*dt;
+ update();
+ requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function update(){
+ document.getElementById("money").innerText=format(money);
+ document.getElementById("empireName").innerText=empires[empire]||"中澤そのもの";
+ document.getElementById("autoIncome").innerText=format(autoIncome());
+ document.getElementById("empireCost").innerText=format(empireCost());
+ document.getElementById("clickPower").innerText=format(clickPower());
+ document.getElementById("clickCost").innerText=format(clickCost());
+ document.getElementById("autoClickLv").innerText=autoClickerLv;
+ document.getElementById("autoClickPower").innerText=format(autoClickPower());
+ document.getElementById("autoClickCost").innerText=format(Math.pow(25,autoClickerLv+1));
+ document.getElementById("nakazawaLv").innerText=nakazawaLv;
+ document.getElementById("nakazawaName").innerText=nakazawaUpgrades[nakazawaLv]?.name||"完全体";
+ document.getElementById("nakazawaEffect").innerText=nakazawaUpgrades[nakazawaLv]?.effect||"全能力MAX";
+ document.getElementById("nakazawaCost").innerText=nakazawaLv<50?format(nakazawaCost()):"MAX";
+ document.getElementById("rebirthCoin").innerText=rebirthCoin;
+ document.getElementById("lifeMoneyMul").innerText=rebirthBonus.money.toFixed(2);
+ document.getElementById("lifeClickMul").innerText=rebirthBonus.click.toFixed(2);
+ document.getElementById("rebirthPreview").innerText=money>=1e6?Math.floor(Math.sqrt(money/1e6)):0;
+ document.getElementById("rebirthShop").innerHTML=
+ `<button onclick="buyRebirth('money')">生涯収入×1.2 (1)</button><br>
+  <button onclick="buyRebirth('click')">クリック×1.5 (1)</button>`;
+ let remain=Math.max(0,600000-(Date.now()-lastBonus));
+ document.getElementById("bonusTimer").innerText=(remain/1000).toFixed(0)+"秒";
+ document.getElementById("bonusBtn").disabled=remain>0;
+ localStorage.setItem(SAVE_KEY,JSON.stringify({money,empire,clickLv,nakazawaLv,autoClickerLv,rebirthCoin,rebirthBonus,lastBonus}));
+}
+update();
+</script>
+</body>
+</html>
