@@ -176,8 +176,8 @@ function format(n){
 }
 
 const clickPower=()=>1*Math.pow(2,clickLv)*Math.pow(1.15,nakazawaLv)*rebirthBonus.click;
-const autoIncome=()=>empire===0?0:5*Math.pow(2.2,empire-1)*Math.pow(1.12,nakazawaLv)*rebirthBonus.money;
-const autoClickPower=()=>autoClickerLv*clickPower()*0.8;
+const autoIncome=()=>empire===0?0:5*Math.pow(2.8,empire-1)*Math.pow(1.12,nakazawaLv)*rebirthBonus.money;
+const autoClickPower=()=>autoClickerLv*clickPower()*1;
 
 const empireCost=()=>Math.pow(12,empire+2);
 const clickCost=()=>Math.pow(10,clickLv+2);
@@ -201,7 +201,7 @@ function rebirth(){
 function buyRebirth(t){
  if(rebirthCoin<1) return;
  rebirthCoin--;
- if(t==='money')rebirthBonus.money*=1.2;
+ if(t==='money')rebirthBonus.money*=1.3;
  else rebirthBonus.click*=1.5;
  update();
 }
@@ -254,3 +254,4 @@ update();
 </script>
 </body>
 </html>
+
