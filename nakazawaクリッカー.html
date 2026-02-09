@@ -24,7 +24,6 @@ body{
   padding:0 0 20px;
 }
 
-/* ★ コイン固定バー */
 .moneyBar{
   position:sticky;
   top:0;
@@ -76,7 +75,6 @@ button:disabled{opacity:0.4}
 <body>
 <div class="overlay">
 
-  <!-- 💰 固定表示 -->
   <div class="moneyBar">
     <div id="money">0</div>
     <div class="small">↑ クリックで資金獲得</div>
@@ -90,11 +88,6 @@ button:disabled{opacity:0.4}
     <div class="small">Cost: <span id="empireCost"></span></div>
   </div>
 
-  <div class="panel">
-    <h3>🎁 10分ボーナス</h3>
-    <button id="bonusBtn" onclick="claimBonus()">ボーナス獲得</button>
-    <div class="small">次まで: <span id="bonusTimer"></span></div>
-  </div>
 
   <div class="panel">
     <h3>🤖 オートクリッカー</h3>
@@ -121,6 +114,13 @@ button:disabled{opacity:0.4}
   </div>
 
   <div class="panel">
+    <h3>🎁 10分ボーナス</h3>
+    <button id="bonusBtn" onclick="claimBonus()">ボーナス獲得</button>
+    <div class="small">次まで: <span id="bonusTimer"></span></div>
+  </div>
+
+
+  <div class="panel">
     <h3>🔁 転生</h3>
     <div class="small">転生コイン: <span id="rebirthCoin"></span></div>
     <div class="small">生涯収入倍率: ×<span id="lifeMoneyMul"></span></div>
@@ -135,8 +135,9 @@ button:disabled{opacity:0.4}
 <script>
 const SAVE_KEY="nakazawa_idle_final_fix";
 
-/* 帝国名 */
+/* 帝国名（0は空） */
 const empires=[
+"",
 "中澤の村","中澤の街","中澤の都市","中澤の地方","中澤の王国",
 "中澤の帝国","中澤の超帝国","中澤の覇権国家","中澤の世界国家","中澤の神域",
 "中澤の超神域","中澤の原初神域","中澤の太古神域","中澤の星界神域","中澤の銀河神域",
@@ -175,7 +176,7 @@ function format(n){
 }
 
 const clickPower=()=>1*Math.pow(2,clickLv)*Math.pow(1.15,nakazawaLv)*rebirthBonus.click;
-const autoIncome=()=>5*Math.pow(2.2,empire)*Math.pow(1.12,nakazawaLv)*rebirthBonus.money;
+const autoIncome=()=>empire===0?0:5*Math.pow(2.2,empire-1)*Math.pow(1.12,nakazawaLv)*rebirthBonus.money;
 const autoClickPower=()=>autoClickerLv*clickPower()*0.8;
 
 const empireCost=()=>Math.pow(12,empire+2);
@@ -225,7 +226,7 @@ requestAnimationFrame(loop);
 
 function update(){
  document.getElementById("money").innerText=format(money);
- document.getElementById("empireName").innerText=empires[empire]||"中澤そのもの";
+ document.getElementById("empireName").innerText=empires[empire]||"";
  document.getElementById("autoIncome").innerText=format(autoIncome());
  document.getElementById("empireCost").innerText=format(empireCost());
  document.getElementById("clickPower").innerText=format(clickPower());
