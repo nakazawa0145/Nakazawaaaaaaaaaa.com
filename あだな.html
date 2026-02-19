@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あだ名じぇねれーたー</title>
+    <style>
+        /* ダークモードのデザイン */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ff4d4d; /* 警告色っぽい赤 */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            outline: none;
+        }
+        input:focus { border-color: #ff4d4d; }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ff4d4d;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #ff1a1a; }
+        #result {
+            margin-top: 25px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            min-height: 50px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>中澤あだ名ジェネレーター</h1>
+    <input type="text" id="userName" placeholder="名前を入力..." maxlength="10">
+    <button onclick="generateNickname()">作る！</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    function generateNickname() {
+        const name = document.getElementById('userName').value.trim();
+        const resultDiv = document.getElementById('result');
+
+        if (!name) {
+            resultDiv.innerText = "名前を入れて！";
+            return;
+        }
+
+        // 付け加えるフレーズのリスト
+        const words = ["バカ", "しこ", "えろ", "ちん", "かす","エロス", "しこしこ", "アホ", "ボケ", "キモ"];
+        
+        // ランダムに2つ選ぶ（上下で被らないようにするため）
+        const shuffled = words.sort(() => 0.5 - Math.random());
+        const word1 = shuffled[0];
+        const word2 = shuffled[1];
+
+        // 0: 前につく, 1: 後ろにつく, 2: 両方につく
+        const pattern = Math.floor(Math.random() * 3);
+        let nickname = "";
+
+        if (pattern === 0) {
+            nickname = word1 + name;
+        } else if (pattern === 1) {
+            nickname = name + word1;
+        } else {
+            nickname = word1 + name + word2;
+        }
+
+        resultDiv.innerText = nickname;
+    }
+</script>
+
+</body>
+</html>

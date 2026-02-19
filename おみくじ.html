@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中澤おみくじ</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            text-align: center;
+            /* 背景画像の設定 */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://user0514.cdnw.net/shared/img/thumb/zubottydsc030431152047_TP_V.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: #eee;
+            padding: 40px 10px;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .container {
+            background-color: rgba(20, 20, 20, 0.85); /* ダークな透過背景 */
+            padding: 30px 15px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            max-width: 480px;
+            margin: 0 auto;
+            border: 2px solid #555;
+        }
+        h1 {
+            color: #d32f2f;
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px #000;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #ff5252;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            padding: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 8px;
+            width: 80%;
+            margin-bottom: 15px;
+            color: #fff;
+            text-align: center;
+        }
+        #status-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 24px;
+            color: #ffccbc;
+        }
+        #result {
+            font-size: 48px;
+            font-weight: 900;
+            margin: 15px 0;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        #comment {
+            font-size: 16px;
+            color: #ccc;
+            min-height: 50px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #5d0e0e;
+            transition: 0.2s;
+            margin: 10px;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+        button:disabled {
+            background-color: #444;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* 祈りセクション */
+        .prayer-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dashed #555;
+        }
+        #prayer-status {
+            font-size: 20px;
+            color: #81d4fa;
+            font-weight: bold;
+            height: 30px;
+            margin-top: 10px;
+        }
+
+        /* シャボン玉演出用のスタイル */
+        .bubble {
+            position: fixed;
+            bottom: -50px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: rise 2s infinite ease-in;
+            z-index: 1000;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(-300px) scale(1.5); opacity: 0; }
+        }
+        .caution { color: #ff1744; font-weight: bold; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>中澤おみくじ</h1>
+    <p class="subtitle">ガチのまじで当たる（嘘なし）</p>
+
+    <input type="text" id="userName" placeholder="名前を入力（なしでもOK）">
+    
+    <div id="status-text"></div>
+    <div id="result">？？？</div>
+    <div id="comment"></div>
+    
+    <button id="drawBtn" onclick="startOmikuji()">おみくじを引く</button>
+
+    <div class="prayer-section">
+        <h3>中澤の祈り場所</h3>
+        <button id="prayBtn" onclick="startPrayer()" style="background-color: #006064; box-shadow: 0 4px 0 #00363a;">中澤に祈る</button>
+        <div id="prayer-status"></div>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { fortune: "大大大大吉", comment: "おめでとうございます！今日はとんでもなく良いことがきっとあります。宇宙が味方しています。", color: "#ff1744" },
+        { fortune: "大大吉", comment: "凄まじい強運です。宝くじを買ったりするなら今しかありません。", color: "#ff5252" },
+        { fortune: "大吉", comment: "絶好調の一日になります。何をやっても上手くいくので、自信を持って進んでください。", color: "#ff8a80" },
+        { fortune: "吉", comment: "安定した良い運勢です。周囲の人に優しくすると、さらに運気がアップします。", color: "#fff" },
+        { fortune: "中吉", comment: "ほどよく良いことがあります。ランチに好きなものを食べると吉。", color: "#fff" },
+        { fortune: "小吉", comment: "小さな幸せが見つかる日。落とし物に気をつければ、平穏に過ごせます。", color: "#fff" },
+        { fortune: "末吉", comment: "今は耐える時ですが、後半にかけて運気が上昇していきます。焦りは禁物です。", color: "#fff" },
+        { fortune: "凶", comment: "少し注意が必要な日です。忘れ物や、言葉の行き違いに気をつけてください。", color: "#448aff" },
+        { fortune: "大凶", comment: "運気が停滞しています。今日は無理をせず、早めに帰宅して休みましょう。", color: "#2979ff" },
+        { fortune: "大大凶", comment: "かなり危険な予感。黒い猫を見かけたら、その道を通るのは避けましょう。", color: "#1565c0" },
+        { fortune: "大大大大凶", comment: "<span class='caution'>警告：本日死ぬ可能性があります</span>。一歩も家から出ないことを強く推奨します。", color: "#546e7a" }
+    ];
+
+    function startOmikuji() {
+        const resultElement = document.getElementById('result');
+        const statusElement = document.getElementById('status-text');
+        const commentElement = document.getElementById('comment');
+        const nameInput = document.getElementById('userName');
+        const btn = document.getElementById('drawBtn');
+        const displayName = nameInput.value.trim() ? nameInput.value.trim() : "あなた";
+        
+        btn.disabled = true;
+        statusElement.innerText = "鑑定中...";
+        commentElement.innerText = "";
+        
+        let count = 0;
+        const interval = setInterval(() => {
+            const temp = data[Math.floor(Math.random() * data.length)];
+            resultElement.innerText = temp.fortune;
+            resultElement.style.color = "#555"; 
+            count += 80;
+            if (count >= 2000) {
+                clearInterval(interval);
+                const final = data[Math.floor(Math.random() * data.length)];
+                statusElement.innerText = `${displayName}さんの運勢は...`;
+                resultElement.innerText = final.fortune;
+                resultElement.style.color = final.color;
+                commentElement.innerHTML = final.comment;
+                btn.disabled = false;
+            }
+        }, 80);
+    }
+
+    // 祈り機能
+    function startPrayer() {
+        const prayBtn = document.getElementById('prayBtn');
+        const prayerStatus = document.getElementById('prayer-status');
+        
+        prayBtn.disabled = true;
+        prayerStatus.innerText = "祈り中...";
+
+        // シャボン玉生成開始
+        const bubbleInterval = setInterval(createBubble, 100);
+
+        setTimeout(() => {
+            clearInterval(bubbleInterval);
+            prayerStatus.innerText = "祈りました";
+            prayBtn.disabled = false;
+        }, 2000);
+    }
+
+    // シャボン玉を作る関数
+    function createBubble() {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        
+        // ランダムな位置とサイズ
+        const size = Math.random() * 30 + 10 + "px";
+        bubble.style.width = size;
+        bubble.style.height = size;
+        bubble.style.left = Math.random() * 100 + "vw";
+        
+        document.body.appendChild(bubble);
+
+        // 2秒後に消す
+        setTimeout(() => {
+            bubble.remove();
+        }, 2000);
+    }
+</script>
+
+</body>
+</html>
