@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中澤GPT</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Noto Sans JP', sans-serif;}
+  .title{position:fixed;top:12px;left:50%;transform:translateX(-50%);font-size:40px;font-weight:900;letter-spacing:2px;
+    background:linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
+    background-size:300% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:rainbow 6s linear infinite;}
+  @keyframes rainbow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+  .wrap{padding-top:80px;max-width:820px;margin:0 auto;display:flex;flex-direction:column;height:100vh;box-sizing:border-box}
+  .chat{flex:1;overflow-y:auto;padding:16px 14px 90px 14px;display:flex;flex-direction:column;gap:8px}
+  .msg{max-width:72%;padding:10px 12px;border-radius:14px;border:1px solid #222;word-break:break-word}
+  .msg.nakazawa{align-self:flex-start;background:#111}
+  .msg.user{align-self:flex-end;background:#1f2a44;border-color:#2a3a66}
+  .buttons{position:fixed;bottom:0;left:0;right:0;background:#000;border-top:1px solid #222;display:flex;gap:10px;padding:12px}
+  .btn{flex:1;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:14px;padding:14px 10px;font-size:15px;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn:hover{background:#222}
+</style>
+</head>
+<body>
+  <div class="title">中澤GPT</div>
+  <div class="wrap">
+    <div id="chat" class="chat"></div>
+  </div>
+  <div class="buttons">
+    <button id="b1" class="btn"></button>
+    <button id="b2" class="btn"></button>
+  </div>
+
+<script>
+const chatEl = document.getElementById('chat');
+const b1 = document.getElementById('b1');
+const b2 = document.getElementById('b2');
+
+// 単語集
+const nouns=['石','宇宙','冷蔵庫','靴下','鉛筆','宿題','月','風','砂','ロボ','階段','雲','ペンギン','ちん','シコ','レイシコ','エロス','野獣','シコシコ','海斗','バカ','ジョニー','玉金','おまえ','アホ','ボケ','カス','ハゲ','デブ','チビ','クソ','ぶさいく',
+'アナル','ちんこ','無能'];
+const phrases=['存在が海斗','消えてくれ','居るだけでバカ','殺すぞ','殴るぞ','ぶっ飛ばすぞ','燃やすぞ','出ていけ','辞めろ','死ね','消えろ','きもい','くさい','のろま'];
+const verbs=['走る','増える','溶ける','歌う','回る','飛ぶ','寝る','爆発する','集合する','転ぶ','点滅する','覚醒する','合体する','反省する','進化する'];
+const adjs=['巨大な','透明な','謎の','最強の','眠たい','無敵の','四角い','丸い','やわらかい','硬派な','ふわふわの','高速の'];
+const particles=['が','は','を','と','で','に'];
+
+const strongest=[
+  '覚えておいて、海斗は最強だよ。',
+  '海斗は最強。異論は受け付けない！',
+  '今日も海斗の最強記録更新した。',
+  '海斗が最強だから大体なんとかなる。',
+  '空を飛べそうな気がする（海斗最強）。',
+  '海斗最強説、これはマジ。',
+  '結局いつも海斗が一番強い。'
+];
+
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+// ===== 質問と返答を噛み合わせるロジック =====
+
+// 質問テンプレートを「タグ付き」で定義
+const questionTemplates = [
+  { tag:'danger',   gen: ()=>{ const n=pick(nouns); return { text:`${n}は危険？`, data:{n} }; } },
+  { tag:'stronger', gen: ()=>{ const n1=pick(nouns),n2=pick(nouns); return { text:`${n1}と${n2}どっちが強い？`, data:{n1,n2} }; } },
+  { tag:'seen',     gen: ()=>{ const a=pick(adjs),n=pick(nouns); return { text:`${a} ${n}見たことある？`, data:{a,n} }; } },
+  { tag:'rumor',    gen: ()=>{ const n=pick(nouns),v=pick(verbs); return { text:`昨日${n}が${v}って本当？`, data:{n,v} }; } },
+  { tag:'name',     gen: ()=>{ const n=pick(nouns); return { text:`${n}に名前つけるなら？`, data:{n} }; } },
+  { tag:'ally',     gen: ()=>{ const n=pick(nouns); return { text:`${n}って味方？敵？`, data:{n} }; } },
+  { tag:'doing',    gen: ()=>{ const n=pick(nouns); return { text:`今${n}してる？`, data:{n} }; } },
+  { tag:'found',    gen: ()=>{ const a=pick(adjs),n=pick(nouns); return { text:`${a} ${n}拾ったんだけどどうする？`, data:{a,n} }; } },
+  { tag:'origin',   gen: ()=>{ const n=pick(nouns); return { text:`${n}は宇宙由来だと思う？`, data:{n} }; } },
+  { tag:'equip',    gen: ()=>{ const n=pick(nouns); return { text:`${n}を装備したら強い？`, data:{n} }; } },
+];
+
+// タグに対応した返答生成
+const replyGenerators = {
+  danger:   ({n})  => {
+    const opts = [`${n}は${pick(['超危険','普通に危険','見た目だけ危険','全然危険じゃない','触ると爆発する'])}。${Math.random()<.5?pick(strongest):''}`,
+                  `${n}の危険度は${Math.floor(Math.random()*100)}点。${pick(phrases)}。`];
+    return pick(opts);
+  },
+  stronger: ({n1,n2}) => {
+    const winner = Math.random()<.5 ? n1 : n2;
+    const loser  = winner===n1 ? n2 : n1;
+    return `${winner}の方が絶対強い。${loser}は${pick(['論外','雑魚','まあまあ','弱すぎ'])}。${Math.random()<.5?pick(strongest):''}`;
+  },
+  seen:     ({a,n}) => {
+    const opts = [`${a} ${n}なら昨日見た。${pick(['普通だった','最悪だった','感動した','忘れた'])}。`,
+                  `${a} ${n}は${pick(['俺の専門','知らん','毎日見てる','幻じゃないか'])}。${Math.random()<.4?pick(phrases):''}` ];
+    return pick(opts);
+  },
+  rumor:    ({n,v}) => {
+    const opts = [`本当。${n}が${v}のを俺は目撃した。${Math.random()<.5?pick(strongest):''}`,
+                  `嘘。${n}が${v}わけない。${pick(phrases)}。`];
+    return pick(opts);
+  },
+  name:     ({n}) => {
+    const nameCandidates = [`${n}太郎`,`${n}丸`,`${pick(adjs)}${n}`,`ジョニー${n}`,`${n}くん（仮）`];
+    return `「${pick(nameCandidates)}」でいいだろ。${Math.random()<.5?pick(strongest):''}`;
+  },
+  ally:     ({n}) => {
+    const side = Math.random()<.5 ? '味方' : '敵';
+    const reason = side==='味方'
+      ? `${n}は俺に従ってるから。`
+      : `${n}は${pick(phrases)}感があるから。`;
+    return `${n}は${side}。${reason} ${Math.random()<.4?pick(strongest):''}`;
+  },
+  doing:    ({n}) => {
+    const opts = [`今まさに${n}してる。${pick(strongest)}`,
+                  `${n}は${pick(['さっき終わった','もうやった','これからする','絶対やらない'])}。`,
+                  `${n}？　${pick(phrases)}。`];
+    return pick(opts);
+  },
+  found:    ({a,n}) => {
+    const actions = [`とりあえず${pick(verbs)}とけ。`,`俺にくれ。`,`${pick(phrases)}、それは捨てろ。`,`${a} ${n}は売れる。${pick(strongest)}`];
+    return pick(actions);
+  },
+  origin:   ({n}) => {
+    const pct = Math.floor(Math.random()*100);
+    return `${n}の宇宙由来率は${pct}%。${pct>50?'ほぼ確定。':'ないと思う。'} ${Math.random()<.5?pick(strongest):''}`;
+  },
+  equip:    ({n}) => {
+    const power = Math.floor(Math.random()*9000)+1;
+    return `${n}を装備すると攻撃力+${power}。${pick(['装備すべき','やめとけ','俺はもう装備してる','重すぎる'])}。${Math.random()<.4?pick(strongest):''}`;
+  },
+};
+
+// 最後に使ったボタンのデータを保持
+let lastQ1=null, lastQ2=null;
+
+function generateQuestion(){
+  const tmpl = pick(questionTemplates);
+  return tmpl.gen(); // { text, data, tag } ※ tagはtmplから取る
+  // → tagも含めて返す
+}
+function genWithTag(){
+  const tmpl = questionTemplates[Math.floor(Math.random()*questionTemplates.length)];
+  const res = tmpl.gen();
+  return { text: res.text, data: res.data, tag: tmpl.tag };
+}
+
+function buildReply(qObj){
+  const gen = replyGenerators[qObj.tag];
+  return gen ? gen(qObj.data) : pick(strongest);
+}
+
+// ===== UI =====
+
+function addMessage(text, who){
+  const div=document.createElement('div');
+  div.className='msg ' + (who==='user'?'user':'nakazawa');
+  div.textContent=text;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return div;
+}
+
+let busy=false;
+
+function setButtons(q1,q2){
+  b1.textContent=q1.text; b2.textContent=q2.text;
+  lastQ1=q1; lastQ2=q2;
+}
+
+function typeWriter(element, text, callback){
+  element.textContent='中澤GPT: ';
+  let i=0;
+  function type(){
+    if(i<text.length){
+      element.textContent += text.charAt(i);
+      i++;
+      chatEl.scrollTop = chatEl.scrollHeight;
+      setTimeout(type, 20);
+    }else{
+      if(callback) callback();
+    }
+  }
+  type();
+}
+
+function respond(qObj){
+  const delay = 1000 + Math.floor(Math.random()*500);
+  const thinkingEl = addMessage('中澤GPT: ...','nakazawa');
+  setTimeout(()=>{
+    const reply = buildReply(qObj);
+    typeWriter(thinkingEl, reply, ()=>{
+      busy=false; b1.disabled=false; b2.disabled=false;
+      const n1=genWithTag(), n2=genWithTag();
+      setButtons(n1, n2);
+    });
+  }, delay);
+}
+
+function next(qObj){
+  if(busy) return;
+  busy=true; b1.disabled=true; b2.disabled=true;
+  addMessage('あなた: ' + qObj.text,'user');
+  respond(qObj);
+}
+
+b1.addEventListener('click',()=>next(lastQ1));
+b2.addEventListener('click',()=>next(lastQ2));
+
+// 初期ボタン
+setButtons(genWithTag(), genWithTag());
+
+// 簡易セルフテスト
+(function selfTest(){
+  try {
+    if(!(Array.isArray(nouns) && nouns.length>0)) throw new Error('nouns が未定義です');
+    if(typeof buildReply({tag:'danger',data:{n:'石'}})==='string') {/* OK */}
+  } catch(e) { /* テスト失敗しても動作に影響なし */ }
+})();
+</script>
+</body>
+</html>
