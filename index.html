@@ -56,15 +56,14 @@ iframe, video, img {
     margin-top: 20px;
 }
 @keyframes blink {
-    0% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
-    20% { opacity:0.3; color:#00ffff; text-shadow:0 0 40px #00ffff; }
-    40% { opacity:1; color:#ffffff; text-shadow:0 0 60px #ffffff; }
-    60% { opacity:0.2; color:#ff00ff; text-shadow:0 0 40px #ff00ff; }
-    80% { opacity:1; color:#ffff00; text-shadow:0 0 50px #ffff00; }
-    100% { opacity:1; color:#ff0000; text-shadow:0 0 20px #ff0000; }
+    0%   { color: #ff0000; text-shadow: none; }
+    49%  { color: #ff0000; text-shadow: none; }
+    50%  { color: #ffffff; text-shadow: none; }
+    99%  { color: #ffffff; text-shadow: none; }
+    100% { color: #ff0000; text-shadow: none; }
 }
 .blink {
-    animation: blink 0.25s infinite linear;
+    animation: blink 0.15s infinite step-end;
 }
 </style>
 </head>
@@ -393,9 +392,6 @@ img { width:60%; max-width:500px; border-radius:10px; cursor:pointer; }
     }
 }
 </style>
-
-
-
 
 
   <h2 style="color:red;">👇👇学校ゴミフィルター回避たい人は下のリンクへ👇👇</h2>
@@ -851,4 +847,3 @@ updateClock();
 
 
 </html>
-
