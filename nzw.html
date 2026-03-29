@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>中澤天気</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --accent: #6060ff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans JP',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(10,10,15,0.93);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    padding:10px 0 8px;
+    text-align:center;
+  }
+  #logo {
+    font-family:'Noto Sans JP',sans-serif;
+    font-weight:900;
+    font-size:clamp(1.5rem,6vw,2.6rem);
+    letter-spacing:0.08em;
+    background:linear-gradient(90deg,#ff0000,#ff7700,#ffff00,#00ff00,#00ffff,#0077ff,#aa00ff,#ff0077,#ff0000);
+    background-size:300% 100%;
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:rainbowMove 3s linear infinite;
+    display:inline-block;
+  }
+  @keyframes rainbowMove {
+    0%   { background-position:0% 50%; }
+    100% { background-position:300% 50%; }
+  }
+
+  /* ── SEARCH ── */
+  #search-area {
+    margin:80px auto 0;
+    max-width:680px;
+    padding:20px 14px 0;
+  }
+  .search-wrap {
+    display:flex; gap:8px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:8px 12px;
+    align-items:center;
+    transition:border-color 0.3s;
+  }
+  .search-wrap:focus-within { border-color:var(--accent); }
+  #search-input {
+    flex:1; background:none; border:none; outline:none;
+    color:var(--text); font-size:1rem; font-family:inherit;
+    padding:6px 0; min-width:0;
+  }
+  #search-input::placeholder { color:var(--muted); }
+  #search-btn {
+    background:var(--accent); border:none; border-radius:9px;
+    color:#fff; padding:9px 16px; cursor:pointer;
+    font-family:inherit; font-size:0.9rem; font-weight:700;
+    white-space:nowrap; flex-shrink:0; transition:opacity 0.15s;
+  }
+  #search-btn:active { opacity:0.75; }
+
+  #search-results {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; margin-top:6px; overflow:hidden;
+    display:none; position:relative; z-index:50;
+  }
+  .result-item {
+    padding:13px 16px; cursor:pointer;
+    border-bottom:1px solid var(--border);
+    transition:background 0.15s;
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .result-item:last-child { border-bottom:none; }
+  .result-item:hover, .result-item:active { background:var(--surface2); }
+  .result-name { font-weight:700; font-size:1rem; }
+  .result-detail { font-size:0.8rem; color:var(--muted); }
+
+  /* ── 検索履歴 ── */
+  #search-history {
+    margin-top:8px;
+  }
+  .history-label {
+    font-size:0.75rem; color:var(--muted); font-weight:700;
+    padding:4px 4px 4px 2px; letter-spacing:0.05em;
+  }
+  .history-item {
+    display:flex; align-items:center; gap:10px;
+    padding:11px 14px; cursor:pointer;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; margin-top:6px;
+    transition:background 0.15s;
+  }
+  .history-item:hover, .history-item:active { background:var(--surface2); }
+  .history-icon { font-size:1rem; flex-shrink:0; }
+  .history-name { font-size:0.95rem; font-weight:700; flex:1; }
+  .history-del {
+    font-size:0.8rem; color:var(--muted); padding:2px 6px;
+    border-radius:6px; flex-shrink:0; transition:color 0.15s;
+  }
+  .history-del:hover { color:#ff6060; }
+
+  #location-btn {
+    display:flex; align-items:center; gap:8px;
+    margin:10px 0 0; background:var(--surface);
+    border:1px solid var(--border); border-radius:10px;
+    color:var(--text); padding:12px 20px; cursor:pointer;
+    font-family:inherit; font-size:0.95rem;
+    transition:border-color 0.2s; width:100%; justify-content:center;
+  }
+  #location-btn:active { background:var(--surface2); }
+
+  /* ── WEATHER MAIN ── */
+  #weather-main {
+    max-width:900px; margin:24px auto 0; padding:0 14px;
+  }
+  #current-location-display {
+    font-size:1rem; font-weight:700; color:var(--muted);
+    margin-bottom:12px; text-align:center;
+  }
+
+  /* ── INTERVAL TABS ── */
+  #interval-tabs {
+    display:flex; gap:6px; margin-bottom:12px;
+    justify-content:center; flex-wrap:wrap;
+  }
+  .tab-btn {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:9px; color:var(--muted); padding:9px 18px;
+    cursor:pointer; font-family:inherit; font-size:0.88rem;
+    font-weight:700; transition:all 0.2s; min-width:72px;
+  }
+  .tab-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab-btn:active { opacity:0.8; }
+
+  /* ── HORIZONTAL WEATHER ── */
+  #weather-table-wrap {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+  }
+
+  /* Each row = label col (fixed) + scroll col */
+  .wx-row {
+    display:flex;
+    border-bottom:1px solid var(--border);
+  }
+  .wx-row:last-child { border-bottom:none; }
+
+  .wx-label {
+    width:58px; flex-shrink:0;
+    background:var(--surface2);
+    border-right:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    padding:8px 4px;
+    font-size:0.82rem; color:var(--muted); font-weight:700;
+    text-align:center; line-height:1.4;
+  }
+
+  .wx-scroll {
+    flex:1; overflow-x:scroll; overflow-y:hidden;
+    scrollbar-width:none;
+  }
+  .wx-scroll::-webkit-scrollbar { width:0; height:0; background:transparent; }
+
+  /* 風速行のバーだけ表示・太く */
+  .wx-scroll.show-scrollbar {
+    overflow-x:scroll;
+    scrollbar-width:auto;
+    scrollbar-color:var(--accent) var(--surface2);
+    padding-bottom:0;
+  }
+  .wx-scroll.show-scrollbar::-webkit-scrollbar { width:auto; height:16px; background:var(--surface2); }
+  .wx-scroll.show-scrollbar::-webkit-scrollbar-track { background:var(--surface2); }
+  .wx-scroll.show-scrollbar::-webkit-scrollbar-thumb { background:var(--accent); border-radius:8px; border:3px solid var(--surface2); }
+
+  .wx-inner {
+    display:flex; min-width:max-content; height:100%;
+  }
+
+  /* Date separator */
+  .wx-sep {
+    min-width:54px; max-width:54px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(96,96,255,0.15);
+    border-right:2px solid rgba(96,96,255,0.45);
+    padding:4px 3px;
+    font-size:0.72rem; font-weight:900; color:rgba(96,96,255,0.95);
+    writing-mode:horizontal-tb;
+    text-align:center; line-height:1.3; cursor:default;
+    word-break:break-all;
+  }
+
+  /* Data cell */
+  .wx-c {
+    min-width:62px; max-width:62px;
+    display:flex; align-items:center; justify-content:center;
+    padding:8px 3px;
+    font-size:0.95rem; text-align:center;
+    border-right:1px solid rgba(42,42,64,0.35);
+    white-space:nowrap; cursor:default;
+    transition:background 0.1s;
+  }
+  .wx-c:last-child { border-right:none; }
+  .wx-c:hover { background:rgba(96,96,255,0.07); }
+
+  /* Row-specific */
+  .wx-row-time  .wx-c { color:var(--muted); font-size:0.88rem; }
+  .wx-row-icon  .wx-c { font-size:1.4rem; }
+  .wx-row-rain  .wx-c { color:#4488ff; font-size:0.88rem; }
+  .wx-row-rain  .wx-c.rain  { color:#66ccff; font-weight:700; }
+  .wx-row-temp  .wx-c { font-weight:700; font-size:1rem; }
+  .wx-row-wind  .wx-c { color:var(--muted); font-size:0.88rem; }
+
+  .hot  { color:#ff6060 !important; }
+  .warm { color:#ffaa44 !important; }
+  .cool { color:#66aaff !important; }
+  .cold { color:#aaddff !important; }
+
+  /* 現在時刻のハイライト */
+  .wx-c.now-col {
+    background:rgba(255,220,50,0.18) !important;
+    border-left:2px solid #ffdd33 !important;
+    border-right:2px solid #ffdd33 !important;
+  }
+  .wx-row-time .wx-c.now-col {
+    color:#ffdd33 !important;
+    font-weight:900 !important;
+  }
+
+  /* ── NAV BAR ── */
+  #nav-bar { display:none !important; }
+  #nav-bar {
+    display:flex; align-items:center; gap:8px;
+    margin-top:10px; padding:10px 14px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px;
+  }
+  #nav-bar button {
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:9px 12px;
+    cursor:pointer; font-family:inherit; font-size:0.85rem;
+    white-space:nowrap; flex-shrink:0; transition:border-color 0.2s;
+  }
+  #nav-bar button:active { opacity:0.7; }
+  #time-slider {
+    flex:1; accent-color:var(--accent);
+    cursor:pointer; min-width:0; height:6px;
+  }
+  #slider-label {
+    font-size:0.75rem; color:var(--muted);
+    white-space:nowrap; min-width:60px;
+    text-align:right; flex-shrink:0;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    text-align:center; padding:40px;
+    color:var(--muted); font-size:0.95rem; display:none;
+  }
+  .spinner {
+    display:inline-block; width:22px; height:22px;
+    border:3px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin 0.8s linear infinite;
+    margin-right:8px; vertical-align:middle;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── TERU ── */
+  #teru-section {
+    max-width:680px; margin:32px auto 60px;
+    padding:0 14px; text-align:center;
+  }
+  #teru-container {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:24px; padding:28px 20px;
+    position:relative; overflow:hidden;
+  }
+  #teru-title {
+    font-size:1rem; color:var(--muted);
+    margin-bottom:20px; font-weight:700;
+  }
+  #teru-stage {
+    display:flex; justify-content:center;
+    align-items:flex-end;
+    gap:clamp(14px,8vw,48px);
+    margin-bottom:20px; min-height:130px;
+    position:relative;
+  }
+  .teru-figure {
+    display:flex; flex-direction:column;
+    align-items:center; gap:10px;
+    position:relative; z-index:2;
+  }
+  .teru-doll {
+    font-size:clamp(2.8rem,10vw,4.5rem);
+    filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    display:block; line-height:1;
+  }
+  @keyframes offerBounce {
+    0%   { transform:scale(1); }
+    30%  { transform:scale(1.3) rotate(-10deg); }
+    60%  { transform:scale(0.9) rotate(5deg); }
+    100% { transform:scale(1) rotate(0); }
+  }
+  #teru-reverse { transform:rotate(180deg); }
+  @keyframes offerBounceRev {
+    0%   { transform:rotate(180deg) scale(1); }
+    30%  { transform:rotate(170deg) scale(1.3); }
+    60%  { transform:rotate(185deg) scale(0.9); }
+    100% { transform:rotate(180deg) scale(1); }
+  }
+  .teru-offer-btn {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:10px; color:var(--text);
+    padding:10px 14px; cursor:pointer;
+    font-family:inherit; font-size:0.82rem; font-weight:700;
+    transition:all 0.2s; line-height:1.4; max-width:140px;
+  }
+  .teru-offer-btn:active { opacity:0.75; transform:scale(0.97); }
+  #teru-status {
+    min-height:28px; font-size:0.95rem;
+    font-weight:700; color:#aaffaa; margin-top:6px;
+  }
+  .bubble {
+    position:absolute; bottom:-40px; border-radius:50%;
+    opacity:0; animation:bubbleRise 2s ease-out forwards;
+    pointer-events:none; z-index:1;
+  }
+  @keyframes bubbleRise {
+    0%   { opacity:0.7; transform:translateY(0) scale(1); }
+    80%  { opacity:0.3; }
+    100% { opacity:0; transform:translateY(-200px) scale(1.4); }
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width:480px) {
+    #search-area, #weather-main, #teru-section { padding-left:10px; padding-right:10px; }
+    .wx-label { width:50px; font-size:0.75rem; }
+    .wx-c     { min-width:56px; max-width:56px; font-size:0.85rem; }
+    .wx-sep   { min-width:46px; max-width:46px; font-size:0.65rem; }
+    .wx-row-icon .wx-c { font-size:1.2rem; }
+    .tab-btn  { padding:8px 10px; font-size:0.85rem; min-width:56px; }
+    #nav-bar  { padding:8px 10px; gap:6px; }
+    #nav-bar button { padding:8px 10px; font-size:0.78rem; }
+    #slider-label   { min-width:48px; font-size:0.68rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="logo">中澤天気</div>
+</div>
+
+<div id="search-area">
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="地区名・施設名で検索..." autocomplete="off" inputmode="search">
+    <button id="search-btn" onclick="doSearch()">🔍 検索</button>
+  </div>
+  <div id="search-results"></div>
+  <div id="search-history"></div>
+  <button id="location-btn" onclick="useCurrentLocation()">
+    📍 現在地の天気を見る
+  </button>
+</div>
+
+<div id="weather-main">
+  <div id="current-location-display">📡 位置情報を取得中...</div>
+  <div id="loading"><span class="spinner"></span>天気データを取得中...</div>
+
+  <div id="interval-tabs">
+    <button class="tab-btn active" onclick="setIntervalTab(this,'1hour')">1時間毎</button>
+    <button class="tab-btn" onclick="setIntervalTab(this,'3hour')">3時間毎</button>
+    <button class="tab-btn" onclick="setIntervalTab(this,'1day')">1日</button>
+  </div>
+
+  <div id="weather-table-wrap">
+    <div class="wx-row wx-row-time">
+      <div class="wx-label">時刻</div>
+      <div class="wx-scroll" id="sc0"><div class="wx-inner" id="c0"></div></div>
+    </div>
+    <div class="wx-row wx-row-icon">
+      <div class="wx-label">天気</div>
+      <div class="wx-scroll" id="sc1"><div class="wx-inner" id="c1"></div></div>
+    </div>
+    <div class="wx-row wx-row-rain">
+      <div class="wx-label">降水<br>mm</div>
+      <div class="wx-scroll" id="sc2"><div class="wx-inner" id="c2"></div></div>
+    </div>
+    <div class="wx-row wx-row-temp">
+      <div class="wx-label">気温<br>℃</div>
+      <div class="wx-scroll" id="sc3"><div class="wx-inner" id="c3"></div></div>
+    </div>
+    <div class="wx-row wx-row-wind" style="min-height:56px;">
+      <div class="wx-label">風速<br>m/s</div>
+      <div class="wx-scroll show-scrollbar" id="sc4"><div class="wx-inner" id="c4"></div></div>
+    </div>
+  </div>
+
+  <div id="nav-bar">
+    <button onclick="navShift(-1)">◀ 戻る</button>
+    <input type="range" id="time-slider" min="0" max="100" value="0" oninput="onSliderInput(this.value)">
+    <button onclick="navShift(1)">進む ▶</button>
+    <span id="slider-label">現在</span>
+  </div>
+</div>
+
+<div id="teru-section">
+  <div id="teru-container">
+    <div id="teru-title">☁️ てるてる坊主を供える</div>
+    <div id="teru-stage">
+      <div class="teru-figure">
+        <div class="teru-doll" id="teru-normal">🎎</div>
+        <button class="teru-offer-btn normal-btn" onclick="offerTeru('normal')">てるてる坊主</button>
+      </div>
+      <div class="teru-figure">
+        <div class="teru-doll" id="teru-reverse">🎎</div>
+        <button class="teru-offer-btn reverse-btn" onclick="offerTeru('reverse')">ひっくり返ったてるてる坊主</button>
+      </div>
+    </div>
+    <div id="teru-status"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let allRows = [];
+let currentInterval = '1hour';
+let sliderOffset = 0;
+let teruBusy = false;
+
+// ── SYNC SCROLL ──
+const scrollEls = [0,1,2,3,4].map(i => document.getElementById('sc'+i));
+let syncLock = false;
+scrollEls.forEach((el, idx) => {
+  el.addEventListener('scroll', () => {
+    if(syncLock) return;
+    syncLock = true;
+    const sl = el.scrollLeft;
+    scrollEls.forEach((e,i) => { if(i!==idx) e.scrollLeft = sl; });
+    syncLock = false;
+  }, { passive: true });
+});
+
+// ── SEARCH ──
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+searchInput.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+searchInput.addEventListener('input', () => { if(!searchInput.value.trim()) searchResults.style.display='none'; });
+document.addEventListener('click', e => {
+  if(!document.getElementById('search-area').contains(e.target)) searchResults.style.display='none';
+});
+
+// ── 検索履歴 ──
+const HISTORY_KEY = 'wx_search_history';
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch { return []; }
+}
+function saveHistory(hist) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+}
+function addHistory(name, lat, lon) {
+  let hist = getHistory().filter(h => h.name !== name);
+  hist.unshift({ name, lat, lon });
+  if(hist.length > 3) hist = hist.slice(0, 3);
+  saveHistory(hist);
+  renderHistory();
+}
+function renderHistory() {
+  const hist = getHistory();
+  const el = document.getElementById('search-history');
+  if(!hist.length) { el.innerHTML=''; return; }
+  el.innerHTML = '<div class="history-label">🕒 最近の検索</div>' +
+    hist.map((h,i) => `
+      <div class="history-item" id="hist-${i}">
+        <span class="history-icon">📍</span>
+        <span class="history-name">${h.name}</span>
+        <span class="history-del" onclick="deleteHistory(${i},event)">✕</span>
+      </div>`).join('');
+  hist.forEach((h,i) => {
+    document.getElementById('hist-'+i).addEventListener('click', (e) => {
+      if(e.target.classList.contains('history-del')) return;
+      searchResults.style.display='none';
+      searchInput.value='';
+      loadWeather(h.lat, h.lon, h.name);
+    });
+  });
+}
+function deleteHistory(i, e) {
+  e.stopPropagation();
+  let hist = getHistory();
+  hist.splice(i, 1);
+  saveHistory(hist);
+  renderHistory();
+}
+
+async function doSearch() {
+  const q = searchInput.value.trim();
+  if(!q) return;
+  searchResults.innerHTML = ''; searchResults.style.display='none';
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&accept-language=ja&limit=6&countrycodes=jp`);
+    const data = await res.json();
+    if(!data.length) {
+      searchResults.innerHTML = '<div class="result-item"><div class="result-name">結果が見つかりませんでした</div></div>';
+    } else {
+      data.forEach(item => {
+        const parts = item.display_name.split(',').map(s=>s.trim());
+        const name = parts[0], detail = parts.slice(1,4).join(' ');
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `<div class="result-name">${name}</div><div class="result-detail">${detail}</div>`;
+        div.addEventListener('click', () => {
+          searchResults.style.display='none'; searchInput.value='';
+          addHistory(name, parseFloat(item.lat), parseFloat(item.lon));
+          loadWeather(parseFloat(item.lat), parseFloat(item.lon), name);
+        });
+        searchResults.appendChild(div);
+      });
+    }
+    searchResults.style.display='block';
+  } catch {
+    searchResults.innerHTML='<div class="result-item"><div class="result-name">検索エラーが発生しました</div></div>';
+    searchResults.style.display='block';
+  }
+}
+
+// ── LOCATION ──
+function useCurrentLocation() {
+  if(!navigator.geolocation){ alert('位置情報が使えません'); return; }
+  document.getElementById('current-location-display').textContent='📡 現在地を取得中...';
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const {latitude:lat, longitude:lon} = pos.coords;
+    const name = await reverseGeocode(lat, lon);
+    loadWeather(lat, lon, name);
+  }, () => {
+    document.getElementById('current-location-display').textContent='⚠ 位置情報の取得に失敗しました';
+  });
+}
+
+async function reverseGeocode(lat, lon) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ja`);
+    const d = await r.json();
+    const a = d.address||{};
+    return (a.city||a.town||a.village||a.municipality||'') + (a.state?' '+a.state:'');
+  } catch { return `${lat.toFixed(2)},${lon.toFixed(2)}`; }
+}
+
+async function initByIP() {
+  document.getElementById('current-location-display').textContent='📡 位置情報を取得中...';
+  try {
+    const r = await fetch('https://ipwho.is/');
+    const d = await r.json();
+    if(d.success && d.latitude) loadWeather(d.latitude, d.longitude, (d.city||'')+(d.region?' '+d.region:''));
+    else loadWeather(35.68,139.69,'東京');
+  } catch { loadWeather(35.68,139.69,'東京'); }
+}
+
+// ── WEATHER API ──
+async function loadWeather(lat, lon, locName) {
+  document.getElementById('loading').style.display='block';
+  document.getElementById('current-location-display').textContent='📍 '+locName;
+  sliderOffset=0;
+  document.getElementById('time-slider').value=0;
+  document.getElementById('slider-label').textContent='現在';
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FTokyo&past_days=7&forecast_days=16`;
+  try {
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    if(!data.hourly) throw new Error('データなし');
+    processWeatherData(data);
+  } catch(e) {
+    document.getElementById('loading').style.display='none';
+    [0,1,2,3,4].forEach(i => {
+      document.getElementById('c'+i).innerHTML=`<div style="padding:16px;color:var(--muted);font-size:0.8rem">取得失敗: ${e.message}</div>`;
+    });
+  }
+}
+
+function processWeatherData(data) {
+  const {time,temperature_2m:T,precipitation:P,weather_code:W,wind_speed_10m:WS} = data.hourly;
+  allRows = time.map((t,i) => {
+    const dt = new Date(t);
+    const dow=['日','月','火','水','木','金','土'][dt.getDay()];
+    return {
+      dateLabel:`${dt.getMonth()+1}/${dt.getDate()}(${dow})`,
+      hour:dt.getHours(),
+      icon:wmoIcon(W[i]??0),
+      rain:P[i]!=null?Number(P[i]).toFixed(1):'0.0',
+      temp:T[i]!=null?Number(T[i]).toFixed(1):'--',
+      wind:WS[i]!=null?Math.round(Number(WS[i])/3.6):0,
+    };
+  });
+
+  document.getElementById('loading').style.display='none';
+  renderCards();
+}
+
+function wmoIcon(c) {
+  if(c===0)  return '☀️';
+  if(c<=2)   return '🌤️';
+  if(c===3)  return '☁️';
+  if(c<=49)  return '🌫️';
+  if(c<=59)  return '🌦️';
+  if(c<=69)  return '🌧️';
+  if(c<=79)  return '❄️';
+  if(c<=82)  return '🌧️';
+  if(c<=84)  return '🌨️';
+  if(c<=94)  return '⛈️';
+  return '🌩️';
+}
+
+// ── RENDER HORIZONTAL CARDS ──
+function getRows() {
+  if(!allRows.length) return [];
+  let rows = [...allRows];
+  if(currentInterval==='3hour') rows=rows.filter(r=>r.hour%3===0);
+  if(currentInterval==='1day') {
+    const seen={}; rows=rows.filter(r=>{if(!seen[r.dateLabel]){seen[r.dateLabel]=true;return true;}return false;});
+  }
+  return rows; // スクロールバーで全期間を表示
+}
+
+function renderCards() {
+  const rows = getRows();
+  [0,1,2,3,4].forEach(i => document.getElementById('c'+i).innerHTML='');
+
+  const now = new Date();
+  const nowHour = now.getHours();
+  const dow=['日','月','火','水','木','金','土'][now.getDay()];
+  const nowDateLabel = `${now.getMonth()+1}/${now.getDate()}(${dow})`;
+
+  let nowColIndex = -1; // 現在時刻のカラムindex（セパレーター含まず）
+  let colCount = 0;
+
+  let lastDate='';
+  rows.forEach((r, idx) => {
+    const isNew = r.dateLabel!==lastDate;
+    lastDate = r.dateLabel;
+    const t = parseFloat(r.temp);
+    const tCls = t>=30?'hot':t>=20?'warm':t>=10?'cool':'cold';
+    const rainCls = parseFloat(r.rain)>0?'rain':'';
+    const timeStr = currentInterval==='1day' ? r.dateLabel : String(r.hour).padStart(2,'0')+'時';
+
+    // 現在時刻判定
+    let isNow = false;
+    if(currentInterval==='1day') {
+      isNow = (r.dateLabel === nowDateLabel);
+    } else if(currentInterval==='3hour') {
+      const nearHour = Math.floor(nowHour/3)*3;
+      isNow = (r.dateLabel === nowDateLabel && r.hour === nearHour);
+    } else {
+      isNow = (r.dateLabel === nowDateLabel && r.hour === nowHour);
+    }
+    if(isNow) nowColIndex = colCount;
+
+    if(isNew && currentInterval!=='1day') {
+      [0,1,2,3,4].forEach(i => addSep('c'+i, r.dateLabel));
+    }
+
+    addCell('c0', timeStr, isNow?'now-col':'');
+    addCell('c1', r.icon, isNow?'now-col':'');
+    addCell('c2', r.rain+'mm', (rainCls+(isNow?' now-col':'')).trim());
+    addCell('c3', r.temp+'℃', (tCls+(isNow?' now-col':'')).trim());
+    addCell('c4', r.wind+'m', isNow?'now-col':'');
+
+    colCount++;
+  });
+
+  scrollEls.forEach(e => e.scrollLeft=0);
+
+  // 現在時刻を左から4番目に表示する自動スクロール
+  if(nowColIndex >= 0) {
+    requestAnimationFrame(() => {
+      const sc = scrollEls[0];
+      if(!sc) return;
+      const cellW = 62;
+      const sepW = 54;
+      // 現在カラムより前にあるセパレーター数を計算
+      let sepsBefore = 0;
+      let lastD = '';
+      let ci = 0;
+      rows.forEach(r => {
+        const isNew = r.dateLabel !== lastD;
+        lastD = r.dateLabel;
+        if(isNew && currentInterval !== '1day' && ci <= nowColIndex) sepsBefore++;
+        ci++;
+      });
+      // 左から4番目（index=3）に現在列が来るようにスクロール
+      const scrollTo = sepsBefore * sepW + nowColIndex * cellW - 3 * cellW;
+      scrollEls.forEach(e => { e.scrollLeft = Math.max(0, scrollTo); });
+    });
+  }
+}
+
+function addSep(containerId, label) {
+  const el = document.createElement('div');
+  el.className = 'wx-sep';
+  el.textContent = label;
+  document.getElementById(containerId).appendChild(el);
+}
+
+function addCell(containerId, text, cls) {
+  const el = document.createElement('div');
+  el.className = 'wx-c'+(cls?' '+cls:'');
+  el.textContent = text;
+  document.getElementById(containerId).appendChild(el);
+}
+
+// ── TABS ──
+function setIntervalTab(btn, val) {
+  currentInterval=val;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  renderCards();
+}
+
+// ── SLIDER ──
+function flatRows() {
+  let rows=[...allRows];
+  if(currentInterval==='3hour') rows=rows.filter(r=>r.hour%3===0);
+  if(currentInterval==='1day'){const s={};rows=rows.filter(r=>{if(!s[r.dateLabel]){s[r.dateLabel]=true;return true;}return false;});}
+  return rows;
+}
+function updateSliderMax() {
+  const ps=currentInterval==='1day'?20:48;
+  const max=Math.max(0,flatRows().length-ps);
+  document.getElementById('time-slider').max=max;
+}
+function onSliderInput(val) {
+  sliderOffset=parseInt(val);
+  updateSliderLabel();
+  renderCards();
+}
+function navShift(d) {
+  const slider=document.getElementById('time-slider');
+  sliderOffset=Math.max(0,Math.min(parseInt(slider.max)||0,sliderOffset+d));
+  slider.value=sliderOffset;
+  updateSliderLabel();
+  renderCards();
+}
+function updateSliderLabel() {
+  const rows=flatRows();
+  const r=rows[sliderOffset];
+  document.getElementById('slider-label').textContent=r?r.dateLabel:'現在';
+}
+
+// ── TERU ──
+function offerTeru(type) {
+  if(teruBusy) return;
+  teruBusy=true;
+  const statusEl=document.getElementById('teru-status');
+  const dollEl=document.getElementById(type==='normal'?'teru-normal':'teru-reverse');
+  const container=document.getElementById('teru-container');
+
+  statusEl.textContent=type==='normal'?'☀️ 備えています...':'🌧️ 備えています...';
+  statusEl.style.color=type==='normal'?'#ffee88':'#88ccff';
+
+  // bounce animation
+  dollEl.style.animation='none';
+  void dollEl.offsetWidth;
+  dollEl.style.animation = type==='normal'
+    ? 'offerBounce 0.6s ease'
+    : 'offerBounceRev 0.6s ease';
+
+  spawnBubbles(container, type);
+
+  setTimeout(() => {
+    statusEl.textContent=type==='normal'?'明日は確実に晴れます（嘘なし）':'明日は確実に雨になります（嘘なし）';
+    statusEl.style.color=type==='normal'?'#ffe066':'#66ccff';
+    teruBusy=false;
+  }, 2000);
+}
+
+function spawnBubbles(container, type) {
+  const cols=type==='normal'
+    ?['#ffe88880','#ffcc4480','#fff18880']
+    :['#88ccff80','#44aaff80','#aaeeff80'];
+  for(let i=0;i<18;i++){
+    const b=document.createElement('div');
+    b.className='bubble';
+    const s=8+Math.random()*22;
+    b.style.cssText=`width:${s}px;height:${s}px;background:${cols[Math.floor(Math.random()*3)]};border:1px solid ${type==='normal'?'#ffcc4450':'#44aaff50'};left:${5+Math.random()*90}%;animation-delay:${Math.random()*0.8}s;animation-duration:${1.2+Math.random()*0.8}s`;
+    container.appendChild(b);
+    setTimeout(()=>b.remove(),2400);
+  }
+}
+
+// ── INIT ──
+renderHistory();
+initByIP();
+</script>
+</body>
+</html>
