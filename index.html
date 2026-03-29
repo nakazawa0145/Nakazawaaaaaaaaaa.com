@@ -302,10 +302,6 @@ img { width:60%; max-width:500px; border-radius:10px; cursor:pointer; }
 
 
 
-
-
-
-
 <section>
 <h2 style="color:yellow;">かいちゃんのひみつ</h2>
 <p>パスワードを入れてください</p>
@@ -321,8 +317,30 @@ img { width:60%; max-width:500px; border-radius:10px; cursor:pointer; }
 <p>2022年 ある人物にお仕置きする</p>
 <p>2025年 ニキビの数が0145個突破し恐怖</p>
 <p>2835年 死ぬ</p>
+
+<video src="kito121.mp4" controls style="width:100%; border-radius:10px; margin-top:20px;"></video>
 </div>
 </section>
+
+<script>
+function checkPass() {
+  const input = document.getElementById("pass").value;
+  const msg = document.getElementById("msg");
+  const secret = document.getElementById("secret");
+  if (input === "nakazawaeros") {
+    secret.style.display = "block";
+    msg.textContent = "";
+  } else {
+    secret.style.display = "none";
+    msg.textContent = "ちがいます";
+    msg.style.color = "red";
+  }
+}
+</script>
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="ja">
