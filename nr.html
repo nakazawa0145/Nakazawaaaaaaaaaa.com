@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中澤ラジオ</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:monospace;min-height:100vh;font-size:14px}
+#header{
+  position:fixed;top:0;left:0;right:0;
+  background:#111;border-bottom:2px solid #ff2222;
+  padding:14px 20px 12px;z-index:100;
+  text-align:center;
+}
+#title{
+  font-size:2.4rem;font-weight:bold;letter-spacing:6px;
+  background:linear-gradient(90deg,#ff0080,#ff8800,#ffff00,#00ff88,#00ffff,#8800ff,#ff0080);
+  background-size:300%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:rb 2s linear infinite;display:inline-block;
+}
+@keyframes rb{0%{background-position:0%}100%{background-position:300%}}
+#clock{font-size:2.6rem;color:#fff;letter-spacing:6px;margin-top:6px;font-weight:bold}
+#main{max-width:520px;margin:0 auto;padding:150px 16px 24px}
+#channels{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px}
+.ch-btn{
+  padding:10px 0;border:2px solid #333;background:#111;
+  color:#666;font-family:monospace;font-size:12px;
+  cursor:pointer;transition:all 0.15s;
+}
+.ch-btn:hover{border-color:#ff2222;color:#ff2222}
+.ch-btn.active{border-color:#ff2222;color:#ff2222;background:#1a0000}
+#ch-name{
+  border:2px solid #ff2222;padding:10px 14px;
+  color:#ff2222;letter-spacing:2px;font-size:13px;
+  margin-bottom:12px;background:#0d0000;
+}
+#subtitle-area{
+  border:2px solid #333;padding:12px 14px;
+  min-height:80px;font-size:14px;line-height:2.0;
+  color:#ff2222;
+  display:none;margin-bottom:12px;background:#0a0a0a;
+  word-break:break-all;
+}
+#subtitle-area.visible{display:block}
+#cursor{display:inline-block;width:2px;height:1em;background:#ff2222;vertical-align:middle;animation:blink 0.7s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#sub-btn{
+  border:2px solid #444;padding:10px 20px;
+  background:#111;color:#777;font-family:monospace;
+  font-size:13px;cursor:pointer;letter-spacing:2px;
+  transition:all 0.15s;
+}
+#sub-btn:hover{border-color:#ff2222;color:#ff2222}
+#sub-btn.on{border-color:#ff2222;color:#ff2222;background:#0d0000}
+</style>
+</head>
+<body>
+<div id="header">
+  <div id="title">中澤ラジオ</div>
+  <div id="clock">--:--:--</div>
+</div>
+<div id="main">
+  <div id="channels">
+    <button class="ch-btn active" onclick="setChannel(0)">CH1</button>
+    <button class="ch-btn" onclick="setChannel(1)">CH2</button>
+    <button class="ch-btn" onclick="setChannel(2)">CH3</button>
+    <button class="ch-btn" onclick="setChannel(3)">CH4</button>
+    <button class="ch-btn" onclick="setChannel(4)">CH5</button>
+    <button class="ch-btn" onclick="setChannel(5)">CH6</button>
+  </div>
+  <div id="ch-name">CH1 — 中澤エロスFM 88.8</div>
+  <div id="subtitle-area"></div>
+  <button id="sub-btn" onclick="toggleSub()">字幕 OFF</button>
+</div>
+<script>
+const nouns=['石','宇宙','冷蔵庫','靴下','鉛筆','宿題','月','風','砂','ロボ','階段','雲','ペンギン','ちん','シコ','レイシコ','エロス','野獣','シコシコ','海斗','バカ','ジョニー','玉金','おまえ','アホ','ボケ','カス','ハゲ','デブ','チビ','クソ','ぶさいく','アナル','ちんこ','無能','セックス','オナニー','障害','障害者','チック症'];
+const phrases=['存在が海斗','消えてくれ','居るだけでバカ','殺すぞ','殴るぞ','ぶっ飛ばすぞ','燃やすぞ','出ていけ','辞めろ','死ね','消えろ','きもい','くさい','のろま'];
+const verbs=['走る','増える','溶ける','歌う','回る','飛ぶ','寝る','爆発する','集合する','転ぶ','点滅する','覚醒する','合体する','反省する','進化する'];
+const adjs=['巨大な','透明な','謎の','最強の','眠たい','無敵の','四角い','丸い','やわらかい','硬派な','ふわふわの','高速の'];
+const particles=['が','は','を','と','で','に'];
+
+const CHANNELS=[
+  {name:'中澤エロスFM', freq:'88.8',  rate:1.0, pitch:1.0},
+  {name:'レイシコFM',   freq:'92.5',  rate:1.2, pitch:1.1},
+  {name:'エロスFM',     freq:'96.3',  rate:0.9, pitch:0.9},
+  {name:'かいちゃんFM', freq:'100.1', rate:1.3, pitch:1.2},
+  {name:'丸山AM',       freq:'104.7', rate:1.0, pitch:0.95},
+  {name:'ちんFM',       freq:'108.0', rate:1.4, pitch:1.0},
+];
+
+let ch=0, showSub=false;
+let typeTimer=null;
+const synth=window.speechSynthesis;
+
+function r(a){return a[Math.floor(Math.random()*a.length)]}
+
+const templates=[
+  ()=>`はい！今日は${r(adjs)}${r(nouns)}について語っていきます。まず${r(nouns)}${r(particles)}${r(adjs)}感じで${r(verbs)}んですよ。これ知ってましたか！`,
+  ()=>`緊急速報です！${r(adjs)}${r(nouns)}が${r(verbs)}という事件が発生！${r(phrases)}！繰り返します、${r(nouns)}が${r(verbs)}です！`,
+  ()=>`リスナーから届きました。${r(adjs)}${r(nouns)}が${r(verbs)}のですが大丈夫ですか、とのことです。結論から言うと、${r(phrases)}！以上です！`,
+  ()=>`本日の天気です。午前中は${r(adjs)}${r(nouns)}、午後から${r(adjs)}${r(nouns)}が${r(verbs)}見込みです。外出の際は${r(nouns)}にご注意ください。`,
+  ()=>`今週の中澤チェック！${r(nouns)}は${r(phrases)}。${r(nouns)}は${r(adjs)}。${r(nouns)}と${r(nouns)}は合体して${r(verbs)}。以上！`,
+  ()=>`みなさん！${r(adjs)}${r(nouns)}と${r(adjs)}${r(nouns)}が${r(verbs)}現象、ご存知ですか。中澤的には${r(phrases)}と思っています！`,
+  ()=>`本日のゲストは${r(adjs)}${r(nouns)}さんです。一言どうぞ。${r(phrases)}！${r(nouns)}が${r(verbs)}！とのことです。ありがとうございました！`,
+  ()=>`おい聞いてるか！${r(nouns)}が${r(adjs)}のに${r(verbs)}とか${r(phrases)}！${r(nouns)}と${r(nouns)}が合体して${r(adjs)}${r(nouns)}になったぞ！`,
+  ()=>`速報！${r(adjs)}${r(nouns)}が${r(verbs)}！続報、${r(nouns)}も${r(verbs)}！さらに続報、${r(phrases)}！もはや${r(adjs)}状況です！`,
+  ()=>`コマーシャルです。${r(adjs)}${r(nouns)}でお困りの方！いまなら${r(nouns)}が${r(verbs)}サービス実施中！${r(phrases)}でお問い合わせを！`,
+];
+
+function makeScript(){
+  const n=1+Math.floor(Math.random()*2);
+  const parts=[];
+  for(let i=0;i<n;i++) parts.push(r(templates)());
+  return parts.join(' ');
+}
+
+function startTypewriter(text, rate){
+  const area=document.getElementById('subtitle-area');
+  if(!showSub||!area.classList.contains('visible')) return;
+  area.innerHTML='';
+  if(typeTimer) clearInterval(typeTimer);
+  let i=0;
+  // 日本語TTS: 約5〜7文字/秒 × rate
+  const msPerChar=Math.round(1000/(6*rate));
+  const cursor=document.createElement('span');
+  cursor.id='cursor';
+  area.appendChild(cursor);
+  typeTimer=setInterval(()=>{
+    if(i>=text.length){clearInterval(typeTimer);typeTimer=null;cursor.remove();return}
+    cursor.insertAdjacentText('beforebegin',text[i]);
+    i++;
+    // スクロール追従
+    area.scrollTop=area.scrollHeight;
+  },msPerChar);
+}
+
+function stopTypewriter(){
+  if(typeTimer){clearInterval(typeTimer);typeTimer=null;}
+  const area=document.getElementById('subtitle-area');
+  const cursor=area.querySelector('#cursor');
+  if(cursor) cursor.remove();
+}
+
+function setChannel(n){
+  ch=n;
+  document.querySelectorAll('.ch-btn').forEach((b,i)=>b.classList.toggle('active',i===n));
+  const info=CHANNELS[n];
+  document.getElementById('ch-name').textContent='CH'+(n+1)+' — '+info.name+' '+info.freq;
+  stopTypewriter();
+  synth.cancel();
+  setTimeout(next,300);
+}
+
+function toggleSub(){
+  showSub=!showSub;
+  const btn=document.getElementById('sub-btn');
+  const area=document.getElementById('subtitle-area');
+  btn.textContent='字幕 '+(showSub?'ON':'OFF');
+  btn.classList.toggle('on',showSub);
+  area.classList.toggle('visible',showSub);
+  if(!showSub){stopTypewriter();area.innerHTML='';}
+}
+
+function getJaVoice(){
+  const voices=synth.getVoices();
+  return voices.find(v=>v.name.toLowerCase().includes('google')&&v.lang.startsWith('ja'))
+      || voices.find(v=>v.lang.startsWith('ja'))
+      || null;
+}
+
+function next(){
+  const text=makeScript();
+  const info=CHANNELS[ch];
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='ja-JP';
+  utt.rate=info.rate;
+  utt.pitch=info.pitch;
+  utt.volume=1;
+  const v=getJaVoice();
+  if(v) utt.voice=v;
+  utt.onstart=()=>startTypewriter(text,info.rate);
+  utt.onend=()=>{stopTypewriter();setTimeout(next,300)};
+  utt.onerror=()=>{stopTypewriter();setTimeout(next,800)};
+  synth.speak(utt);
+}
+
+function tick(){
+  const d=new Date();
+  document.getElementById('clock').textContent=d.toLocaleTimeString('ja-JP');
+}
+tick();
+setInterval(tick,1000);
+
+if(synth.getVoices().length>0){
+  next();
+}else{
+  synth.onvoiceschanged=function(){synth.onvoiceschanged=null;next();};
+}
+</script>
+</body>
+</html>
