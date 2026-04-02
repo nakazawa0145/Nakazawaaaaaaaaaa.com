@@ -99,30 +99,6 @@
   .result-name { font-weight:700; font-size:1rem; }
   .result-detail { font-size:0.8rem; color:var(--muted); }
 
-  /* ── 検索履歴 ── */
-  #search-history {
-    margin-top:8px;
-  }
-  .history-label {
-    font-size:0.75rem; color:var(--muted); font-weight:700;
-    padding:4px 4px 4px 2px; letter-spacing:0.05em;
-  }
-  .history-item {
-    display:flex; align-items:center; gap:10px;
-    padding:11px 14px; cursor:pointer;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:10px; margin-top:6px;
-    transition:background 0.15s;
-  }
-  .history-item:hover, .history-item:active { background:var(--surface2); }
-  .history-icon { font-size:1rem; flex-shrink:0; }
-  .history-name { font-size:0.95rem; font-weight:700; flex:1; }
-  .history-del {
-    font-size:0.8rem; color:var(--muted); padding:2px 6px;
-    border-radius:6px; flex-shrink:0; transition:color 0.15s;
-  }
-  .history-del:hover { color:#ff6060; }
-
   #location-btn {
     display:flex; align-items:center; gap:8px;
     margin:10px 0 0; background:var(--surface);
@@ -290,9 +266,98 @@
   }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ── EARTHQUAKE ── */
+  #quake-section {
+    max-width:680px; margin:32px auto 0;
+    padding:0 14px;
+  }
+  #quake-container {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:20px;
+    position:relative; overflow:hidden;
+  }
+  #quake-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  #quake-title {
+    font-size:1rem; color:var(--muted); font-weight:700;
+  }
+  #quake-dot {
+    width:9px; height:9px; border-radius:50%;
+    background:#ff4444;
+    box-shadow:0 0 0 0 rgba(255,68,68,0.5);
+    animation:quakePulse 1.8s ease-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes quakePulse {
+    0%   { box-shadow:0 0 0 0 rgba(255,68,68,0.6); }
+    70%  { box-shadow:0 0 0 8px rgba(255,68,68,0); }
+    100% { box-shadow:0 0 0 0 rgba(255,68,68,0); }
+  }
+  #quake-list-wrap {
+    max-height:calc(5 * 58px); /* 5件分 */
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:var(--accent) var(--surface2);
+  }
+  #quake-list-wrap::-webkit-scrollbar { width:5px; }
+  #quake-list-wrap::-webkit-scrollbar-track { background:var(--surface2); border-radius:4px; }
+  #quake-list-wrap::-webkit-scrollbar-thumb { background:var(--accent); border-radius:4px; }
+  .quake-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 12px; border-radius:10px;
+    border-bottom:1px solid rgba(42,42,64,0.5);
+    transition:background 0.15s;
+    min-height:52px;
+  }
+  .quake-item:last-child { border-bottom:none; }
+  .quake-item:hover { background:var(--surface2); }
+  .quake-item.new-quake {
+    animation:quakeFlash 1s ease;
+  }
+  @keyframes quakeFlash {
+    0%   { background:rgba(255,68,68,0.25); }
+    100% { background:transparent; }
+  }
+  .quake-scale {
+    min-width:44px; height:44px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:0.85rem; flex-shrink:0;
+    line-height:1.2; text-align:center;
+  }
+  .quake-scale.s1  { background:rgba(100,180,255,0.2); color:#64b4ff; border:1px solid rgba(100,180,255,0.3); }
+  .quake-scale.s2  { background:rgba(80,200,180,0.2);  color:#50c8b4; border:1px solid rgba(80,200,180,0.3); }
+  .quake-scale.s3  { background:rgba(100,200,80,0.2);  color:#64c850; border:1px solid rgba(100,200,80,0.3); }
+  .quake-scale.s4  { background:rgba(240,200,50,0.2);  color:#f0c832; border:1px solid rgba(240,200,50,0.3); }
+  .quake-scale.s5l { background:rgba(255,150,40,0.2);  color:#ff9628; border:1px solid rgba(255,150,40,0.3); }
+  .quake-scale.s5h { background:rgba(255,120,20,0.2);  color:#ff7814; border:1px solid rgba(255,120,20,0.3); }
+  .quake-scale.s6l { background:rgba(255,80,30,0.22);  color:#ff501e; border:1px solid rgba(255,80,30,0.35); }
+  .quake-scale.s6h { background:rgba(220,40,40,0.22);  color:#dc2828; border:1px solid rgba(220,40,40,0.35); }
+  .quake-scale.s7  { background:rgba(180,20,20,0.3);   color:#ff2222; border:1px solid rgba(180,20,20,0.5); font-size:1rem; }
+  .quake-info { flex:1; min-width:0; }
+  .quake-place {
+    font-size:0.95rem; font-weight:700; color:var(--text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .quake-meta {
+    font-size:0.78rem; color:var(--muted); margin-top:3px;
+  }
+  .quake-mag {
+    font-size:0.82rem; color:var(--muted); flex-shrink:0; text-align:right;
+  }
+  #quake-loading {
+    text-align:center; padding:20px;
+    color:var(--muted); font-size:0.88rem;
+  }
+  #quake-last-updated {
+    font-size:0.72rem; color:var(--muted);
+    text-align:right; margin-top:10px;
+  }
+
   /* ── TERU ── */
   #teru-section {
-    max-width:680px; margin:32px auto 60px;
+    max-width:680px; margin:24px auto 60px;
     padding:0 14px; text-align:center;
   }
   #teru-container {
@@ -357,9 +422,118 @@
     100% { opacity:0; transform:translateY(-200px) scale(1.4); }
   }
 
+  /* ── NEWS ── */
+  #news-section {
+    max-width:680px; margin:24px auto 0;
+    padding:0 14px;
+  }
+  #news-container {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:20px;
+    position:relative;
+  }
+  #news-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  #news-title {
+    font-size:1rem; color:var(--muted); font-weight:700;
+  }
+  /* ── NEWS PERIOD TABS ── */
+  #news-period-tabs {
+    display:flex; gap:6px;
+  }
+  .news-tab-btn {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; color:var(--muted);
+    padding:6px 14px; cursor:pointer;
+    font-family:inherit; font-size:0.78rem; font-weight:700;
+    transition:all 0.2s; flex:1; text-align:center;
+  }
+  .news-tab-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .news-tab-btn:active { opacity:0.75; }
+
+  #news-list { display:flex; flex-direction:column; }
+
+  .news-item {
+    display:flex; gap:12px; align-items:flex-start;
+    padding:12px 0;
+    border-bottom:1px solid rgba(42,42,64,0.5);
+    text-decoration:none;
+    transition:background 0.15s;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .news-item:last-child { border-bottom:none; }
+  .news-item:hover { background:rgba(96,96,255,0.06); padding-left:6px; }
+
+  .news-thumb {
+    width:72px; height:54px; border-radius:8px;
+    object-fit:cover; flex-shrink:0; background:var(--surface2);
+    border:1px solid var(--border);
+  }
+  .news-thumb-placeholder {
+    width:72px; height:54px; border-radius:8px;
+    background:var(--surface2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem; flex-shrink:0;
+  }
+  .news-num {
+    min-width:24px; height:24px; border-radius:6px;
+    background:rgba(96,96,255,0.18); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.75rem; font-weight:900; flex-shrink:0; margin-top:2px;
+  }
+  .news-num.top3 {
+    background:linear-gradient(135deg,#ff9900,#ffcc00);
+    color:#000; font-size:0.8rem;
+  }
+  .news-body { flex:1; min-width:0; }
+  .news-headline {
+    font-size:0.92rem; font-weight:700; color:var(--text);
+    line-height:1.5; margin-bottom:4px;
+  }
+  .news-desc {
+    font-size:0.78rem; color:var(--muted);
+    line-height:1.5; margin-bottom:4px;
+    display:-webkit-box; -webkit-line-clamp:2;
+    -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .news-meta {
+    font-size:0.74rem; color:var(--muted);
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .news-source {
+    background:rgba(96,96,255,0.12); border-radius:4px;
+    padding:1px 6px; color:var(--accent); font-weight:700;
+  }
+
+  #news-more-wrap {
+    margin-top:12px; text-align:center;
+  }
+  #news-more-btn {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:10px; color:var(--muted);
+    padding:11px 28px; cursor:pointer;
+    font-family:inherit; font-size:0.88rem; font-weight:700;
+    transition:all 0.2s; width:100%;
+  }
+  #news-more-btn:hover { border-color:var(--accent); color:var(--accent); }
+  #news-more-btn:active { opacity:0.7; }
+  #news-more-btn:disabled { opacity:0.4; cursor:default; }
+
+  #news-loading-more {
+    text-align:center; padding:14px;
+    color:var(--muted); font-size:0.84rem; display:none;
+  }
+  #news-last-updated {
+    font-size:0.72rem; color:var(--muted);
+    text-align:right; margin-top:10px;
+  }
+
   /* ── MOBILE ── */
   @media (max-width:480px) {
-    #search-area, #weather-main, #teru-section { padding-left:10px; padding-right:10px; }
+    #search-area, #weather-main, #teru-section, #news-section { padding-left:10px; padding-right:10px; }
     .wx-label { width:50px; font-size:0.75rem; }
     .wx-c     { min-width:56px; max-width:56px; font-size:0.85rem; }
     .wx-sep   { min-width:46px; max-width:46px; font-size:0.65rem; }
@@ -383,7 +557,6 @@
     <button id="search-btn" onclick="doSearch()">🔍 検索</button>
   </div>
   <div id="search-results"></div>
-  <div id="search-history"></div>
   <button id="location-btn" onclick="useCurrentLocation()">
     📍 現在地の天気を見る
   </button>
@@ -427,6 +600,44 @@
     <input type="range" id="time-slider" min="0" max="100" value="0" oninput="onSliderInput(this.value)">
     <button onclick="navShift(1)">進む ▶</button>
     <span id="slider-label">現在</span>
+  </div>
+</div>
+
+<div id="quake-section">
+  <div id="quake-container">
+    <div id="quake-header">
+      <div id="quake-title">🔴 中澤地震速報</div>
+      <div id="quake-dot"></div>
+    </div>
+    <div id="quake-list-wrap">
+      <div id="quake-list">
+        <div id="quake-loading"><span class="spinner"></span>地震情報を取得中...</div>
+      </div>
+    </div>
+    <div id="quake-last-updated"></div>
+  </div>
+</div>
+
+<div id="news-section">
+  <div id="news-container">
+    <div id="news-header">
+      <div id="news-title">📰 中澤ニュース</div>
+      <div id="news-period-tabs">
+        <button class="news-tab-btn active" onclick="setNewsPeriod(this,'today')">本日</button>
+        <button class="news-tab-btn" onclick="setNewsPeriod(this,'3days')">３日間</button>
+        <button class="news-tab-btn" onclick="setNewsPeriod(this,'week')">１週間</button>
+      </div>
+    </div>
+    <div id="news-list">
+      <div id="news-loading" style="text-align:center;padding:24px;color:var(--muted);font-size:0.88rem;">
+        <span class="spinner"></span>ニュースを取得中...
+      </div>
+    </div>
+    <div id="news-loading-more"><span class="spinner"></span>取得中...</div>
+    <div id="news-more-wrap" style="display:none;">
+      <button id="news-more-btn" onclick="loadMoreNews()">▼ もっと見る</button>
+    </div>
+    <div id="news-last-updated"></div>
   </div>
 </div>
 
@@ -476,51 +687,6 @@ document.addEventListener('click', e => {
   if(!document.getElementById('search-area').contains(e.target)) searchResults.style.display='none';
 });
 
-// ── 検索履歴 ──
-const HISTORY_KEY = 'wx_search_history';
-
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-  catch { return []; }
-}
-function saveHistory(hist) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
-}
-function addHistory(name, lat, lon) {
-  let hist = getHistory().filter(h => h.name !== name);
-  hist.unshift({ name, lat, lon });
-  if(hist.length > 3) hist = hist.slice(0, 3);
-  saveHistory(hist);
-  renderHistory();
-}
-function renderHistory() {
-  const hist = getHistory();
-  const el = document.getElementById('search-history');
-  if(!hist.length) { el.innerHTML=''; return; }
-  el.innerHTML = '<div class="history-label">🕒 最近の検索</div>' +
-    hist.map((h,i) => `
-      <div class="history-item" id="hist-${i}">
-        <span class="history-icon">📍</span>
-        <span class="history-name">${h.name}</span>
-        <span class="history-del" onclick="deleteHistory(${i},event)">✕</span>
-      </div>`).join('');
-  hist.forEach((h,i) => {
-    document.getElementById('hist-'+i).addEventListener('click', (e) => {
-      if(e.target.classList.contains('history-del')) return;
-      searchResults.style.display='none';
-      searchInput.value='';
-      loadWeather(h.lat, h.lon, h.name);
-    });
-  });
-}
-function deleteHistory(i, e) {
-  e.stopPropagation();
-  let hist = getHistory();
-  hist.splice(i, 1);
-  saveHistory(hist);
-  renderHistory();
-}
-
 async function doSearch() {
   const q = searchInput.value.trim();
   if(!q) return;
@@ -539,7 +705,6 @@ async function doSearch() {
         div.innerHTML = `<div class="result-name">${name}</div><div class="result-detail">${detail}</div>`;
         div.addEventListener('click', () => {
           searchResults.style.display='none'; searchInput.value='';
-          addHistory(name, parseFloat(item.lat), parseFloat(item.lon));
           loadWeather(parseFloat(item.lat), parseFloat(item.lon), name);
         });
         searchResults.appendChild(div);
@@ -698,13 +863,15 @@ function renderCards() {
 
   scrollEls.forEach(e => e.scrollLeft=0);
 
-  // 現在時刻を左から4番目に表示する自動スクロール
+  // 現在時刻をスクロール位置に表示する自動スクロール
   if(nowColIndex >= 0) {
     requestAnimationFrame(() => {
       const sc = scrollEls[0];
       if(!sc) return;
-      const cellW = 62;
-      const sepW = 54;
+      const isMobile = window.innerWidth <= 480;
+      const cellW = isMobile ? 56 : 62;
+      const sepW  = isMobile ? 46 : 54;
+      const targetIdx = isMobile ? 1 : 3; // スマホ: 左から2番目, PC: 左から4番目
       // 現在カラムより前にあるセパレーター数を計算
       let sepsBefore = 0;
       let lastD = '';
@@ -715,8 +882,7 @@ function renderCards() {
         if(isNew && currentInterval !== '1day' && ci <= nowColIndex) sepsBefore++;
         ci++;
       });
-      // 左から4番目（index=3）に現在列が来るようにスクロール
-      const scrollTo = sepsBefore * sepW + nowColIndex * cellW - 3 * cellW;
+      const scrollTo = sepsBefore * sepW + nowColIndex * cellW - targetIdx * cellW;
       scrollEls.forEach(e => { e.scrollLeft = Math.max(0, scrollTo); });
     });
   }
@@ -816,8 +982,258 @@ function spawnBubbles(container, type) {
   }
 }
 
+// ── EARTHQUAKE ──
+let quakeData = [];
+
+function quakeScaleInfo(scale) {
+  const map = {
+    10:  { label:'震度1',  cls:'s1'  },
+    20:  { label:'震度2',  cls:'s2'  },
+    30:  { label:'震度3',  cls:'s3'  },
+    40:  { label:'震度4',  cls:'s4'  },
+    45:  { label:'震度5弱', cls:'s5l' },
+    50:  { label:'震度5強', cls:'s5h' },
+    55:  { label:'震度6弱', cls:'s6l' },
+    60:  { label:'震度6強', cls:'s6h' },
+    70:  { label:'震度7',  cls:'s7'  },
+  };
+  return map[scale] || { label:'震度-', cls:'s1' };
+}
+
+function formatQuakeTime(timeStr) {
+  // "2025/04/02 14:35:00" -> "04/02 14:35"
+  // 手動パースでブラウザ差異を回避
+  try {
+    if(!timeStr || timeStr.trim() === '') return '時刻不明';
+    const m = timeStr.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/);
+    if(m) return `${m[2]}/${m[3]} ${m[4]}:${m[5]}`;
+    // フォールバック: ISO形式など
+    const d = new Date(timeStr);
+    if(isNaN(d.getTime())) return '時刻不明';
+    const mo = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${mo}/${dd} ${hh}:${mm}`;
+  } catch { return '時刻不明'; }
+}
+
+async function fetchQuakes() {
+  try {
+    const res = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=20');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const prevTop = quakeData.length ? quakeData[0]?.id : null;
+    quakeData = data;
+    renderQuakes(prevTop);
+  } catch(e) {
+    document.getElementById('quake-list').innerHTML =
+      `<div style="padding:16px;color:var(--muted);font-size:0.82rem;text-align:center">取得失敗: ${e.message}</div>`;
+  }
+}
+
+function renderQuakes(prevTopId) {
+  const list = document.getElementById('quake-list');
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('quake-last-updated').textContent = `最終更新: ${hh}:${mm}`;
+
+  if(!quakeData.length) {
+    list.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:0.82rem;text-align:center">地震情報はありません</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  quakeData.forEach((item, idx) => {
+    const eq = item.earthquake || {};
+    const hypo = eq.hypocenter || {};
+    const scale = eq.maxScale || -1;
+    const { label, cls } = quakeScaleInfo(scale);
+    const place = hypo.name || '不明';
+    const timeStr = formatQuakeTime(eq.time || '');
+    const mag = (hypo.magnitude != null && hypo.magnitude > 0)
+      ? `M${Number(hypo.magnitude).toFixed(1)}` : '';
+    const depth = (hypo.depth != null && hypo.depth >= 0)
+      ? `深さ${hypo.depth}km` : '';
+
+    const div = document.createElement('div');
+    div.className = 'quake-item' + (idx === 0 && item.id !== prevTopId ? ' new-quake' : '');
+    div.innerHTML = `
+      <div class="quake-scale ${cls}">${label}</div>
+      <div class="quake-info">
+        <div class="quake-place">${place}</div>
+        <div class="quake-meta">${timeStr}${depth?' · '+depth:''}</div>
+      </div>
+      <div class="quake-mag">${mag}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// 初回取得 + 30秒ごとに更新
+fetchQuakes();
+setInterval(fetchQuakes, 30000);
+
+// ── NEWS ──
+let newsCache = { today: null, '3days': null, week: null };
+let newsPeriod = 'today';
+let newsShown = 3;
+let newsFetching = false;
+
+function setNewsPeriod(btn, period) {
+  document.querySelectorAll('.news-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  newsPeriod = period;
+  newsShown = 3;
+  if(newsCache[period]) {
+    renderNews();
+  } else {
+    fetchNews();
+  }
+}
+
+function getPeriodLabel(period) {
+  return { today:'今日', '3days':'過去3日間', week:'過去1週間' }[period] || '今日';
+}
+
+async function fetchNews() {
+  if(newsFetching) return;
+  newsFetching = true;
+
+  const listEl = document.getElementById('news-list');
+  listEl.innerHTML = '<div id="news-loading" style="text-align:center;padding:24px;color:var(--muted);font-size:0.88rem;"><span class="spinner"></span>ニュースを取得中...</div>';
+  document.getElementById('news-more-wrap').style.display = 'none';
+
+  const periodLabel = getPeriodLabel(newsPeriod);
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        system: `あなたは日本語ニュースを収集するアシスタントです。
+ウェブ検索で${periodLabel}の日本の注目ニュースを検索し、話題のニュースを20件取得してください。
+必ず以下のJSON形式のみで返してください。前置きやMarkdownコードブロック(\`\`\`)は絶対に不要です。JSONだけ返してください。
+{"news":[{"headline":"見出し","description":"2〜3文の記事要約","source":"媒体名","url":"URL","time":"〇時間前 または 日付","image":"画像URL（あれば、なければ空文字）"},...]}
+descriptionは必ず日本語で2〜3文で記事の内容を簡潔にまとめてください。`,
+        messages: [{
+          role: 'user',
+          content: `${periodLabel}の日本で最も話題になっているニュースを20件、画像URLも含めてJSON形式で返してください。`
+        }]
+      })
+    });
+
+    if(!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`API Error ${resp.status}: ${errText.slice(0,120)}`);
+    }
+
+    const data = await resp.json();
+
+    if(data.error) throw new Error(data.error.message || 'API error');
+
+    // text blockを結合してJSONを取得
+    const rawText = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    // JSON部分を抽出（コードブロックも考慮）
+    let jsonStr = rawText.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+    const jsonMatch = jsonStr.match(/\{[\s\S]*"news"[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('JSONが見つかりません: ' + rawText.slice(0,80));
+    const parsed = JSON.parse(jsonMatch[0]);
+    const items = parsed.news || [];
+
+    if(!items.length) throw new Error('ニュースが取得できませんでした');
+
+    newsCache[newsPeriod] = items;
+
+    const now = new Date();
+    document.getElementById('news-last-updated').textContent =
+      `最終更新: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    renderNews();
+  } catch(e) {
+    document.getElementById('news-list').innerHTML =
+      `<div style="padding:20px;color:var(--muted);font-size:0.84rem;text-align:center;">取得に失敗しました<br><span style="font-size:0.75rem;opacity:0.6">${e.message}</span></div>`;
+  } finally {
+    newsFetching = false;
+  }
+}
+
+function renderNews() {
+  const items = newsCache[newsPeriod] || [];
+  const listEl = document.getElementById('news-list');
+  const moreWrap = document.getElementById('news-more-wrap');
+  const moreBtn  = document.getElementById('news-more-btn');
+  listEl.innerHTML = '';
+
+  const visible = items.slice(0, newsShown);
+  visible.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    if(item.url && item.url.startsWith('http')) {
+      div.onclick = () => window.open(item.url, '_blank', 'noopener');
+    }
+
+    const isTop3 = idx < 3;
+    const numClass = isTop3 ? 'news-num top3' : 'news-num';
+
+    // 画像部分
+    let imgHtml = '';
+    if(item.image && item.image.startsWith('http')) {
+      imgHtml = `<img class="news-thumb" src="${escHtml(item.image)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div class=news-thumb-placeholder>📰</div>'">`;
+    } else {
+      imgHtml = `<div class="news-thumb-placeholder">📰</div>`;
+    }
+
+    const descHtml = item.description
+      ? `<div class="news-desc">${escHtml(item.description)}</div>` : '';
+
+    div.innerHTML = `
+      ${imgHtml}
+      <div class="news-body">
+        <div class="${numClass}" style="display:inline-flex;margin-bottom:4px;">
+          ${isTop3 ? '🏆' : ''}${idx + 1}
+        </div>
+        <div class="news-headline">${escHtml(item.headline || '')}</div>
+        ${descHtml}
+        <div class="news-meta">
+          <span class="news-source">${escHtml(item.source || '')}</span>
+          <span>${escHtml(item.time || '')}</span>
+        </div>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+
+  const remaining = items.length - newsShown;
+  if(remaining > 0) {
+    moreWrap.style.display = 'block';
+    moreBtn.textContent = `▼ もっと見る（残り ${remaining} 件）`;
+  } else {
+    moreWrap.style.display = 'none';
+  }
+}
+
+function loadMoreNews() {
+  newsShown += 5;
+  renderNews();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 初回取得
+fetchNews();
+
 // ── INIT ──
-renderHistory();
 initByIP();
 </script>
 </body>
