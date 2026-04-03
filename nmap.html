@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中澤地図</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --rainbow-speed:3s;
+  --panel-bg:rgba(255,255,255,0.97);
+  --panel-shadow:0 8px 32px rgba(0,0,0,0.18);
+  --accent:#4CAF50;
+  --accent2:#2196F3;
+  --danger:#f44336;
+  --warn:#FF9800;
+  --text:#1a1a1a;
+  --muted:#666;
+  --border:#e0e0e0;
+  --radius:12px;
+  --header-h:52px;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f0f0;overflow:hidden;height:100dvh;width:100vw}
+
+/* ========== RAINBOW HEADER ========== */
+#header{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);
+  background:linear-gradient(90deg,#ff0000,#ff7700,#ffff00,#00ff00,#0099ff,#6600ff,#ff00ff,#ff0000);
+  background-size:300% 100%;
+  animation:rainbowFlow var(--rainbow-speed) linear infinite;
+  z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+@keyframes rainbowFlow{0%{background-position:0% 0%}100%{background-position:300% 0%}}
+#header-title{
+  font-family:'M PLUS Rounded 1c',sans-serif;
+  font-size:22px;font-weight:800;
+  color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5),0 0 20px rgba(255,255,255,0.4);
+  letter-spacing:2px;
+}
+#header-right{display:flex;align-items:center;gap:8px}
+
+/* ========== MAP ========== */
+#map{
+  position:fixed;top:var(--header-h);left:0;right:0;
+  bottom:0;z-index:1;
+}
+
+/* ========== BUTTONS ========== */
+.fab{
+  width:44px;height:44px;border-radius:50%;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;
+  box-shadow:0 2px 10px rgba(0,0,0,0.3);
+  transition:transform .15s,box-shadow .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.fab:active{transform:scale(0.93)}
+#btn-menu{background:#fff;color:#333;font-size:22px}
+#btn-locate{
+  position:fixed;right:12px;bottom:80px;z-index:500;
+  background:#2196F3;color:#fff;font-size:20px;
+}
+#btn-compass{
+  position:fixed;right:12px;bottom:134px;z-index:500;
+  background:#fff;color:#333;font-size:20px;
+}
+#btn-layers{
+  position:fixed;right:12px;bottom:188px;z-index:500;
+  background:#fff;color:#333;font-size:20px;
+}
+#btn-weather{
+  position:fixed;right:12px;bottom:242px;z-index:500;
+  background:#fff;color:#ff6d00;font-size:20px;
+}
+#btn-bookmark{
+  position:fixed;right:12px;bottom:296px;z-index:500;
+  background:#fff;color:#9C27B0;font-size:20px;
+}
+#speed-display{
+  position:fixed;left:12px;bottom:80px;z-index:500;
+  background:rgba(0,0,0,0.75);color:#fff;
+  border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700;
+  display:none;
+}
+#compass-rose{
+  position:fixed;left:12px;top:calc(var(--header-h)+10px);z-index:500;
+  width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;cursor:pointer;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  transition:transform .3s;
+}
+
+/* ========== PANELS ========== */
+.panel{
+  position:fixed;top:0;right:-100%;
+  width:min(360px,100vw);height:100dvh;
+  background:var(--panel-bg);
+  box-shadow:var(--panel-shadow);
+  z-index:2000;
+  transition:right .3s cubic-bezier(0.4,0,0.2,1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.panel.open{right:0}
+.panel-overlay{
+  position:fixed;inset:0;z-index:1999;
+  background:rgba(0,0,0,0.4);
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+.panel-overlay.show{opacity:1;pointer-events:auto}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.panel-header h2{font-size:18px;font-weight:700;color:var(--text)}
+.close-btn{
+  width:32px;height:32px;border-radius:50%;
+  border:none;background:#f0f0f0;cursor:pointer;
+  font-size:18px;display:flex;align-items:center;justify-content:center;
+  color:#666;
+}
+.panel-body{flex:1;overflow-y:auto;padding:14px}
+
+/* ========== ROUTE PANEL ========== */
+.input-group{margin-bottom:12px}
+.input-group label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.input-group input{
+  width:100%;padding:10px 12px;
+  border:1.5px solid var(--border);border-radius:8px;
+  font-size:15px;font-family:inherit;
+  outline:none;transition:border-color .2s;
+  background:#fafafa;
+}
+.input-group input:focus{border-color:var(--accent2)}
+.swap-btn{
+  display:flex;align-items:center;justify-content:center;
+  padding:4px;margin:4px auto;
+  background:none;border:none;cursor:pointer;font-size:22px;
+  color:var(--accent2);
+}
+
+/* route mode buttons */
+.mode-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:6px;margin-bottom:14px;
+}
+.mode-btn{
+  padding:8px 4px;border-radius:8px;
+  border:1.5px solid var(--border);
+  background:#fafafa;cursor:pointer;
+  font-size:12px;font-family:inherit;
+  text-align:center;color:var(--text);
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.mode-btn .mode-icon{font-size:18px}
+.mode-btn.active{border-color:var(--accent2);background:#e3f2fd;color:#1565c0;font-weight:700}
+
+/* speed buttons */
+.speed-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px}
+.speed-btn{
+  padding:8px 4px;border-radius:8px;
+  border:1.5px solid var(--border);
+  background:#fafafa;cursor:pointer;
+  font-size:12px;font-family:inherit;
+  text-align:center;color:var(--text);
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.speed-btn .speed-icon{font-size:18px}
+.speed-btn.active{border-color:#FF9800;background:#fff3e0;color:#e65100;font-weight:700}
+
+.calc-btn{
+  width:100%;padding:12px;
+  border:none;border-radius:10px;
+  background:linear-gradient(135deg,#2196F3,#4CAF50);
+  color:#fff;font-size:16px;font-weight:700;font-family:inherit;
+  cursor:pointer;letter-spacing:1px;
+  transition:opacity .15s,transform .15s;
+  box-shadow:0 4px 14px rgba(33,150,243,0.35);
+}
+.calc-btn:active{opacity:.85;transform:scale(0.98)}
+
+/* ========== ROUTE RESULT ========== */
+#result-section{margin-top:16px;display:none}
+.result-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+}
+.stat-card{
+  background:#f7f9fc;border-radius:10px;padding:10px 12px;
+  border:1px solid #e8edf5;
+}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.stat-value{font-size:18px;font-weight:700;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--muted)}
+
+.chart-wrap{background:#f7f9fc;border-radius:10px;padding:10px;margin-bottom:12px;border:1px solid #e8edf5}
+.chart-title{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;text-align:center}
+.chart-container{position:relative;height:140px}
+
+/* turn-by-turn */
+#turn-list{list-style:none;margin-top:10px}
+#turn-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid #f0f0f0;
+  font-size:13px;color:var(--text);
+}
+#turn-list li .turn-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+#turn-list li .turn-dist{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ========== LAYERS PANEL ========== */
+.layer-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid #f5f5f5;
+}
+.layer-name{font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px}
+.toggle-sw{
+  width:44px;height:24px;border-radius:12px;
+  border:none;cursor:pointer;position:relative;
+  background:#ccc;transition:background .2s;
+  flex-shrink:0;
+}
+.toggle-sw.on{background:#4CAF50}
+.toggle-sw::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  transition:left .2s;
+}
+.toggle-sw.on::after{left:22px}
+
+/* ========== BOOKMARKS PANEL ========== */
+.bookmark-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;
+}
+.bookmark-item:active{background:#f9f9f9}
+.bookmark-icon{font-size:22px;flex-shrink:0}
+.bookmark-info{flex:1;min-width:0}
+.bookmark-name{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bookmark-addr{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bookmark-del{background:none;border:none;font-size:18px;cursor:pointer;color:#f44336;padding:4px}
+.add-bookmark-btn{
+  width:100%;padding:11px;border-radius:10px;
+  border:1.5px dashed var(--border);background:none;
+  font-size:14px;color:var(--accent2);cursor:pointer;
+  margin-bottom:10px;font-family:inherit;
+  transition:background .15s;
+}
+.add-bookmark-btn:active{background:#e3f2fd}
+
+/* ========== WEATHER ========== */
+.weather-card{
+  background:linear-gradient(135deg,#1976D2,#42A5F5);
+  border-radius:14px;padding:16px;color:#fff;margin-bottom:12px;
+}
+.weather-main{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.weather-icon{font-size:52px}
+.weather-temp{font-size:42px;font-weight:700}
+.weather-desc{font-size:16px;opacity:.9}
+.weather-details{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.weather-detail{text-align:center;background:rgba(255,255,255,0.15);border-radius:8px;padding:8px}
+.wd-label{font-size:11px;opacity:.8}
+.wd-val{font-size:15px;font-weight:700}
+.weather-warn{
+  background:#fff3e0;border-left:4px solid #FF9800;
+  border-radius:8px;padding:10px 12px;font-size:13px;color:#e65100;
+  margin-top:10px;display:none;
+}
+
+/* ========== SEARCH SUGGESTIONS ========== */
+.suggestions{
+  position:absolute;left:0;right:0;
+  background:#fff;border:1px solid var(--border);
+  border-radius:0 0 8px 8px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  z-index:100;max-height:180px;overflow-y:auto;display:none;
+}
+.suggestion-item{
+  padding:9px 12px;cursor:pointer;font-size:14px;
+  border-bottom:1px solid #f5f5f5;
+  display:flex;align-items:center;gap:8px;
+}
+.suggestion-item:hover{background:#f0f7ff}
+.input-wrap{position:relative}
+
+/* ========== NAVI HUD ========== */
+#navi-hud{
+  position:fixed;top:calc(var(--header-h)+8px);left:8px;right:8px;
+  z-index:900;
+  background:rgba(20,20,40,0.92);color:#fff;
+  border-radius:14px;padding:12px 16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  display:none;
+  backdrop-filter:blur(8px);
+}
+#navi-hud .hud-top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+#navi-hud .hud-icon{font-size:32px;flex-shrink:0}
+#navi-hud .hud-instruction{font-size:16px;font-weight:700;flex:1}
+#navi-hud .hud-dist{font-size:13px;opacity:.8}
+#navi-hud .hud-bar{display:flex;gap:16px;border-top:1px solid rgba(255,255,255,0.15);padding-top:8px;margin-top:4px}
+#navi-hud .hud-stat{text-align:center;flex:1}
+#navi-hud .hud-stat .hv{font-size:16px;font-weight:700}
+#navi-hud .hud-stat .hl{font-size:10px;opacity:.7}
+#navi-hud .hud-close{
+  position:absolute;top:8px;right:8px;
+  background:rgba(255,255,255,0.2);border:none;border-radius:50%;
+  width:26px;height:26px;color:#fff;cursor:pointer;font-size:14px;
+}
+#navi-progress{
+  position:fixed;bottom:0;left:0;right:0;height:4px;
+  background:#2196F3;z-index:900;transform-origin:left;transform:scaleX(0);
+  transition:transform .5s;display:none;
+}
+
+/* ========== TOAST ========== */
+#toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:rgba(20,20,20,0.9);color:#fff;
+  padding:10px 20px;border-radius:20px;
+  font-size:13px;z-index:9999;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+  white-space:nowrap;
+}
+#toast.show{opacity:1}
+
+/* ========== MISC ========== */
+.section-title{
+  font-size:12px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px;
+  margin:14px 0 6px;
+}
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+.loader{
+  text-align:center;padding:24px;color:var(--muted);
+  display:none;
+}
+.spinner{
+  width:30px;height:30px;border-radius:50%;
+  border:3px solid #e0e0e0;border-top-color:#2196F3;
+  animation:spin .8s linear infinite;display:inline-block;margin-bottom:8px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* leaflet fix */
+.leaflet-control-zoom{border-radius:10px!important;overflow:hidden;border:none!important;box-shadow:0 2px 10px rgba(0,0,0,0.2)!important;}
+.leaflet-control-zoom a{font-size:18px!important;line-height:32px!important;width:32px!important;height:32px!important;}
+
+/* scrollbar */
+.panel-body::-webkit-scrollbar{width:4px}
+.panel-body::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+
+.empty-state{text-align:center;padding:32px 16px;color:var(--muted)}
+.empty-state .es-icon{font-size:48px;margin-bottom:8px}
+.empty-state p{font-size:14px}
+
+/* altitude badge on map */
+.alt-badge{
+  position:fixed;left:12px;top:calc(var(--header-h)+10px);
+  background:rgba(0,0,0,0.7);color:#fff;
+  border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;
+  z-index:500;display:none;
+}
+</style>
+</head>
+<body>
+
+<!-- RAINBOW HEADER -->
+<div id="header">
+  <div id="header-title">🚲 中澤地図</div>
+  <div id="header-right">
+    <button class="fab" id="btn-menu" onclick="openPanel('route-panel')" title="メニュー">☰</button>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- FLOATING BUTTONS -->
+<button class="fab" id="btn-locate" onclick="locateMe()" title="現在地">📍</button>
+<button class="fab" id="btn-compass" onclick="resetNorth()" title="北向きに戻す">🧭</button>
+<button class="fab" id="btn-layers" onclick="openPanel('layers-panel')" title="地図切替">🗺️</button>
+<button class="fab" id="btn-weather" onclick="openPanel('weather-panel')" title="天気">🌤️</button>
+<button class="fab" id="btn-bookmark" onclick="openPanel('bookmark-panel')" title="ブックマーク">⭐</button>
+
+<!-- SPEED DISPLAY -->
+<div id="speed-display">🚲 0 km/h</div>
+
+<!-- ALTITUDE BADGE -->
+<div class="alt-badge" id="alt-badge">標高 - m</div>
+
+<!-- NAVI HUD -->
+<div id="navi-hud">
+  <button class="hud-close" onclick="stopNavi()">✕</button>
+  <div class="hud-top">
+    <div class="hud-icon" id="hud-icon">⬆️</div>
+    <div>
+      <div class="hud-instruction" id="hud-instruction">直進してください</div>
+      <div class="hud-dist" id="hud-dist">次の曲がり角まで 200m</div>
+    </div>
+  </div>
+  <div class="hud-bar">
+    <div class="hud-stat"><div class="hv" id="hv-remain">--</div><div class="hl">残り距離</div></div>
+    <div class="hud-stat"><div class="hv" id="hv-eta">--</div><div class="hl">到着予定</div></div>
+    <div class="hud-stat"><div class="hv" id="hv-speed">--</div><div class="hl">現在速度</div></div>
+  </div>
+</div>
+<div id="navi-progress"></div>
+
+<!-- OVERLAY -->
+<div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+<!-- ===== ROUTE PANEL ===== -->
+<div class="panel" id="route-panel">
+  <div class="panel-header">
+    <h2>🚲 ルート検索</h2>
+    <button class="close-btn" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body">
+    <!-- from/to -->
+    <div class="input-wrap">
+      <div class="input-group">
+        <label>🟢 出発地</label>
+        <input type="text" id="from-input" placeholder="現在地 / 場所を入力" autocomplete="off"
+          oninput="onInputChange('from')" onfocus="onInputFocus('from')">
+        <div class="suggestions" id="from-suggestions"></div>
+      </div>
+    </div>
+    <button class="swap-btn" onclick="swapPoints()" title="出発地と目的地を入れ替え">⇅</button>
+    <div class="input-wrap">
+      <div class="input-group">
+        <label>🔴 目的地</label>
+        <input type="text" id="to-input" placeholder="目的地を入力" autocomplete="off"
+          oninput="onInputChange('to')" onfocus="onInputFocus('to')">
+        <div class="suggestions" id="to-suggestions"></div>
+      </div>
+    </div>
+
+    <div class="section-title">ルート優先モード</div>
+    <div class="mode-grid">
+      <button class="mode-btn active" data-mode="recommended" onclick="setMode(this)">
+        <span class="mode-icon">⭐</span>推奨
+      </button>
+      <button class="mode-btn" data-mode="distance" onclick="setMode(this)">
+        <span class="mode-icon">📏</span>距離優先
+      </button>
+      <button class="mode-btn" data-mode="flat" onclick="setMode(this)">
+        <span class="mode-icon">⛰️</span>登り少なめ
+      </button>
+      <button class="mode-btn" data-mode="main" onclick="setMode(this)">
+        <span class="mode-icon">🛣️</span>大通り優先
+      </button>
+      <button class="mode-btn" data-mode="back" onclick="setMode(this)">
+        <span class="mode-icon">🌿</span>裏道優先
+      </button>
+      <button class="mode-btn" data-mode="scenic" onclick="setMode(this)">
+        <span class="mode-icon">🗻</span>景色優先
+      </button>
+    </div>
+
+    <div class="section-title">移動ペース</div>
+    <div class="speed-grid">
+      <button class="speed-btn" data-speed="slow" onclick="setSpeed(this)">
+        <span class="speed-icon">🐢</span>ゆっくり<br><small>8km/h</small>
+      </button>
+      <button class="speed-btn active" data-speed="normal" onclick="setSpeed(this)">
+        <span class="speed-icon">🚲</span>普通<br><small>14km/h</small>
+      </button>
+      <button class="speed-btn" data-speed="fast" onclick="setSpeed(this)">
+        <span class="speed-icon">💨</span>急ぐ<br><small>20km/h</small>
+      </button>
+    </div>
+
+    <button class="calc-btn" onclick="searchRoute()">🔍 ルートを検索</button>
+
+    <!-- loader -->
+    <div class="loader" id="route-loader">
+      <div class="spinner"></div>
+      <p>ルート計算中…</p>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result-section">
+      <div class="divider"></div>
+      <div class="result-stats" id="result-stats"></div>
+
+      <!-- elevation chart -->
+      <div class="chart-wrap">
+        <div class="chart-title">📈 高低差プロフィール</div>
+        <div class="chart-container"><canvas id="elevation-chart"></canvas></div>
+      </div>
+
+      <!-- speed comparison chart -->
+      <div class="chart-wrap">
+        <div class="chart-title">⏱️ ペース別所要時間</div>
+        <div class="chart-container"><canvas id="time-chart"></canvas></div>
+      </div>
+
+      <!-- start navi button -->
+      <button class="calc-btn" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);margin-bottom:12px"
+        onclick="startNavi()">🧭 ナビ開始</button>
+
+      <!-- turn by turn -->
+      <div class="section-title">📍 曲がり角ガイド</div>
+      <ul id="turn-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LAYERS PANEL ===== -->
+<div class="panel" id="layers-panel">
+  <div class="panel-header">
+    <h2>🗺️ 地図の設定</h2>
+    <button class="close-btn" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="section-title">ベースマップ</div>
+    <div id="basemap-list">
+      <div class="layer-item">
+        <span class="layer-name">🗺️ 標準地図</span>
+        <button class="toggle-sw on" id="tile-osm" onclick="switchTile('osm',this)"></button>
+      </div>
+      <div class="layer-item">
+        <span class="layer-name">🛰️ 衛星写真</span>
+        <button class="toggle-sw" id="tile-sat" onclick="switchTile('sat',this)"></button>
+      </div>
+      <div class="layer-item">
+        <span class="layer-name">🗾 国土地理院</span>
+        <button class="toggle-sw" id="tile-gsi" onclick="switchTile('gsi',this)"></button>
+      </div>
+      <div class="layer-item">
+        <span class="layer-name">🌑 ダークマップ</span>
+        <button class="toggle-sw" id="tile-dark" onclick="switchTile('dark',this)"></button>
+      </div>
+    </div>
+    <div class="section-title">表示オーバーレイ</div>
+    <div class="layer-item">
+      <span class="layer-name">🚦 交通情報</span>
+      <button class="toggle-sw on" id="ov-traffic" onclick="toggleOverlay('traffic',this)"></button>
+    </div>
+    <div class="layer-item">
+      <span class="layer-name">⛽ 施設マーカー</span>
+      <button class="toggle-sw on" id="ov-poi" onclick="toggleOverlay('poi',this)"></button>
+    </div>
+    <div class="layer-item">
+      <span class="layer-name">🚲 自転車道</span>
+      <button class="toggle-sw on" id="ov-cycling" onclick="toggleOverlay('cycling',this)"></button>
+    </div>
+    <div class="layer-item">
+      <span class="layer-name">🌡️ 高度グラデーション</span>
+      <button class="toggle-sw" id="ov-elevation" onclick="toggleOverlay('elevation',this)"></button>
+    </div>
+    <div class="section-title">地図設定</div>
+    <div class="layer-item">
+      <span class="layer-name">📐 スケールバー表示</span>
+      <button class="toggle-sw on" id="ov-scale" onclick="toggleOverlay('scale',this)"></button>
+    </div>
+    <div class="layer-item">
+      <span class="layer-name">🧭 コンパスローズ</span>
+      <button class="toggle-sw on" id="ov-compass" onclick="toggleOverlay('compass',this)"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOOKMARK PANEL ===== -->
+<div class="panel" id="bookmark-panel">
+  <div class="panel-header">
+    <h2>⭐ ブックマーク</h2>
+    <button class="close-btn" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body">
+    <button class="add-bookmark-btn" onclick="addCurrentLocationBookmark()">➕ 現在地を追加</button>
+    <div id="bookmark-list">
+      <div class="empty-state">
+        <div class="es-icon">⭐</div>
+        <p>まだブックマークがありません<br>よく行く場所を追加しましょう！</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WEATHER PANEL ===== -->
+<div class="panel" id="weather-panel">
+  <div class="panel-header">
+    <h2>🌤️ 天気情報</h2>
+    <button class="close-btn" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div id="weather-content">
+      <div class="loader" id="weather-loader" style="display:block">
+        <div class="spinner"></div>
+        <p>天気を取得中…</p>
+      </div>
+    </div>
+    <div class="section-title">サイクリング適性</div>
+    <div id="cycling-score-card" style="display:none">
+      <div style="background:#e8f5e9;border-radius:12px;padding:14px;text-align:center;margin-bottom:10px">
+        <div style="font-size:36px" id="cycle-score-icon">🚲</div>
+        <div style="font-size:22px;font-weight:700;color:#2e7d32" id="cycle-score-text">絶好の自転車日和！</div>
+        <div style="font-size:13px;color:#666;margin-top:4px" id="cycle-score-sub">気持ちよくサイクリングできます</div>
+      </div>
+    </div>
+    <div class="section-title">週間予報</div>
+    <div id="forecast-list" style="display:none"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ============================================================
+//  GLOBALS
+// ============================================================
+let map, userMarker, userCircle, routeLayer, elevLayer;
+let currentPos = null;
+let watchId = null;
+let currentTile = 'osm';
+let routeMode = 'recommended';
+let speedMode = 'normal';
+let elevationChart = null, timeChart = null;
+let currentRoute = null;
+let naviActive = false;
+let naviStep = 0;
+let bookmarks = JSON.parse(localStorage.getItem('naka_bookmarks')||'[]');
+let heading = 0;
+let scaleControl = null;
+
+const SPEED_KMH = {slow:8, normal:14, fast:20};
+const SPEED_LABELS = {slow:'ゆっくり(8km/h)', normal:'普通(14km/h)', fast:'急ぐ(20km/h)'};
+
+// tile URLs
+const TILES = {
+  osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  gsi:'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+  dark:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+};
+const TILE_ATTRS = {
+  osm:'© OpenStreetMap contributors',
+  sat:'© Esri, DigitalGlobe',
+  gsi:'© 国土地理院',
+  dark:'© OpenStreetMap © CartoDB'
+};
+
+let tileLayer;
+
+// ============================================================
+//  MAP INIT
+// ============================================================
+function initMap(){
+  map = L.map('map',{
+    zoomControl:false,
+    attributionControl:true,
+    tap:false
+  }).setView([36.65,138.18],13);
+
+  tileLayer = L.tileLayer(TILES.osm,{attribution:TILE_ATTRS.osm,maxZoom:19}).addTo(map);
+
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  scaleControl = L.control.scale({position:'bottomleft',imperial:false}).addTo(map);
+
+  // POI layer (sample cycling facilities)
+  addSamplePOIs();
+
+  // locate
+  locateMe();
+
+  // map events
+  map.on('moveend',onMapMove);
+  map.on('click',onMapClick);
+
+  // update heading from device
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation',e=>{
+      if(e.alpha!==null){
+        heading = e.alpha;
+        document.getElementById('compass-rose') && (document.getElementById('compass-rose').style.transform = `rotate(${-heading}deg)`);
+      }
+    });
+  }
+
+  // watch position
+  if(navigator.geolocation){
+    watchId = navigator.geolocation.watchPosition(pos=>{
+      updateUserPos(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+      const kmh = pos.coords.speed ? (pos.coords.speed*3.6).toFixed(1) : 0;
+      document.getElementById('speed-display').style.display='block';
+      document.getElementById('speed-display').textContent=`🚲 ${kmh} km/h`;
+    }, err=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:10000});
+  }
+}
+
+function updateUserPos(lat,lng,acc){
+  currentPos = {lat,lng};
+  if(!userMarker){
+    const icon = L.divIcon({
+      html:`<div style="width:20px;height:20px;border-radius:50%;background:#2196F3;border:3px solid #fff;box-shadow:0 2px 8px rgba(33,150,243,.5)"></div>`,
+      iconSize:[20,20],iconAnchor:[10,10],className:''
+    });
+    userMarker = L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);
+    if(acc) userCircle = L.circle([lat,lng],{radius:acc,color:'#2196F3',fillOpacity:.08,weight:1}).addTo(map);
+  } else {
+    userMarker.setLatLng([lat,lng]);
+    if(userCircle&&acc) userCircle.setLatLng([lat,lng]).setRadius(acc);
+  }
+  fetchAltitude(lat,lng);
+}
+
+function locateMe(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude:lat,longitude:lng,accuracy:acc} = pos.coords;
+      updateUserPos(lat,lng,acc);
+      map.setView([lat,lng],15);
+      toast('📍 現在地を取得しました');
+    }, err=>{
+      toast('⚠️ 位置情報の取得に失敗しました');
+      map.setView([36.65,138.18],13);
+    },{enableHighAccuracy:true});
+  } else {
+    toast('⚠️ このブラウザは位置情報に非対応です');
+  }
+}
+
+function resetNorth(){
+  map.setView(map.getCenter(), map.getZoom());
+  toast('🧭 北向きにリセットしました');
+}
+
+function onMapMove(){}
+
+function onMapClick(e){
+  if(!naviActive){
+    const lat = e.latlng.lat.toFixed(5);
+    const lng = e.latlng.lng.toFixed(5);
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent(`
+        <div style="font-size:13px;min-width:160px">
+          <b>📍 この地点</b><br>
+          緯度: ${lat}<br>経度: ${lng}<br>
+          <button onclick="setAsTo(${lat},${lng})" style="margin-top:6px;padding:4px 10px;background:#2196F3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">目的地にセット</button>
+          <button onclick="addBookmarkAt(${lat},${lng})" style="margin-top:6px;margin-left:4px;padding:4px 10px;background:#FF9800;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">⭐ 保存</button>
+        </div>`)
+      .openOn(map);
+  }
+}
+
+function setAsTo(lat,lng){
+  document.getElementById('to-input').value=`${lat}, ${lng}`;
+  map.closePopup();
+  openPanel('route-panel');
+}
+
+// ============================================================
+//  POI SAMPLES
+// ============================================================
+function addSamplePOIs(){
+  const pois=[
+    {lat:36.658,lng:138.185,icon:'🔧',name:'自転車修理店'},
+    {lat:36.645,lng:138.195,icon:'💧',name:'給水ポイント'},
+    {lat:36.670,lng:138.175,icon:'🚽',name:'公共トイレ'},
+    {lat:36.660,lng:138.200,icon:'⛽',name:'コンビニ'},
+    {lat:36.640,lng:138.180,icon:'🅿️',name:'駐輪場'},
+    {lat:36.675,lng:138.190,icon:'🏥',name:'救急病院'},
+    {lat:36.650,lng:138.165,icon:'🌸',name:'桜並木ポイント'},
+    {lat:36.662,lng:138.210,icon:'🗻',name:'展望スポット'},
+  ];
+  pois.forEach(p=>{
+    const icon=L.divIcon({
+      html:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));cursor:pointer" title="${p.name}">${p.icon}</div>`,
+      iconSize:[24,24],iconAnchor:[12,12],className:''
+    });
+    L.marker([p.lat,p.lng],{icon}).addTo(map).bindPopup(`<b>${p.icon} ${p.name}</b>`);
+  });
+}
+
+// ============================================================
+//  ALTITUDE
+// ============================================================
+async function fetchAltitude(lat,lng){
+  try{
+    const r=await fetch(`https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lng}&lat=${lat}&outtype=JSON`);
+    const d=await r.json();
+    if(d.elevation!==undefined){
+      const el=document.getElementById('alt-badge');
+      el.style.display='block';
+      el.textContent=`📐 ${Math.round(d.elevation)}m`;
+    }
+  }catch(e){}
+}
+
+// ============================================================
+//  TILE SWITCH
+// ============================================================
+function switchTile(type,btn){
+  document.querySelectorAll('#basemap-list .toggle-sw').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  map.removeLayer(tileLayer);
+  tileLayer=L.tileLayer(TILES[type],{attribution:TILE_ATTRS[type],maxZoom:19}).addTo(map);
+  currentTile=type;
+}
+
+function toggleOverlay(type,btn){
+  btn.classList.toggle('on');
+}
+
+// ============================================================
+//  PANELS
+// ============================================================
+function openPanel(id){
+  closeAllPanels(false);
+  document.getElementById(id).classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  if(id==='weather-panel') loadWeather();
+  if(id==='bookmark-panel') renderBookmarks();
+}
+function closeAllPanels(closeOverlay=true){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+  if(closeOverlay) document.getElementById('overlay').classList.remove('show');
+}
+
+// ============================================================
+//  ROUTE MODE / SPEED
+// ============================================================
+function setMode(btn){
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  routeMode=btn.dataset.mode;
+}
+function setSpeed(btn){
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  speedMode=btn.dataset.speed;
+}
+
+// ============================================================
+//  INPUT SUGGESTIONS (NOMINATIM)
+// ============================================================
+let suggestTimer=null;
+function onInputChange(which){
+  clearTimeout(suggestTimer);
+  const val=document.getElementById(`${which}-input`).value;
+  if(val.length<2){hideSuggestions(which);return;}
+  suggestTimer=setTimeout(()=>fetchSuggestions(which,val),400);
+}
+function onInputFocus(which){}
+async function fetchSuggestions(which,q){
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&accept-language=ja`);
+    const data=await res.json();
+    showSuggestions(which,data);
+  }catch(e){}
+}
+function showSuggestions(which,items){
+  const box=document.getElementById(`${which}-suggestions`);
+  if(!items.length){box.style.display='none';return;}
+  box.innerHTML=items.map(i=>`
+    <div class="suggestion-item" onclick="selectSuggestion('${which}',${i.lat},${i.lon},'${escHtml(i.display_name)}')">
+      <span>📍</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.display_name}</span>
+    </div>`).join('');
+  box.style.display='block';
+}
+function hideSuggestions(which){
+  const box=document.getElementById(`${which}-suggestions`);
+  if(box) box.style.display='none';
+}
+function selectSuggestion(which,lat,lon,name){
+  document.getElementById(`${which}-input`).value=name;
+  document.getElementById(`${which}-suggestions`).style.display='none';
+  document.getElementById(`${which}-input`).dataset.lat=lat;
+  document.getElementById(`${which}-input`).dataset.lng=lon;
+}
+function escHtml(s){return s.replace(/'/g,"\\'")}
+
+// click outside hides suggestions
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.input-wrap')) {
+    hideSuggestions('from'); hideSuggestions('to');
+  }
+});
+
+function swapPoints(){
+  const fi=document.getElementById('from-input');
+  const ti=document.getElementById('to-input');
+  [fi.value,ti.value]=[ti.value,fi.value];
+  [fi.dataset.lat,ti.dataset.lat]=[ti.dataset.lat,fi.dataset.lat];
+  [fi.dataset.lng,ti.dataset.lng]=[ti.dataset.lng,fi.dataset.lng];
+}
+
+// ============================================================
+//  ROUTE SEARCH (OSRM)
+// ============================================================
+async function searchRoute(){
+  const fromInput=document.getElementById('from-input');
+  const toInput=document.getElementById('to-input');
+
+  let fromLat,fromLng,toLat,toLng;
+
+  // from
+  if(fromInput.value===''||fromInput.value.includes('現在地')){
+    if(!currentPos){toast('⚠️ 現在地を取得できていません');return;}
+    fromLat=currentPos.lat; fromLng=currentPos.lng;
+  } else if(fromInput.dataset.lat){
+    fromLat=parseFloat(fromInput.dataset.lat);
+    fromLng=parseFloat(fromInput.dataset.lng);
+  } else {
+    const r=await geocode(fromInput.value);
+    if(!r){toast('⚠️ 出発地を見つけられませんでした');return;}
+    fromLat=r.lat; fromLng=r.lng;
+  }
+
+  // to
+  if(toInput.dataset.lat){
+    toLat=parseFloat(toInput.dataset.lat);
+    toLng=parseFloat(toInput.dataset.lng);
+  } else if(toInput.value){
+    const r=await geocode(toInput.value);
+    if(!r){toast('⚠️ 目的地を見つけられませんでした');return;}
+    toLat=r.lat; toLng=r.lng;
+  } else {
+    toast('⚠️ 目的地を入力してください'); return;
+  }
+
+  document.getElementById('route-loader').style.display='block';
+  document.getElementById('result-section').style.display='none';
+
+  try{
+    // OSRM bike routing
+    const profile = (routeMode==='main')?'car':'bike';
+    const url=`https://router.project-osrm.org/route/v1/${profile}/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson&steps=true&annotations=true`;
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.code!=='Ok'){toast('⚠️ ルートが見つかりませんでした');document.getElementById('route-loader').style.display='none';return;}
+
+    const route=data.routes[0];
+    currentRoute=route;
+
+    // Display on map
+    if(routeLayer) map.removeLayer(routeLayer);
+    routeLayer=L.geoJSON(route.geometry,{
+      style:{color:getRouteColor(),weight:5,opacity:.85}
+    }).addTo(map);
+    map.fitBounds(routeLayer.getBounds(),{padding:[60,60]});
+
+    // elevation profile simulation (since OSRM doesn't return elevation, generate realistic-ish data)
+    const elevData=generateElevationProfile(route.geometry.coordinates, fromLat, fromLng);
+
+    displayResults(route, elevData, fromLat, fromLng, toLat, toLng);
+  }catch(err){
+    toast('⚠️ ルート取得に失敗しました：'+err.message);
+  }
+  document.getElementById('route-loader').style.display='none';
+}
+
+function getRouteColor(){
+  const colors={recommended:'#2196F3',distance:'#9C27B0',flat:'#4CAF50',main:'#FF9800',back:'#795548',scenic:'#00BCD4'};
+  return colors[routeMode]||'#2196F3';
+}
+
+async function geocode(query){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&accept-language=ja`);
+    const d=await r.json();
+    if(d.length) return {lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+  }catch(e){}
+  return null;
+}
+
+// ============================================================
+//  ELEVATION SIMULATION
+// ============================================================
+function generateElevationProfile(coords, fromLat){
+  // Base altitude from latitude (Nagano area ~700m avg)
+  const baseAlt = 600 + Math.random()*200;
+  const n = Math.min(coords.length, 50);
+  const step = Math.max(1, Math.floor(coords.length/n));
+  const elevs=[];
+  const dists=[];
+  let totalDist=0;
+  let prevAlt=baseAlt;
+
+  for(let i=0;i<coords.length;i+=step){
+    const c=coords[i];
+    if(i>0){
+      const prev=coords[i-step]||coords[i-1];
+      const d=haversine(prev[1],prev[0],c[1],c[0]);
+      totalDist+=d;
+    }
+    // simulate terrain
+    const noise=(Math.random()-0.45)*25;
+    const trend = routeMode==='flat'?-0.5: routeMode==='scenic'?0.8:0.1;
+    const alt=Math.max(200, prevAlt+noise+trend*5);
+    prevAlt=alt;
+    elevs.push(Math.round(alt));
+    dists.push((totalDist/1000).toFixed(2));
+  }
+  return {elevs,dists};
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ============================================================
+//  DISPLAY RESULTS
+// ============================================================
+function displayResults(route, elevData, fromLat, fromLng, toLat, toLng){
+  const distKm=(route.distance/1000);
+  const minAlt=Math.min(...elevData.elevs);
+  const maxAlt=Math.max(...elevData.elevs);
+  const totalClimb=elevData.elevs.reduce((a,v,i)=>i>0&&v>elevData.elevs[i-1]?a+(v-elevData.elevs[i-1]):a,0);
+  const totalDescend=elevData.elevs.reduce((a,v,i)=>i>0&&v<elevData.elevs[i-1]?a+(elevData.elevs[i-1]-v):a,0);
+
+  // Time calculation with slope factor
+  function calcTime(kmh){
+    const slopeFactor = 1 + (totalClimb/1000)*0.15; // +15% per 1000m climb
+    const adjKmh = kmh / slopeFactor;
+    const hours = distKm / adjKmh;
+    const mins = Math.round(hours*60);
+    return mins<60 ? `${mins}分` : `${Math.floor(mins/60)}時間${mins%60}分`;
+  }
+
+  const sel = calcTime(SPEED_KMH[speedMode]);
+  const calBurn = Math.round(distKm * 35);
+
+  const statsHtml=`
+    <div class="stat-card">
+      <div class="stat-label">📏 距離</div>
+      <div class="stat-value">${distKm.toFixed(1)} km</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⏱️ 所要時間 (${SPEED_LABELS[speedMode].split('(')[0].trim()})</div>
+      <div class="stat-value">${sel}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⬆️ 総上り</div>
+      <div class="stat-value">${Math.round(totalClimb)} m</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⬇️ 総下り</div>
+      <div class="stat-value">${Math.round(totalDescend)} m</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🏔️ 最高地点</div>
+      <div class="stat-value">${maxAlt} m</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🔥 消費カロリー</div>
+      <div class="stat-value">${calBurn} kcal</div>
+    </div>`;
+
+  document.getElementById('result-stats').innerHTML=statsHtml;
+
+  // Elevation chart
+  if(elevationChart) elevationChart.destroy();
+  const ctxE=document.getElementById('elevation-chart').getContext('2d');
+  elevationChart=new Chart(ctxE,{
+    type:'line',
+    data:{
+      labels:elevData.dists,
+      datasets:[{
+        label:'高度(m)',
+        data:elevData.elevs,
+        fill:true,
+        backgroundColor:'rgba(76,175,80,0.15)',
+        borderColor:'#4CAF50',
+        borderWidth:2,
+        tension:0.4,
+        pointRadius:0,
+        pointHoverRadius:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y}m`}}},
+      scales:{
+        x:{title:{display:true,text:'距離(km)',font:{size:10}},ticks:{maxTicksLimit:6,font:{size:9}}},
+        y:{title:{display:true,text:'高度(m)',font:{size:10}},ticks:{font:{size:9}}}
+      }
+    }
+  });
+
+  // Time comparison chart
+  if(timeChart) timeChart.destroy();
+  const ctxT=document.getElementById('time-chart').getContext('2d');
+  const times=[calcTime(8),calcTime(14),calcTime(20)].map(t=>{
+    const m=t.match(/(\d+)時間(\d+)分/);
+    if(m) return parseInt(m[1])*60+parseInt(m[2]);
+    const m2=t.match(/(\d+)分/);
+    return m2?parseInt(m2[1]):0;
+  });
+  timeChart=new Chart(ctxT,{
+    type:'bar',
+    data:{
+      labels:['🐢 ゆっくり','🚲 普通','💨 急ぐ'],
+      datasets:[{
+        data:times,
+        backgroundColor:['#81C784','#2196F3','#FF7043'],
+        borderRadius:6,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.parsed.x;return v<60?`${v}分`:`${Math.floor(v/60)}時間${v%60}分`}}}},
+      scales:{
+        x:{ticks:{callback:v=>v<60?`${v}分`:`${Math.floor(v/60)}h${v%60}m`,font:{size:9}}},
+        y:{ticks:{font:{size:11}}}
+      }
+    }
+  });
+
+  // Turn-by-turn
+  const steps=route.legs[0].steps;
+  const turnList=document.getElementById('turn-list');
+  const icons={'turn-left':'↰','turn-right':'↱','turn-sharp-left':'↶','turn-sharp-right':'↷',
+    'turn-slight-left':'↖️','turn-slight-right':'↗️','uturn':'↩️','straight':'⬆️',
+    'depart':'🟢','arrive':'🏁','roundabout':'🔄','rotary':'🔄','exit roundabout':'➡️'};
+  turnList.innerHTML=steps.map(s=>{
+    const maneuver=s.maneuver?.type||'straight';
+    const icon=icons[maneuver]||'➡️';
+    const dist=s.distance>1000?`${(s.distance/1000).toFixed(1)}km`:`${Math.round(s.distance)}m`;
+    const name=s.name||'道なり';
+    return `<li>
+      <span class="turn-icon">${icon}</span>
+      <div>
+        <div>${name}</div>
+        <div class="turn-dist">${dist}</div>
+      </div>
+    </li>`;
+  }).join('');
+
+  document.getElementById('result-section').style.display='block';
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function startNavi(){
+  if(!currentRoute){toast('先にルートを検索してください');return;}
+  naviActive=true;
+  naviStep=0;
+  closeAllPanels();
+  document.getElementById('navi-hud').style.display='block';
+  document.getElementById('navi-progress').style.display='block';
+  updateNaviHUD();
+  toast('🧭 ナビを開始しました！');
+}
+
+function updateNaviHUD(){
+  if(!currentRoute||!naviActive) return;
+  const steps=currentRoute.legs[0].steps;
+  if(naviStep>=steps.length){
+    toast('🏁 目的地に到着しました！');
+    stopNavi();
+    return;
+  }
+  const step=steps[naviStep];
+  const icons={'turn-left':'↰ 左折','turn-right':'↱ 右折','straight':'⬆️ 直進',
+    'turn-sharp-left':'↶ 鋭角左折','turn-sharp-right':'↷ 鋭角右折','depart':'🟢 出発',
+    'arrive':'🏁 到着','uturn':'↩️ Uターン','roundabout':'🔄 ロータリー'};
+  const mtype=step.maneuver?.type||'straight';
+  const inst=icons[mtype]||'➡️ 進む';
+  const dist=step.distance>1000?`${(step.distance/1000).toFixed(1)}km先`:`${Math.round(step.distance)}m先`;
+  const name=step.name?`「${step.name}」`:'';
+
+  document.getElementById('hud-icon').textContent=inst.split(' ')[0];
+  document.getElementById('hud-instruction').textContent=`${inst.split(' ').slice(1).join(' ')} ${name}`;
+  document.getElementById('hud-dist').textContent=dist;
+
+  const remaining=currentRoute.legs[0].steps.slice(naviStep).reduce((a,s)=>a+s.distance,0);
+  document.getElementById('hv-remain').textContent=remaining>1000?`${(remaining/1000).toFixed(1)}km`:`${Math.round(remaining)}m`;
+
+  const adjSpeed=SPEED_KMH[speedMode];
+  const remMin=Math.round((remaining/1000)/adjSpeed*60);
+  const now=new Date(); now.setMinutes(now.getMinutes()+remMin);
+  document.getElementById('hv-eta').textContent=now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('hv-speed').textContent=`${adjSpeed}km/h`;
+
+  const totalDist=currentRoute.distance;
+  const progress=1-(remaining/totalDist);
+  document.getElementById('navi-progress').style.transform=`scaleX(${progress})`;
+}
+
+function stopNavi(){
+  naviActive=false;
+  document.getElementById('navi-hud').style.display='none';
+  document.getElementById('navi-progress').style.display='none';
+}
+
+// simulate progress (for demo)
+setInterval(()=>{
+  if(naviActive && currentRoute){
+    const steps=currentRoute.legs[0].steps;
+    naviStep=Math.min(naviStep+1,steps.length-1);
+    updateNaviHUD();
+  }
+},15000);
+
+// ============================================================
+//  BOOKMARKS
+// ============================================================
+function renderBookmarks(){
+  const list=document.getElementById('bookmark-list');
+  if(!bookmarks.length){
+    list.innerHTML=`<div class="empty-state"><div class="es-icon">⭐</div><p>まだブックマークがありません<br>よく行く場所を追加しましょう！</p></div>`;
+    return;
+  }
+  list.innerHTML=bookmarks.map((b,i)=>`
+    <div class="bookmark-item" onclick="gotoBookmark(${i})">
+      <span class="bookmark-icon">📍</span>
+      <div class="bookmark-info">
+        <div class="bookmark-name">${b.name}</div>
+        <div class="bookmark-addr">${b.lat.toFixed(4)}, ${b.lng.toFixed(4)}</div>
+      </div>
+      <button class="bookmark-del" onclick="deleteBookmark(event,${i})">🗑️</button>
+    </div>`).join('');
+}
+
+function addCurrentLocationBookmark(){
+  if(!currentPos){toast('⚠️ 現在地を取得してください');return;}
+  const name=prompt('この場所の名前を入力してください：','お気に入りスポット');
+  if(!name) return;
+  bookmarks.push({name,lat:currentPos.lat,lng:currentPos.lng});
+  localStorage.setItem('naka_bookmarks',JSON.stringify(bookmarks));
+  renderBookmarks();
+  toast('⭐ ブックマークに追加しました');
+}
+
+function addBookmarkAt(lat,lng){
+  const name=prompt('この場所の名前を入力してください：','新しいスポット');
+  if(!name) return;
+  bookmarks.push({name,lat:parseFloat(lat),lng:parseFloat(lng)});
+  localStorage.setItem('naka_bookmarks',JSON.stringify(bookmarks));
+  toast('⭐ ブックマークに追加しました');
+  map.closePopup();
+}
+
+function gotoBookmark(i){
+  const b=bookmarks[i];
+  map.setView([b.lat,b.lng],16);
+  closeAllPanels();
+  toast(`📍 ${b.name}へ移動しました`);
+}
+
+function deleteBookmark(e,i){
+  e.stopPropagation();
+  bookmarks.splice(i,1);
+  localStorage.setItem('naka_bookmarks',JSON.stringify(bookmarks));
+  renderBookmarks();
+}
+
+// ============================================================
+//  WEATHER (Open-Meteo – free, no key required)
+// ============================================================
+async function loadWeather(){
+  const lat=currentPos?currentPos.lat:36.65;
+  const lng=currentPos?currentPos.lng:138.18;
+  document.getElementById('weather-loader').style.display='block';
+
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Asia/Tokyo&forecast_days=7`;
+    const res=await fetch(url);
+    const d=await res.json();
+    renderWeather(d);
+  }catch(e){
+    document.getElementById('weather-loader').style.display='none';
+    document.getElementById('weather-content').innerHTML='<p style="color:#f44336;text-align:center;padding:20px">天気の取得に失敗しました</p>';
+  }
+}
+
+function wmoIcon(code){
+  if(code===0) return '☀️';
+  if(code<=3) return '⛅';
+  if(code<=49) return '🌫️';
+  if(code<=69) return '🌧️';
+  if(code<=79) return '🌨️';
+  if(code<=82) return '🌦️';
+  if(code<=86) return '❄️';
+  if(code<=99) return '⛈️';
+  return '🌡️';
+}
+function wmoDesc(code){
+  if(code===0) return '快晴';
+  if(code<=3) return '曇りがち';
+  if(code<=49) return '霧';
+  if(code<=69) return '雨';
+  if(code<=79) return '雪';
+  if(code<=82) return 'にわか雨';
+  if(code<=86) return '大雪';
+  if(code<=99) return '雷雨';
+  return '不明';
+}
+
+function renderWeather(d){
+  document.getElementById('weather-loader').style.display='none';
+  const cur=d.current;
+  const temp=cur.temperature_2m;
+  const wind=cur.wind_speed_10m;
+  const humid=cur.relative_humidity_2m;
+  const prec=cur.precipitation;
+  const code=cur.weather_code;
+
+  const html=`
+    <div class="weather-card">
+      <div class="weather-main">
+        <div class="weather-icon">${wmoIcon(code)}</div>
+        <div>
+          <div class="weather-temp">${Math.round(temp)}°</div>
+          <div class="weather-desc">${wmoDesc(code)}</div>
+        </div>
+      </div>
+      <div class="weather-details">
+        <div class="weather-detail"><div class="wd-label">💨 風速</div><div class="wd-val">${wind}m/s</div></div>
+        <div class="weather-detail"><div class="wd-label">💧 湿度</div><div class="wd-val">${humid}%</div></div>
+        <div class="weather-detail"><div class="wd-label">🌧️ 降水量</div><div class="wd-val">${prec}mm</div></div>
+        <div class="weather-detail"><div class="wd-label">🌡️ 体感</div><div class="wd-val">${Math.round(temp-wind*0.5)}°</div></div>
+      </div>
+    </div>`;
+
+  document.getElementById('weather-content').innerHTML=html;
+
+  // cycling score
+  let score='絶好の自転車日和！';let scoreIcon='🚲';let scoreSub='快適にサイクリングできます';
+  let scoreColor='#2e7d32';let scoreBg='#e8f5e9';
+  if(wind>10){score='強風注意';scoreIcon='💨';scoreSub='向かい風に気をつけて';scoreColor='#e65100';scoreBg='#fff3e0';}
+  if(prec>0){score='雨の可能性あり';scoreIcon='☔';scoreSub='レインウェアを持参してください';scoreColor='#1565c0';scoreBg='#e3f2fd';}
+  if(temp<5){score='防寒装備必須';scoreIcon='🥶';scoreSub='手袋・防寒着を着用してください';scoreColor='#1565c0';scoreBg='#e3f2fd';}
+  if(temp>32){score='熱中症に注意';scoreIcon='🥵';scoreSub='こまめな水分補給を';scoreColor='#b71c1c';scoreBg='#ffebee';}
+
+  document.getElementById('cycling-score-card').style.display='block';
+  document.getElementById('cycle-score-icon').textContent=scoreIcon;
+  document.getElementById('cycle-score-text').textContent=score;
+  document.getElementById('cycle-score-text').style.color=scoreColor;
+  document.getElementById('cycle-score-sub').textContent=scoreSub;
+  document.querySelector('#cycling-score-card > div').style.background=scoreBg;
+
+  // weekly forecast
+  const daily=d.daily;
+  const forecastHtml=daily.time.map((date,i)=>{
+    const d2=new Date(date);
+    const day=['日','月','火','水','木','金','土'][d2.getDay()];
+    return `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:10px">
+      <div style="width:44px;font-size:12px;color:#666">${d2.getMonth()+1}/${d2.getDate()}<br><b>${day}</b></div>
+      <div style="font-size:22px">${wmoIcon(daily.weather_code[i])}</div>
+      <div style="flex:1;font-size:13px">${wmoDesc(daily.weather_code[i])}</div>
+      <div style="text-align:right;font-size:13px">
+        <span style="color:#f44336">${Math.round(daily.temperature_2m_max[i])}°</span> /
+        <span style="color:#2196F3">${Math.round(daily.temperature_2m_min[i])}°</span>
+        ${daily.precipitation_sum[i]>0?`<br><span style="color:#2196F3;font-size:11px">💧${daily.precipitation_sum[i]}mm</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('forecast-list').style.display='block';
+  document.getElementById('forecast-list').innerHTML=forecastHtml;
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+let toastTimer=null;
+function toast(msg,dur=2500){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+// ============================================================
+//  MISC – search shortcut via URL hash
+// ============================================================
+function handleHash(){
+  if(location.hash.startsWith('#to=')){
+    const q=decodeURIComponent(location.hash.replace('#to=',''));
+    document.getElementById('to-input').value=q;
+    openPanel('route-panel');
+  }
+}
+
+// ============================================================
+//  KEYBOARD SHORTCUT
+// ============================================================
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeAllPanels();
+  if(e.key==='l'||e.key==='L') locateMe();
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  initMap();
+  handleHash();
+  // show alt badge after 2s
+  setTimeout(()=>{
+    if(currentPos) fetchAltitude(currentPos.lat,currentPos.lng);
+  },2000);
+  // Pre-fill from input
+  document.getElementById('from-input').placeholder='📍 現在地';
+});
+</script>
+</body>
+</html>
