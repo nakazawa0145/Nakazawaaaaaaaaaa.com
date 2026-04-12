@@ -79,16 +79,14 @@ iframe, video, img {
 .site-title {
     font-size: 42px;
     font-family: 'Press Start 2P', monospace;
-    word-break: break-word;        /* 単語が長くても折り返す */
-    white-space: normal;           /* 自動改行を許可 */
-    text-align: center;            /* スマホで中央揃え */
+    word-break: break-word;
+    white-space: normal;
+    text-align: center;
     width: 100%;
 }
-
-/* --- スマホだけ小さくする --- */
 @media (max-width: 480px) {
     .site-title {
-        font-size: 22px;           /* 自動で縮む */
+        font-size: 22px;
     }
 }
 </style>
@@ -183,7 +181,20 @@ function under18() {
 </div>
 </section>
 
-    
+<!-- ★★★ 私のTikTok セクション（追加） ★★★ -->
+<section>
+<h2 style="color:white; font-size:28px; margin-bottom:15px;">私のTikTok</h2>
+<a href="https://www.tiktok.com/@user6hxi9l5i6e" target="_blank"
+   style="font-size:30px;
+          font-family: 'Press Start 2P', monospace;
+          text-decoration: underline;
+          color: white;
+          text-shadow: -3px 0px 0px #00f2ea, 3px 0px 0px #ff0050;
+          display: inline-block;">
+  AliExpress金子商店
+</a>
+</section>
+<!-- ★★★ ここまで ★★★ -->
 
 <section>
 <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト</h2>
@@ -381,9 +392,6 @@ function checkPass() {
 </script>
 
 
-
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -409,17 +417,11 @@ function checkPass() {
 </head>
 <body>
 
-<!-- GIF -->
 <img src="https://www.nyan.cat/cats/original.gif" alt="Nyan Cat">
-
-<!-- オーディオ -->
 <audio controls src="https://www.nyan.cat/music/original.mp3"></audio>
 
 </body>
 </html>
-
-
-
 
 
 <section>
@@ -448,9 +450,7 @@ function checkPass() {
 <section><h2 style="color:white;">１９日目　</h2></section>
 <section><h2 style="color:white;">２０日目　</h2></section>
 
-<!-- スマホでは非表示（PCでは表示） -->
 <div class="ads-pc-only">
-    <!-- JuicyAds v3.0 -->
     <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
     <ins id="1105686" data-width="908" data-height="258"></ins>
     <script type="text/javascript" data-cfasync="false" async>
@@ -459,7 +459,6 @@ function checkPass() {
 </div>
 
 <style>
-/* スマホ（幅600px以下）では広告を消す */
 @media (max-width:600px){
     .ads-pc-only {
         display:none !important;
@@ -483,20 +482,13 @@ function checkPass() {
 <video src="ali.mp4" controls></video>
 </section>
 
-<!-- JuicyAds v3.0 -->
 <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
 <ins id="1105667" data-width="250" data-height="250"></ins>
 <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1105667});</script>
-<!--JuicyAds END-->
-<!-- admax -->
 <script src="https://adm.shinobi.jp/s/bdaa3e3b8f391a3acb5d8c4dfeef9e7e"></script>
-<!-- admax -->
-<!-- JuicyAds v3.0 -->
 <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
 <ins id="1105667" data-width="250" data-height="250"></ins>
 <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1105667});</script>
-<!--JuicyAds END-->
-
 
 
 <section>
@@ -536,7 +528,6 @@ function checkPass() {
     max-width:var(--maxw);
   }
 
-  /* タイトル */
   .title {
     text-align:center;
     font-size:48px;
@@ -547,14 +538,12 @@ function checkPass() {
     text-shadow: 0 4px 18px rgba(255,212,64,0.12);
   }
 
-  /* グリッド（横2×縦2） */
   .grid {
     display:grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--gap);
   }
 
-  /* 動画カード */
   .card {
     background:#111;
     border-radius:8px;
@@ -575,7 +564,6 @@ function checkPass() {
     display:block;
   }
 
-  /* スマホ用：1列にする */
   @media (max-width:640px){
     .title { font-size:34px; }
     .grid { grid-template-columns: 1fr; }
@@ -606,42 +594,6 @@ function checkPass() {
   </div>
 </body>
 </html>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>AliTube18+</title>
-
-<style>
-body {
-    background:black;
-    color:white;
-    text-align:center;
-    font-family:"Comic Sans MS", sans-serif;
-}
-
-.bigText {
-    font-size:42px;
-    font-weight:bold;
-    margin-top:40px;
-    margin-bottom:30px;
-}
-
-.imgBox img {
-    width:280px;   /* ← 元より少し小さくした */
-    cursor:pointer;
-    border-radius:15px;
-    border:3px solid white;
-}
-</style>
-
-</head>
-<body>
-
-
-
-</body>
-</html>
 
 <!DOCTYPE html>
 <html>
@@ -659,7 +611,6 @@ body {
     text-align: center;
   }
 
-  /* 上のタイトル */
 #title1 {
     color: white;
     font-size: 26px;
@@ -672,7 +623,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* 下の左右分割エリア（PC用） */
 .container {
     display: flex;
     justify-content: space-between;
@@ -681,7 +631,6 @@ body {
     margin-top: 20px;
 }
 
-/* 電卓 */
 .calc {
     background: #001a00;
     border: 2px solid #00ff00;
@@ -708,7 +657,6 @@ body {
     justify-content: space-between;
 }
 
-/* 電卓ボタン専用 */
 .calc button {
     width: 23%;
     height: 45px;
@@ -737,7 +685,6 @@ body {
     background: #004d00; 
 }
 
-/* ボタン（電卓以外） */
 button.general {
     background: red;
     color: white;
@@ -750,7 +697,6 @@ button.general {
     cursor: pointer;
 }
 
-/* 精密時計 */
 .clock-box {
     width: 45%;
     background: #1a0000;
@@ -766,9 +712,6 @@ button.general {
     font-size: 26px;
 }
 
-/* =============================
-      スマホ用レイアウト
-   ============================= */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -785,15 +728,11 @@ button.general {
 </head>
 <body>
 
-
-<!-- タイトル -->
 <div id="title1">役立つものを作ったほうが良いと言われたので</div>
 <div id="title2">超便利アイテム</div>
 
-<!-- 下の左右エリア（スマホでは上下） -->
 <div class="container">
 
-  <!-- 左：電卓 -->
   <div class="calc">
     <input type="text" id="display" disabled>
 
@@ -830,7 +769,6 @@ button.general {
     </div>
   </div>
 
-<!-- 右：精密時計 -->
 <div class="clock-box">
   <div style="color:red; font-size:22px; font-weight:bold;">超精密時計</div>
   <div id="preciseClock" style="white-space:pre-wrap; word-break:break-all;"></div>
@@ -839,7 +777,6 @@ button.general {
 </div>
 
 <script>
-/* 電卓 */
 function add(val) {
   document.getElementById("display").value += val;
 }
@@ -855,10 +792,6 @@ function calc() {
   }
 }
 
-/* ===============================
-     超精密時計
-   =============================== */
-
 function updateClock(){
   const now = new Date();
 
@@ -870,12 +803,10 @@ function updateClock(){
   let h = now.getHours();
   let min = now.getMinutes();
 
-  //  "SS.mm"
   let realSec = now.getSeconds();
   let realMs  = Math.floor(now.getMilliseconds() / 10);
   let real = `${realSec}.${realMs.toString().padStart(2,"0")}`; 
 
-  // ?
   let rand = "";
   for(let i=0; i<200; i++){
     rand += Math.floor(Math.random()*10);
@@ -883,7 +814,6 @@ function updateClock(){
 
   let full = real + rand;
 
-  // ★ 自動改行
   let formatted = "";
   for(let i=0; i<full.length; i+=20){
     formatted += full.slice(i, i+20) + "<br>";
@@ -911,13 +841,8 @@ updateClock();
 
 
 </div>
-<!-- admax -->
 <script src="https://adm.shinobi.jp/s/25ed977897c9c3ef69d6b2a60cc6021d"></script>
-<!-- admax -->
-<!-- admax -->
 <script src="https://adm.shinobi.jp/s/21e67db13abc59555048f56d3773760e"></script>
-<!-- admax -->
-
 
 
 </html>
