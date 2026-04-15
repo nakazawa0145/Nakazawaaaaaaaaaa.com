@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FX DEMO · ダークシンプル · レバレッジ∞</title>
+    <!-- Lightweight Charts (TradingView製) -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0b0e11;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            color: #e6e8ea;
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app {
+            max-width: 1400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ヘッダー：資産情報 */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1e24;
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid #2a303a;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .asset-group {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .asset-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .asset-label {
+            font-size: 13px;
+            color: #848e9c;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .asset-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #f0f4fa;
+            line-height: 1.2;
+        }
+
+        .asset-value.negative {
+            color: #f6465d;
+        }
+
+        .asset-sub {
+            font-size: 14px;
+            color: #bcd0f0;
+            margin-left: 6px;
+            font-weight: 400;
+        }
+
+        .pnl-badge {
+            background: #1e2a36;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            border-left: 4px solid #02c076;
+        }
+
+        /* コントロールバー */
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: #151a21;
+            padding: 12px 18px;
+            border-radius: 30px;
+            border: 1px solid #2e3a45;
+        }
+
+        .pair-selector {
+            background: #0f1318;
+            color: #fff;
+            border: 1px solid #3a4652;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .rate-display {
+            background: #0f1318;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid #3a4652;
+            font-size: 18px;
+            font-weight: 600;
+            color: #02c076;
+        }
+
+        .btn {
+            background: #2a3540;
+            border: none;
+            color: #e2e9f2;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #465563;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: #02c076;
+            border-color: #02c076;
+            color: #0b0e11;
+            box-shadow: 0 2px 6px rgba(2,192,118,0.3);
+        }
+
+        .btn-danger {
+            background: #f6465d;
+            border-color: #f6465d;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #4f5e6b;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+        }
+
+        /* メインエリア：チャート＋取引パネル */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 12px;
+        }
+
+        /* チャートコンテナ */
+        .chart-container {
+            background: #13181f;
+            border-radius: 16px;
+            border: 1px solid #29323d;
+            padding: 8px;
+            height: 480px;
+            width: 100%;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 右パネル：注文＆ポジション */
+        .trade-panel {
+            background: #151a21;
+            border-radius: 16px;
+            border: 1px solid #2c3643;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #a6b8cc;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2f3b48;
+            padding-bottom: 8px;
+            margin-bottom: 6px;
+        }
+
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f151c;
+            border-radius: 30px;
+            padding: 4px 4px 4px 18px;
+            border: 1px solid #364451;
+        }
+
+        .input-row label {
+            color: #8899aa;
+            font-size: 14px;
+            min-width: 50px;
+        }
+
+        .input-row input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            padding: 12px 0;
+            width: 100%;
+            outline: none;
+        }
+
+        .input-row input::placeholder {
+            color: #4a5b6b;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .order-actions .btn {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 16px;
+        }
+
+        .positions-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .position-item {
+            background: #10171f;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-left: 5px solid;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2e3d4b;
+        }
+
+        .position-item.buy {
+            border-left-color: #02c076;
+        }
+        .position-item.sell {
+            border-left-color: #f6465d;
+        }
+
+        .pos-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pos-pair {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .pos-detail {
+            color: #b0c3d4;
+        }
+
+        .pos-pnl {
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: #2e3d4d;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .leverage-note {
+            color: #f0b90b;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* スクロール */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #3e5566; border-radius: 10px; }
+
+        .footer-note {
+            text-align: right;
+            color: #617487;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- 資産ステータス (純資産＝残高＋評価損益、マイナス借金表示) -->
+    <div class="status-bar">
+        <div class="asset-group">
+            <div class="asset-item">
+                <span class="asset-label">純資産 (JPY)</span>
+                <span class="asset-value" id="netAssetDisplay">¥100,000</span>
+            </div>
+            <div class="asset-item">
+                <span class="asset-label">評価損益</span>
+                <span class="asset-value" id="unrealizedPnlDisplay">¥0</span>
+            </div>
+        </div>
+        <div class="pnl-badge" id="leverageHint">レバレッジ ∞</div>
+    </div>
+
+    <!-- コントロールバー：通貨ペア・現在レート・更新 -->
+    <div class="control-bar">
+        <select id="pairSelect" class="pair-selector">
+            <option value="USDJPY" selected>USD/JPY</option>
+            <option value="EURJPY">EUR/JPY</option>
+            <option value="GBPJPY">GBP/JPY</option>
+            <option value="AUDJPY">AUD/JPY</option>
+            <option value="CADJPY">CAD/JPY</option>
+            <option value="CHFJPY">CHF/JPY</option>
+            <option value="NZDJPY">NZD/JPY</option>
+        </select>
+        <div class="rate-display" id="currentRateDisplay">---</div>
+        <button class="btn btn-outline" id="refreshRateBtn">↻ レート更新</button>
+        <button class="btn btn-outline" id="refreshChartBtn">📈 チャート更新</button>
+    </div>
+
+    <!-- メイン: チャート + トレードパネル -->
+    <div class="main-grid">
+        <div class="chart-container">
+            <div id="chart"></div>
+        </div>
+
+        <div class="trade-panel">
+            <div>
+                <div class="section-title">⚡ 新規注文</div>
+                <div class="order-form">
+                    <div class="input-row">
+                        <label>数量</label>
+                        <input type="number" id="amountInput" value="10000" step="1000" min="1" placeholder="通貨単位">
+                    </div>
+                    <div class="order-actions">
+                        <button class="btn btn-primary" id="buyBtn">買い</button>
+                        <button class="btn btn-danger" id="sellBtn">売り</button>
+                    </div>
+                    <div class="leverage-note">※ レバレッジ無制限・証拠金不要・借金可能</div>
+                </div>
+            </div>
+            <div>
+                <div class="section-title">📋 保有ポジション</div>
+                <div id="positionsContainer" class="positions-list">
+                    <div style="color:#6a7f8f; text-align:center; padding:20px;">ポジションはありません</div>
+                </div>
+            </div>
+            <div class="footer-note">リアルタイム為替 (Frankfurter)</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+        // ---------- 状態 ----------
+        // アカウント通貨: JPY (円)
+        let cashBalance = 100000;            // 残高 (実現損益反映済み)
+        
+        // ポジション配列
+        let positions = [];
+        let nextPosId = 1000;
+
+        // 現在選択中の通貨ペア
+        let currentPair = 'USDJPY';           // from, to 分割用
+        
+        // 現在のレート (Bid/Askなし、Mid価格)
+        let currentRate = null;
+        
+        // チャートオブジェクト
+        let chart = null;
+        let candlestickSeries = null;
+
+        // 通貨ペアごとの最新レートキャッシュ (評価損益用)
+        const rateCache = new Map();  // key: "USDJPY" -> number
+
+        // DOM要素
+        const netAssetDisplay = document.getElementById('netAssetDisplay');
+        const unrealizedPnlDisplay = document.getElementById('unrealizedPnlDisplay');
+        const currentRateDisplay = document.getElementById('currentRateDisplay');
+        const pairSelect = document.getElementById('pairSelect');
+        const amountInput = document.getElementById('amountInput');
+        const buyBtn = document.getElementById('buyBtn');
+        const sellBtn = document.getElementById('sellBtn');
+        const refreshRateBtn = document.getElementById('refreshRateBtn');
+        const refreshChartBtn = document.getElementById('refreshChartBtn');
+        const positionsContainer = document.getElementById('positionsContainer');
+
+        // ---------- ヘルパー: 通貨ペア分解 ----------
+        function parsePair(pair) {
+            // 例: USDJPY -> from=USD, to=JPY
+            const from = pair.slice(0,3);
+            const to = pair.slice(3,6);
+            return { from, to };
+        }
+
+        // ---------- 純資産計算 (残高 + 未実現損益) ----------
+        function computeUnrealizedPnL() {
+            let totalPnl = 0;
+            for (let pos of positions) {
+                const pairKey = pos.pair;
+                const rate = rateCache.get(pairKey);
+                if (!rate) continue; // レート未取得ならスキップ
+                const openRate = pos.openRate;
+                const amount = pos.amount;
+                if (pos.type === 'buy') {
+                    totalPnl += (rate - openRate) * amount;
+                } else {
+                    totalPnl += (openRate - rate) * amount;
+                }
+            }
+            return totalPnl;
+        }
+
+        function updateAssetDisplay() {
+            const unrealized = computeUnrealizedPnL();
+            const net = cashBalance + unrealized;
+            
+            netAssetDisplay.textContent = `¥${net.toFixed(0)}`;
+            netAssetDisplay.className = 'asset-value' + (net < 0 ? ' negative' : '');
+            
+            const pnlFormatted = unrealized >= 0 ? `+¥${unrealized.toFixed(0)}` : `-¥${Math.abs(unrealized).toFixed(0)}`;
+            unrealizedPnlDisplay.textContent = pnlFormatted;
+            unrealizedPnlDisplay.className = 'asset-value' + (unrealized < 0 ? ' negative' : '');
+        }
+
+        // ---------- ポジション表示更新 ----------
+        function renderPositions() {
+            if (positions.length === 0) {
+                positionsContainer.innerHTML = '<div style="color:#6a7f8f; text-align:center; padding:20px;">ポジションはありません</div>';
+                return;
+            }
+            let html = '';
+            for (let pos of positions) {
+                const rate = rateCache.get(pos.pair);
+                const current = rate || pos.openRate;
+                let pnl = 0;
+                if (pos.type === 'buy') {
+                    pnl = (current - pos.openRate) * pos.amount;
+                } else {
+                    pnl = (pos.openRate - current) * pos.amount;
+                }
+                const pnlClass = pnl >= 0 ? '#02c076' : '#f6465d';
+                const pairDisplay = pos.pair.replace(/(.{3})/, '$1/');
+                html += `
+                    <div class="position-item ${pos.type}">
+                        <div class="pos-info">
+                            <span class="pos-pair">${pairDisplay} ${pos.type === 'buy' ? 'LONG' : 'SHORT'}</span>
+                            <span class="pos-detail">${pos.amount.toLocaleString()} 通貨 @ ${pos.openRate.toFixed(3)}</span>
+                            <span class="pos-pnl" style="color:${pnlClass};">${pnl >= 0 ? '+' : ''}¥${pnl.toFixed(0)}</span>
+                        </div>
+                        <button class="close-btn" data-id="${pos.id}">決済</button>
+                    </div>
+                `;
+            }
+            positionsContainer.innerHTML = html;
+            // 決済イベント
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = Number(e.target.dataset.id);
+                    closePositionById(id);
+                });
+            });
+        }
+
+        // 決済処理
+        function closePositionById(id) {
+            const index = positions.findIndex(p => p.id === id);
+            if (index === -1) return;
+            const pos = positions[index];
+            const rate = rateCache.get(pos.pair);
+            if (!rate) {
+                alert('現在レートが取得できません。更新してください。');
+                return;
+            }
+            let pnl = 0;
+            if (pos.type === 'buy') {
+                pnl = (rate - pos.openRate) * pos.amount;
+            } else {
+                pnl = (pos.openRate - rate) * pos.amount;
+            }
+            // 残高に損益反映
+            cashBalance += pnl;
+            // ポジション削除
+            positions.splice(index, 1);
+            
+            updateAssetDisplay();
+            renderPositions();
+            // レートキャッシュはそのまま (更新不要)
+        }
+
+        // ---------- 新規注文 ----------
+        function openPosition(type) {
+            const amount = parseFloat(amountInput.value);
+            if (!amount || amount <= 0) {
+                alert('有効な数量を入力してください');
+                return;
+            }
+            const rate = rateCache.get(currentPair);
+            if (!rate) {
+                alert('レートが取得できていません。「レート更新」を押してください');
+                return;
+            }
+
+            const newPos = {
+                id: nextPosId++,
+                pair: currentPair,
+                type: type, // 'buy' or 'sell'
+                openRate: rate,
+                amount: amount,
+            };
+            positions.push(newPos);
+            
+            renderPositions();
+            updateAssetDisplay();  // 未実現損益再計算
+        }
+
+        // ---------- レート取得 (最新) ----------
+        async function fetchLatestRate(pair) {
+            const { from, to } = parsePair(pair);
+            try {
+                const resp = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+                const data = await resp.json();
+                const rate = data.rates[to];
+                if (rate) {
+                    rateCache.set(pair, rate);
+                    if (pair === currentPair) {
+                        currentRate = rate;
+                        currentRateDisplay.textContent = `${rate.toFixed(3)}`;
+                    }
+                }
+                return rate;
+            } catch (e) {
+                console.warn('レート取得エラー', e);
+                return null;
+            }
+        }
+
+        // 全ポジション関連ペアのレートを更新（評価損益更新のため）
+        async function refreshAllRelevantRates() {
+            const pairs = new Set(positions.map(p => p.pair));
+            pairs.add(currentPair);
+            for (let p of pairs) {
+                await fetchLatestRate(p);
+            }
+            updateAssetDisplay();
+            renderPositions();
+        }
+
+        // ---------- チャート描画 (時系列取得) ----------
+        async function loadChartData(pair) {
+            const { from, to } = parsePair(pair);
+            // 過去30日間の日足データ (Frankfurter timeseries)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - 30);
+            
+            const formatDate = (d) => d.toISOString().split('T')[0];
+            const startStr = formatDate(startDate);
+            const endStr = formatDate(endDate);
+            
+            try {
+                const url = `https://api.frankfurter.app/${startStr}..${endStr}?from=${from}&to=${to}`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                const rates = data.rates;
+                
+                // lightweight-charts のローソク足データ形式 { time, open, high, low, close }
+                const chartData = [];
+                const dates = Object.keys(rates).sort();
+                for (let date of dates) {
+                    const rateVal = rates[date][to];
+                    chartData.push({
+                        time: date,
+                        open: rateVal,
+                        high: rateVal,
+                        low: rateVal,
+                        close: rateVal,
+                    });
+                }
+                
+                if (chartData.length === 0) return;
+                
+                if (!chart) {
+                    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+                        width: document.querySelector('.chart-container').clientWidth,
+                        height: 480,
+                        layout: {
+                            background: { color: '#13181f' },
+                            textColor: '#c5d1db',
+                        },
+                        grid: {
+                            vertLines: { color: '#242c36' },
+                            horzLines: { color: '#242c36' },
+                        },
+                        crosshair: { mode: 1 },
+                        timeScale: { borderColor: '#364451' },
+                    });
+                    candlestickSeries = chart.addCandlestickSeries({
+                        upColor: '#02c076',
+                        downColor: '#f6465d',
+                        borderDownColor: '#f6465d',
+                        borderUpColor: '#02c076',
+                        wickDownColor: '#f6465d',
+                        wickUpColor: '#02c076',
+                    });
+                }
+                
+                candlestickSeries.setData(chartData);
+                chart.timeScale().fitContent();
+                
+                // 最新レートをキャッシュ＆表示更新
+                const latestRate = chartData[chartData.length-1]?.close;
+                if (latestRate) {
+                    rateCache.set(pair, latestRate);
+                    if (pair === currentPair) {
+                        currentRate = latestRate;
+                        currentRateDisplay.textContent = latestRate.toFixed(3);
+                    }
+                }
+                
+                // チャートサイズ調整
+                setTimeout(() => {
+                    if (chart) chart.applyOptions({ width: document.querySelector('.chart-container').clientWidth });
+                }, 50);
+                
+            } catch (e) {
+                console.error('チャートデータ取得失敗', e);
+                alert('チャートデータを取得できませんでした。');
+            }
+        }
+
+        // 通貨ペア切り替え
+        async function onPairChange() {
+            currentPair = pairSelect.value;
+            // レートキャッシュがあれば表示、なければ取得
+            const cached = rateCache.get(currentPair);
+            if (cached) {
+                currentRate = cached;
+                currentRateDisplay.textContent = cached.toFixed(3);
+            } else {
+                await fetchLatestRate(currentPair);
+            }
+            await loadChartData(currentPair);
+            updateAssetDisplay();
+            renderPositions();
+        }
+
+        // ウィンドウリサイズ対応
+        window.addEventListener('resize', () => {
+            if (chart) {
+                const container = document.querySelector('.chart-container');
+                chart.applyOptions({ width: container.clientWidth });
+            }
+        });
+
+        // ---------- 初期化 ----------
+        async function init() {
+            // 初期レート取得＆チャート
+            await fetchLatestRate('USDJPY');
+            await loadChartData('USDJPY');
+            
+            // 他の主要ペアもあらかじめキャッシュ（任意）
+            const otherPairs = ['EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY'];
+            for (let p of otherPairs) {
+                fetchLatestRate(p); // 非同期で取得（待たない）
+            }
+            
+            updateAssetDisplay();
+            renderPositions();
+            
+            // イベント登録
+            pairSelect.addEventListener('change', onPairChange);
+            
+            refreshRateBtn.addEventListener('click', async () => {
+                await refreshAllRelevantRates();
+                // 現在ペアのチャート最終バー更新はしないが、レート表示は更新済
+                currentRateDisplay.textContent = (rateCache.get(currentPair) || '---').toString();
+                updateAssetDisplay();
+                renderPositions();
+            });
+            
+            refreshChartBtn.addEventListener('click', async () => {
+                await loadChartData(currentPair);
+                await fetchLatestRate(currentPair);
+                updateAssetDisplay();
+                renderPositions();
+            });
+            
+            buyBtn.addEventListener('click', () => openPosition('buy'));
+            sellBtn.addEventListener('click', () => openPosition('sell'));
+        }
+
+        init().catch(e => console.error(e));
+    })();
+</script>
+</body>
+</html>
