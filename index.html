@@ -1,4 +1,3 @@
-<meta name="1da2fed59014ff2d02c36951cd3827163ce61d77" content="1da2fed59014ff2d02c36951cd3827163ce61d77" />
 <!DOCTYPE html>
 <html>
 <head>
@@ -65,6 +64,172 @@ iframe, video, img {
 .blink {
     animation: blink 0.15s infinite step-end;
 }
+
+/* ======= CAPTCHA & KARAOKE OVERLAYS ======= */
+.fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.fullscreen-overlay.active {
+    display: flex;
+}
+.close-btn {
+    position: absolute;
+    top: 18px; right: 18px;
+    background: #00cc44;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 20px;
+    cursor: pointer;
+    z-index: 10001;
+}
+.close-btn:hover { background: #00aa33; }
+
+/* CAPTCHA overlay */
+#captcha-overlay {
+    background: rgba(0,0,0,0.85);
+}
+.captcha-box {
+    background: #1a4fcc;
+    border-radius: 16px;
+    padding: 40px 50px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 8px 40px #0008;
+}
+.captcha-box h2 {
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    font-family: "Arial Black", sans-serif;
+}
+.captcha-btn {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 14px 10px;
+    background: #5bc8f5;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.captcha-btn:hover { background: #29aadf; }
+
+/* CAPTCHA error overlay */
+#captcha-error-overlay {
+    background: black;
+}
+#captcha-error-overlay p {
+    color: red;
+    font-size: 36px;
+    font-weight: bold;
+    font-family: "Arial Black", sans-serif;
+    padding: 0 20px;
+}
+
+/* CAPTCHA success overlay */
+#captcha-success-overlay {
+    background: black;
+}
+#captcha-success-overlay p {
+    color: #00ee44;
+    font-size: 40px;
+    font-weight: bold;
+    font-family: "Arial Black", sans-serif;
+    margin-bottom: 30px;
+}
+#go-to-music-btn {
+    background: #ff66cc;
+    color: black;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 16px 36px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+#go-to-music-btn:hover { background: #ff33aa; }
+
+/* KARAOKE overlay */
+#karaoke-overlay {
+    background: black;
+    flex-direction: column;
+    justify-content: center;
+}
+#lyric-display {
+    color: white;
+    font-size: 38px;
+    font-weight: bold;
+    font-family: "Arial Black", "Comic Sans MS", sans-serif;
+    padding: 20px 30px;
+    min-height: 80px;
+    letter-spacing: 2px;
+    transition: opacity 0.4s;
+    max-width: 90vw;
+}
+#lyric-display.highlight {
+    color: #ffe600;
+    text-shadow: 0 0 20px #ffe600aa;
+}
+#karaoke-audio {
+    margin-top: 30px;
+    width: min(400px, 90vw);
+    display: none;
+}
+#restart-btn {
+    margin-top: 24px;
+    background: #333;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 30px;
+    border: 2px solid #aaa;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#restart-btn:hover { background: #555; }
+
+/* Purple kaito button */
+#kaito-btn {
+    display: block;
+    margin: 0 auto 10px auto;
+    background: #cc00ff;
+    color: black;
+    font-size: 28px;
+    font-weight: 900;
+    font-family: "Arial Black", "Comic Sans MS", sans-serif;
+    padding: 22px 40px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 0 24px #cc00ff, 0 0 6px #ff00ff;
+    animation: purple-glow 1.5s infinite alternate;
+    transition: transform 0.1s;
+    max-width: 90%;
+}
+#kaito-btn:hover { transform: scale(1.05); }
+@keyframes purple-glow {
+    from { box-shadow: 0 0 18px #cc00ff, 0 0 4px #ff00ff; }
+    to   { box-shadow: 0 0 40px #ff33ff, 0 0 12px #cc00ff; }
+}
 </style>
 </head>
 
@@ -90,103 +255,51 @@ iframe, video, img {
     }
 }
 </style>
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>年齢確認</title>
 
-<style>
-  body {
-    background: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 40px 10px;
-    text-align: center;
-  }
+<!-- ===== 年齢確認 ===== -->
+<section style="background:#111; padding:20px; border-radius:10px;">
 
-  .notice {
-    color: red;
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-
-  .small {
-    font-size: 14px;
-    color: #ff8b8b;
-    margin-bottom: 25px;
-  }
-
-  button {
-    background: red;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 18px;
-    font-weight: bold;
-    margin: 6px;
-    cursor: pointer;
-  }
-
-  #result {
-    margin-top: 20px;
-    font-size: 22px;
-    color: red;
-    font-weight: bold;
-    display: none;
-  }
-</style>
-</head>
-<body>
-
-<div>
-  <div class="notice">
-    君は１８歳以上かな？１８歳じゃなかったら下に行かないでね
+  <!-- ★ 重要なお知らせ（ボタン結果の上に表示） ★ -->
+  <div style="margin-bottom:24px;">
+    <h2 style="color:white; font-weight:bold; font-size:28px;">Nakazawaaaaaaaaaa.comより重要なお知らせ</h2>
+    <p style="color:white; font-weight:bold; font-size:22px;">かいちゃんに対し、不同意性交等罪、不同意わいせつ罪、児童ポルノ禁止法違反、公然わいせつ罪、わいせつ物頒布等罪、並びに名誉毀損罪により、有罪判決が言い渡されました。</p>
   </div>
-  <div class="small">(サイト作者は15歳です)</div>
 
-  <button onclick="over18()">１８歳です</button>
-  <button onclick="under18()">１８歳未満です</button>
+  <!-- 年齢確認ボタン -->
+  <div style="margin-bottom:16px;">
+    <div style="color:red; font-size:22px; font-weight:bold; margin-bottom:8px;">
+      君は１８歳以上かな？１８歳じゃなかったら下に行かないでね
+    </div>
+    <div style="font-size:14px; color:#ff8b8b; margin-bottom:16px;">(サイト作者は15歳です)</div>
 
-<section>
-  <h2 style="color:white; font-weight:bold; font-size:32px;">Nakazawaaaaaaaaaa.comより重要なお知らせ</h2>
-  <p style="color:white; font-weight:bold; font-size:24px;">かいちゃんに対し、不同意性交等罪、不同意わいせつ罪、児童ポルノ禁止法違反、公然わいせつ罪、わいせつ物頒布等罪、並びに名誉毀損罪により、有罪判決が言い渡されました。</p>
+    <button onclick="over18()" style="background:red; color:white; border:none; padding:10px 18px; border-radius:6px; font-size:18px; font-weight:bold; margin:6px; cursor:pointer;">１８歳です</button>
+    <button onclick="under18()" style="background:red; color:white; border:none; padding:10px 18px; border-radius:6px; font-size:18px; font-weight:bold; margin:6px; cursor:pointer;">１８歳未満です</button>
+  </div>
+
+  <!-- ★ ボタン結果（大きな文字で表示） ★ -->
+  <p id="msg" style="display:none; color:red; font-size:36px; font-weight:bold; margin-top:16px;"></p>
+
 </section>
-
-  <div id="result"></div>
-</div>
 
 <script>
 function over18() {
-  const msg = document.getElementById("result");
+  const msg = document.getElementById("msg");
   msg.textContent = "絶対嘘ですね いつもそうやって１８禁サイト入ってるんですか？";
   msg.style.display = "block";
 }
-
 function under18() {
-  const msg = document.getElementById("result");
+  const msg = document.getElementById("msg");
   msg.textContent = "正直でいいですね";
   msg.style.display = "block";
 }
 </script>
 
-</body>
-</html>
-
-
+<!-- ===== かいとの名曲ボタン ===== -->
 <section>
-<h2 style="font-size:28px; color:lime;">あなたは <span style="font-size:40px; color:yellow; font-weight:bold;">↓↓↓</span> 人目の訪問者です</h2>
-<div style="zoom:1.7; margin-top:10px;">
-<script src="https://nakazawa.counter.wox.cc"></script>
-<noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
-</div>
+  <button id="kaito-btn" onclick="openCaptcha()">🎵 かいとの名曲を聴く 🎵</button>
 </section>
 
-<!-- ★★★ 私のTikTok セクション（追加） ★★★ -->
+<!-- ===== 私のTikTok ===== -->
 <section>
 <h2 style="color:white; font-size:28px; margin-bottom:15px;">私のTikTok</h2>
 <a href="https://www.tiktok.com/@user6hxi9l5i6e" target="_blank"
@@ -199,7 +312,14 @@ function under18() {
   AliExpress金子商店
 </a>
 </section>
-<!-- ★★★ ここまで ★★★ -->
+
+<section>
+<h2 style="color:white;">あなたは <span style="font-size:40px; color:yellow; font-weight:bold;">↓↓↓</span> 人目の訪問者です</h2>
+<div style="zoom:1.7; margin-top:10px;">
+<script src="https://nakazawa.counter.wox.cc"></script>
+<noscript><a href="https://wox.cc"><img src="https://nakazawa.counter.wox.cc/?mode=noscript"></a></noscript>
+</div>
+</section>
 
 <section>
 <h2 class="blink" style="color:red; font-size:36px;">おすすめサイト</h2>
@@ -231,60 +351,45 @@ function under18() {
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/ecosystem.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">Javalab.com</a>
 </section>
 
+<video src="nisikun.mp4" controls></video>
 
-
-    <video src="nisikun.mp4" controls></video>
-
-     <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">中澤あだ名ジェネレータ</h2>
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/あだな.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">あだな.com</a>
-</section> 
+</section>
 
-         <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">中澤おみくじ（ガチで当たる）</h2>
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/おみくじ.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">おみくじ.com</a>
-</section> 
+</section>
 
-             <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">中澤GPT(AI)（chatgpt敗北）</h2>
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/中澤GPT.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">中澤GPT.com</a>
-</section> 
+</section>
 
-             <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">中澤ラジオ</h2>
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/nr.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">中澤ラジオ.com</a>
-</section> 
+</section>
 
-                 <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">中澤天気（０１４５％当たる（嘘なし））</h2>
 <a href="https://nakazawa0145.github.io/Nakazawaaaaaaaaaa.com/nzw.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">中澤天気.com</a>
-</section> 
+</section>
 
-                     <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">位置情報開示ツール</h2>
 <a href="https://nnn.ct.ws" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">開示だな.com</a>
-</section> 
+</section>
 
-                         <section>
+<section>
 <h2 class="blink" style="color:red; font-size:36px;">オンラインブラスト(ブロックブラストのパクリではない)</h2>
 <a href="https://block.gt.tc" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">ブロックブラスト.com</a>
-</section> 
-    
+</section>
+
 <h2 class="blink" style="color:red; font-size:36px;">NakazawaCasinoへ</h2>
-<h2 class="blink" style="color:red; font-size:36px;"></h2>
 <h2 class="blink" style="color:red; font-size:36px;">↓↓↓↓↓↓↓↓↓↓</h2>
-<!DOCTYPE html>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Nakazawa Casino</title>
-<style>
-body { background:black; margin:0; text-align:center; padding-top:40px; }
-img { width:60%; max-width:500px; border-radius:10px; cursor:pointer; }
-</style>
-</head>
-<body>
 
 <a href="Casino.html">
   <img src="https://png.pngtree.com/thumb_back/fh260/background/20250528/pngtree-a-closeup-of-the-roulette-wheel-with-red-and-black-numbers-image_17348282.jpg">
@@ -295,32 +400,19 @@ img { width:60%; max-width:500px; border-radius:10px; cursor:pointer; }
 <a href="game.html" target="_blank" class="blink" style="font-size:30px; color:white; font-family: 'Press Start 2P', monospace;">中澤コントロール(紙ゲー)</a>
 </section>
 
-
-
-
-    <h2 class="blink" style="color:red; font-size:36px;">NakazawaWorldSearch（ニュースサイト）↓↓↓↓↓↓↓</h2>
-    <a href="https://nzworldsearch.github.io/NZWS/" target="_self">
+<h2 class="blink" style="color:red; font-size:36px;">NakazawaWorldSearch（ニュースサイト）↓↓↓↓↓↓↓</h2>
+<a href="https://nzworldsearch.github.io/NZWS/" target="_self">
   <img src="https://nzworldsearch.github.io/NZWS/NZWS.png" alt="NZ World Search" style="cursor:pointer;">
 </a>
 
-
-
-</body>
-</html>
-
-
-
-
 <h2 style="color:red;">👇👇！！中澤掲示板開設復活！！👇👇</h2>
-</body>
-</html>👇
-<a href="https://nzcom.gt.tc" 
+<a href="https://nzcom.gt.tc"
    style="color: cyan; text-decoration: underline; font-size: 24px; display: block; text-align: center; margin: 20px 0;">
   中澤掲示板へ
 </a>
-<h2 style="color:red;">↑↑↑↑↑↑↑↑↑↑↑</h2>   
+<h2 style="color:red;">↑↑↑↑↑↑↑↑↑↑↑</h2>
 
-<h2 style="color:red;">歴代中澤掲示板障害文ランキング1位【伝説のNo.7】</h2>   
+<h2 style="color:red;">歴代中澤掲示板障害文ランキング1位【伝説のNo.7】</h2>
 <h2 style="color:red;">No.7 返信
 障害は死ね (2026/02/24 18:54:40)
 まず、クソ汚ねえ老害ジジババは全員まとめて焼却炉行き。
@@ -346,27 +438,21 @@ VIP席は「死体に直接触れる権利＋死体記念撮影OK」で超高額
 65歳超えたら毎日スマホに「死にませんか？」プッシュ通知。
 「はい」を押したら即ドローンが自宅に毒ガス缶ポイポイ投下。
 「いいえ」を100回連打しても、101回目でGPS追跡して強制ガス室送り。
-「まだ生きたい」なんて甘えは社会の癌細胞。切除して新陳代謝促進だ。</h2>   
+「まだ生きたい」なんて甘えは社会の癌細胞。切除して新陳代謝促進だ。</h2>
 
 <h2 style="color:red;">👇👇！！中澤オーバークロック完成（android専用）！！👇👇</h2>
-</body>
-</html>👇
-<a href="https://download1501.mediafire.com/nul4o6of79cgBpUMZaMoPl-bgEdFUaJZSfvHrDtdW326oZE7quA4ohQlOP6YW3a-Vs-AlswSuurkQYxO5Xfd1vVyOYTU5r052CPi3qJ5RnqokrVvcgGeLgfcEgqPAE_LTo2Sg-g4sPcG28-SyB1mR8oIRyhqRk8h4dANgaCDO7xQezdB/lrhi97enzmsgnv7/NakazawaOverclock.apk" 
+<a href="https://download1501.mediafire.com/nul4o6of79cgBpUMZaMoPl-bgEdFUaJZSfvHrDtdW326oZE7quA4ohQlOP6YW3a-Vs-AlswSuurkQYxO5Xfd1vVyOYTU5r052CPi3qJ5RnqokrVvcgGeLgfcEgqPAE_LTo2Sg-g4sPcG28-SyB1mR8oIRyhqRk8h4dANgaCDO7xQezdB/lrhi97enzmsgnv7/NakazawaOverclock.apk"
    style="color: cyan; text-decoration: underline; font-size: 24px; display: block; text-align: center; margin: 20px 0;">
   中澤オーバークロックダウンロード
 </a>
-<h2 style="color:red;">↑↑↑↑↑↑↑↑↑↑↑</h2>   
-
-
-
+<h2 style="color:red;">↑↑↑↑↑↑↑↑↑↑↑</h2>
 
 <section>
 <h2 style="color:yellow;">かいちゃんのひみつ</h2>
 <p>パスワードを入れてください</p>
 <input id="pass" type="password" style="padding:8px; font-size:16px;">
 <button onclick="checkPass()" style="padding:8px 15px; font-size:16px;">送信</button>
-<p id="msg"></p>
-
+<p id="secret-msg"></p>
 <div id="secret" style="display:none; margin-top:20px;">
 <h3>かいちゃん年表</h3>
 <p>2010年 かいちゃん誕生</p>
@@ -375,7 +461,6 @@ VIP席は「死体に直接触れる権利＋死体記念撮影OK」で超高額
 <p>2022年 ある人物にお仕置きする</p>
 <p>2025年 ニキビの数が0145個突破し恐怖</p>
 <p>2835年 死ぬ</p>
-
 <video src="kito121.mp4" controls style="width:100%; border-radius:10px; margin-top:20px;"></video>
 </div>
 </section>
@@ -383,56 +468,25 @@ VIP席は「死体に直接触れる権利＋死体記念撮影OK」で超高額
 <script>
 function checkPass() {
   const input = document.getElementById("pass").value;
-  const msg = document.getElementById("msg");
+  const msg2 = document.getElementById("secret-msg");
   const secret = document.getElementById("secret");
   if (input === "nakazawaeros") {
     secret.style.display = "block";
-    msg.textContent = "";
+    msg2.textContent = "";
   } else {
     secret.style.display = "none";
-    msg.textContent = "ちがいます";
-    msg.style.color = "red";
+    msg2.textContent = "ちがいます";
+    msg2.style.color = "red";
   }
 }
 </script>
 
-
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>Nyan Cat Player</title>
-<style>
-  body {
-    background: black;
-    color: white;
-    text-align: center;
-    padding: 30px;
-    font-family: Arial, sans-serif;
-  }
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-  audio {
-    margin-top: 20px;
-    width: 300px;
-  }
-</style>
-</head>
-<body>
-
 <img src="https://www.nyan.cat/cats/original.gif" alt="Nyan Cat">
 <audio controls src="https://www.nyan.cat/music/original.mp3"></audio>
-
-</body>
-</html>
-
 
 <section>
 <h2 style="color:rgb(38, 0, 255);">中澤ブログ　まれに更新</h2>
 </section>
-
 <section><h2 style="color:white;">１日目　今日は寒い気がします暖房をつけました暑いです</h2></section>
 <section><h2 style="color:white;">２日目　ニキビができた</h2></section>
 <section><h2 style="color:white;">３日目　おなとんうるせーんだよ れいこししこんな 中澤エロス異常な笑い方 みそきん購入 近所のかっぱ寿司リニューアル ドンキホーテに行く ハローキティポップコーンバター味購入</h2></section>
@@ -462,25 +516,18 @@ function checkPass() {
         (adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1105686});
     </script>
 </div>
-
 <style>
 @media (max-width:600px){
-    .ads-pc-only {
-        display:none !important;
-    }
+    .ads-pc-only { display:none !important; }
 }
 </style>
 
-
-  <h2 style="color:red;">👇👇学校ゴミフィルター回避たい人は下のリンクへ👇👇</h2>
-</body>
-</html>👇
-<a href="proxy.html" 
+<h2 style="color:red;">👇👇学校ゴミフィルター回避たい人は下のリンクへ👇👇</h2>
+<a href="proxy.html"
    style="color: cyan; text-decoration: underline; font-size: 24px; display: block; text-align: center; margin: 20px 0;">
   Nakazawa.com プロキシへ
 </a>
 <h2 style="color:red;">↑↑↑↑↑↑↑↑↑↑↑</h2>
-
 
 <section>
 <h2 style="color:red;">ありえく👍👍👍👍👍👍👍👍👍👍👍👍👍</h2>
@@ -491,10 +538,6 @@ function checkPass() {
 <ins id="1105667" data-width="250" data-height="250"></ins>
 <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1105667});</script>
 <script src="https://adm.shinobi.jp/s/bdaa3e3b8f391a3acb5d8c4dfeef9e7e"></script>
-<script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
-<ins id="1105667" data-width="250" data-height="250"></ins>
-<script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1105667});</script>
-
 
 <section>
 <a href="https://www.effectivegatecpm.com/e489rn8n?key=9a3e97acd0392472deecc84f30dad02a"
@@ -502,341 +545,63 @@ function checkPass() {
    style="text-decoration:none;">
   <h2 style="color:red;margin:0;">tEMU🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮🤮</h2>
 </a>
-
 <video src="temu.mp4" controls></video>
 </section>
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>AliTube</title>
-<style>
-  :root{
-    --gap:16px;
-    --maxw:1100px;
-  }
-  body{
-    margin:0;
-    background:#000;
-    color:#fff;
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    padding:28px 12px;
-    display:flex;
-    justify-content:center;
-  }
 
-  .wrap{
-    width:100%;
-    max-width:var(--maxw);
-  }
-
-  .title {
-    text-align:center;
-    font-size:48px;
-    font-weight:800;
-    letter-spacing:2px;
-    margin:6px 0 20px;
-    color: #ff0000;
-    text-shadow: 0 4px 18px rgba(255,212,64,0.12);
-  }
-
-  .grid {
-    display:grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--gap);
-  }
-
-  .card {
-    background:#111;
-    border-radius:8px;
-    padding:8px;
-    box-sizing:border-box;
-    border:1px solid #222;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  video {
-    width:100%;
-    height:100%;
-    max-height:320px;
-    border-radius:6px;
-    background:#000;
-    display:block;
-  }
-
-  @media (max-width:640px){
-    .title { font-size:34px; }
-    .grid { grid-template-columns: 1fr; }
-  }
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="title">AliTube</div>
-
-    <div class="grid">
-      <div class="card">
-        <video controls src="ha.mp4" preload="metadata">Your browser does not support the video tag.</video>
-      </div>
-
-      <div class="card">
-        <video controls src="fmq.mp4" preload="metadata">Your browser does not support the video tag.</video>
-      </div>
-
-      <div class="card">
-        <video controls src="asdfg.mp4" preload="metadata">Your browser does not support the video tag.</video>
-      </div>
-
-      <div class="card">
-        <video controls src="po.mp4" preload="metadata">Your browser does not support the video tag.</video>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>便利アイテム</title>
-
-<style>
-  body {
-    background: #000;
-    color: #00ff00;
-    font-family: Consolas, monospace;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-
-#title1 {
-    color: white;
-    font-size: 26px;
-    margin-top: 20px;
-}
-
-#title2 {
-    color: #00ff00;
-    font-size: 32px;
-    margin-bottom: 20px;
-}
-
-.container {
-    display: flex;
-    justify-content: space-between;
-    width: 90%;
-    margin: auto;
-    margin-top: 20px;
-}
-
-.calc {
-    background: #001a00;
-    border: 2px solid #00ff00;
-    padding: 20px;
-    border-radius: 10px;
-    width: 45%;
-}
-
-.calc input {
-    width: 100%;
-    height: 50px;
-    font-size: 22px;
-    margin-bottom: 10px;
-    text-align: right;
-    color: #00ff00;
-    background: #000;
-    border: 2px solid #00ff00;
-    border-radius: 6px;
-    padding-right: 10px;
-}
-
-.calc .row {
-    display: flex;
-    justify-content: space-between;
-}
-
-.calc button {
-    width: 23%;
-    height: 45px;
-    font-size: 20px;
-    border: 2px solid #00ff00;
-    border-radius: 6px;
-    background: #000;
-    color: #00ff00;
-    cursor: pointer;
-}
-
-.calc button:hover {
-    background: #003300;
-}
-
-.calc button.clear { 
-    color: red; 
-    border-color: red; 
-}
-
-.calc button.op { 
-    color: #00ff00; 
-}
-
-.calc button.eq { 
-    background: #004d00; 
-}
-
-button.general {
-    background: red;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 18px;
-    font-weight: bold;
-    margin: 6px;
-    cursor: pointer;
-}
-
-.clock-box {
-    width: 45%;
-    background: #1a0000;
-    border: 2px solid red;
-    border-radius: 10px;
-    padding: 20px;
-    color: red;
-    font-size: 22px;
-}
-
-.clock-number {
-    color: #00ff00;
-    font-size: 26px;
-}
-
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .calc,
-  .clock-box {
-    width: 90%;
-    margin-bottom: 20px;
-  }
-}
-</style>
-</head>
-<body>
-
-<div id="title1">役立つものを作ったほうが良いと言われたので</div>
-<div id="title2">超便利アイテム</div>
-
-<div class="container">
-
-  <div class="calc">
-    <input type="text" id="display" disabled>
-
-    <div class="row">
-      <button onclick="add('7')">7</button>
-      <button onclick="add('8')">8</button>
-      <button onclick="add('9')">9</button>
-      <button class="op" onclick="add('/')">÷</button>
-    </div>
-
-    <div class="row">
-      <button onclick="add('4')">4</button>
-      <button onclick="add('5')">5</button>
-      <button onclick="add('6')">6</button>
-      <button class="op" onclick="add('*')">×</button>
-    </div>
-
-    <div class="row">
-      <button onclick="add('1')">1</button>
-      <button onclick="add('2')">2</button>
-      <button onclick="add('3')">3</button>
-      <button class="op" onclick="add('-')">−</button>
-    </div>
-
-    <div class="row">
-      <button onclick="add('0')">0</button>
-      <button onclick="add('.')">.</button>
-      <button class="clear" onclick="clearDisplay()">C</button>
-      <button class="op" onclick="add('+')">＋</button>
-    </div>
-
-    <div class="row">
-      <button class="eq" style="width:100%;" onclick="calc()">=</button>
-    </div>
-  </div>
-
-<div class="clock-box">
-  <div style="color:red; font-size:22px; font-weight:bold;">超精密時計</div>
-  <div id="preciseClock" style="white-space:pre-wrap; word-break:break-all;"></div>
+<!-- AliTube -->
+<div style="background:#000; color:#fff; font-family:'Helvetica Neue',Arial,sans-serif; padding:28px 12px; text-align:center;">
+<div style="font-size:48px; font-weight:800; letter-spacing:2px; color:#ff0000; margin-bottom:20px;">AliTube</div>
+<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:1100px; margin:auto;">
+  <div style="background:#111; border-radius:8px; padding:8px; border:1px solid #222;"><video controls src="ha.mp4" preload="metadata" style="width:100%; max-height:320px; border-radius:6px; background:#000; display:block;"></video></div>
+  <div style="background:#111; border-radius:8px; padding:8px; border:1px solid #222;"><video controls src="fmq.mp4" preload="metadata" style="width:100%; max-height:320px; border-radius:6px; background:#000; display:block;"></video></div>
+  <div style="background:#111; border-radius:8px; padding:8px; border:1px solid #222;"><video controls src="asdfg.mp4" preload="metadata" style="width:100%; max-height:320px; border-radius:6px; background:#000; display:block;"></video></div>
+  <div style="background:#111; border-radius:8px; padding:8px; border:1px solid #222;"><video controls src="po.mp4" preload="metadata" style="width:100%; max-height:320px; border-radius:6px; background:#000; display:block;"></video></div>
+</div>
 </div>
 
+<!-- 超便利アイテム -->
+<div style="background:#000; color:#00ff00; font-family:Consolas,monospace; text-align:center; padding:20px 0;">
+<div style="color:white; font-size:26px; margin-top:20px;">役立つものを作ったほうが良いと言われたので</div>
+<div style="color:#00ff00; font-size:32px; margin-bottom:20px;">超便利アイテム</div>
+<div style="display:flex; flex-wrap:wrap; justify-content:space-between; width:90%; margin:auto; gap:20px;">
+  <div style="background:#001a00; border:2px solid #00ff00; padding:20px; border-radius:10px; flex:1 1 300px;">
+    <input type="text" id="display" disabled style="width:100%; height:50px; font-size:22px; margin-bottom:10px; text-align:right; color:#00ff00; background:#000; border:2px solid #00ff00; border-radius:6px; padding-right:10px; box-sizing:border-box;">
+    <div style="display:flex; justify-content:space-between; margin:4px 0;"><button onclick="add('7')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">7</button><button onclick="add('8')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">8</button><button onclick="add('9')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">9</button><button onclick="add('/')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">÷</button></div>
+    <div style="display:flex; justify-content:space-between; margin:4px 0;"><button onclick="add('4')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">4</button><button onclick="add('5')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">5</button><button onclick="add('6')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">6</button><button onclick="add('*')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">×</button></div>
+    <div style="display:flex; justify-content:space-between; margin:4px 0;"><button onclick="add('1')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">1</button><button onclick="add('2')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">2</button><button onclick="add('3')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">3</button><button onclick="add('-')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">−</button></div>
+    <div style="display:flex; justify-content:space-between; margin:4px 0;"><button onclick="add('0')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">0</button><button onclick="add('.')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">.</button><button onclick="clearDisplay()" style="width:23%; height:45px; font-size:20px; border:2px solid red; border-radius:6px; background:#000; color:red; cursor:pointer;">C</button><button onclick="add('+')" style="width:23%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#000; color:#00ff00; cursor:pointer;">＋</button></div>
+    <div style="margin:4px 0;"><button onclick="calc()" style="width:100%; height:45px; font-size:20px; border:2px solid #00ff00; border-radius:6px; background:#004d00; color:#00ff00; cursor:pointer;">=</button></div>
+  </div>
+  <div style="background:#1a0000; border:2px solid red; border-radius:10px; padding:20px; color:red; font-size:22px; flex:1 1 300px;">
+    <div style="color:red; font-size:22px; font-weight:bold;">超精密時計</div>
+    <div id="preciseClock" style="white-space:pre-wrap; word-break:break-all;"></div>
+  </div>
+</div>
 </div>
 
 <script>
-function add(val) {
-  document.getElementById("display").value += val;
-}
-function clearDisplay() {
-  document.getElementById("display").value = "";
-}
+function add(val) { document.getElementById("display").value += val; }
+function clearDisplay() { document.getElementById("display").value = ""; }
 function calc() {
-  try {
-    document.getElementById("display").value =
-      eval(document.getElementById("display").value);
-  } catch {
-    document.getElementById("display").value = "ERROR";
-  }
+  try { document.getElementById("display").value = eval(document.getElementById("display").value); }
+  catch { document.getElementById("display").value = "ERROR"; }
 }
-
 function updateClock(){
   const now = new Date();
-
-  let y = now.getFullYear();
-  let m = now.getMonth() + 1;
-  let d = now.getDate();
-  let weekday = ["日曜","月曜","火曜","水曜","木曜","金曜","土曜"][now.getDay()];
-
-  let h = now.getHours();
-  let min = now.getMinutes();
-
-  let realSec = now.getSeconds();
-  let realMs  = Math.floor(now.getMilliseconds() / 10);
-  let real = `${realSec}.${realMs.toString().padStart(2,"0")}`; 
-
-  let rand = "";
-  for(let i=0; i<200; i++){
-    rand += Math.floor(Math.random()*10);
-  }
-
-  let full = real + rand;
-
-  let formatted = "";
-  for(let i=0; i<full.length; i+=20){
-    formatted += full.slice(i, i+20) + "<br>";
-  }
-
-  document.getElementById("preciseClock").innerHTML =
-    `${y}年${m}月${d}日（${weekday}）<br>`+
-    `<span class="clock-number">${h}</span>時`+
-    `<span class="clock-number">${min}</span>分`+
-    `<span class="clock-number">${formatted}</span>秒`;
+  let y=now.getFullYear(), m=now.getMonth()+1, d=now.getDate();
+  let weekday=["日曜","月曜","火曜","水曜","木曜","金曜","土曜"][now.getDay()];
+  let h=now.getHours(), min=now.getMinutes();
+  let realSec=now.getSeconds(), realMs=Math.floor(now.getMilliseconds()/10);
+  let real=`${realSec}.${realMs.toString().padStart(2,"0")}`;
+  let rand=""; for(let i=0;i<200;i++) rand+=Math.floor(Math.random()*10);
+  let full=real+rand, formatted="";
+  for(let i=0;i<full.length;i+=20) formatted+=full.slice(i,i+20)+"<br>";
+  document.getElementById("preciseClock").innerHTML=
+    `${y}年${m}月${d}日（${weekday}）<br><span style="color:#00ff00;font-size:26px;">${h}</span>時<span style="color:#00ff00;font-size:26px;">${min}</span>分<span style="color:#00ff00;font-size:26px;">${formatted}</span>秒`;
 }
-
-setInterval(updateClock, 1);
+setInterval(updateClock,1);
 updateClock();
 </script>
-
-</body>
-</html>
 
 <p style="color: yellow; text-align: center; font-size: 18px; margin-top: 20px;">
     脳みそがこれっくらい➡・しかない人が作ったサイトです。<br>
@@ -844,10 +609,142 @@ updateClock();
     アリエクスプレス金子商店　制作
 </p>
 
+</div><!-- end #container -->
 
+<!-- ============================================================ -->
+<!-- ★★★ CAPTCHA OVERLAY ★★★ -->
+<!-- ============================================================ -->
+<div id="captcha-overlay" class="fullscreen-overlay">
+  <button class="close-btn" onclick="closeOverlay('captcha-overlay')">✕ 閉じる</button>
+  <div class="captcha-box">
+    <h2>中澤CAPTCHA</h2>
+    <button class="captcha-btn" onclick="captchaNotRobot()">あなたはロボットではありません</button>
+    <button class="captcha-btn" onclick="captchaIsRobot()">あなたはロボットです</button>
+  </div>
 </div>
-<script src="https://adm.shinobi.jp/s/25ed977897c9c3ef69d6b2a60cc6021d"></script>
-<script src="https://adm.shinobi.jp/s/21e67db13abc59555048f56d3773760e"></script>
 
+<!-- ★★★ CAPTCHA ERROR OVERLAY ★★★ -->
+<div id="captcha-error-overlay" class="fullscreen-overlay">
+  <button class="close-btn" onclick="closeOverlay('captcha-error-overlay')">✕ 閉じる</button>
+  <p>異常が検出されました<br>あなたはロボットです</p>
+</div>
 
+<!-- ★★★ CAPTCHA SUCCESS OVERLAY ★★★ -->
+<div id="captcha-success-overlay" class="fullscreen-overlay">
+  <button class="close-btn" onclick="closeOverlay('captcha-success-overlay')">✕ 閉じる</button>
+  <p>中澤キャプチャ成功</p>
+  <button id="go-to-music-btn" onclick="openKaraoke()">🎵 海斗の名曲へGO 🎵</button>
+</div>
+
+<!-- ★★★ KARAOKE OVERLAY ★★★ -->
+<div id="karaoke-overlay" class="fullscreen-overlay">
+  <button class="close-btn" onclick="closeKaraoke()">✕ 閉じる</button>
+  <div id="lyric-display"></div>
+  <audio id="karaoke-audio" src="kaitooo.mp3" preload="auto"></audio>
+  <button id="restart-btn" onclick="restartKaraoke()">🔄 最初から聞く</button>
+</div>
+
+<script>
+// ============================================================
+// CAPTCHA & KARAOKE LOGIC
+// ============================================================
+function openCaptcha() {
+  showOverlay('captcha-overlay');
+}
+function captchaNotRobot() {
+  closeOverlay('captcha-overlay');
+  showOverlay('captcha-error-overlay');
+}
+function captchaIsRobot() {
+  closeOverlay('captcha-overlay');
+  showOverlay('captcha-success-overlay');
+}
+function showOverlay(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+function closeKaraoke() {
+  const audio = document.getElementById('karaoke-audio');
+  audio.pause();
+  audio.currentTime = 0;
+  clearInterval(karaokeTimer);
+  document.getElementById('lyric-display').textContent = '';
+  closeOverlay('karaoke-overlay');
+}
+
+// ============================================================
+// KARAOKE PLAYER
+// ============================================================
+const lyrics = [
+  "かいとってかわいい なまえだね",
+  "うえから よんでも か・い・と",
+  "したから よんでも か・い・と",
+  "かいとってかわいい なまえだね",
+  "うえから よんでも か・い・と",
+  "したから よんでも か・い・と"
+];
+
+let karaokeTimer = null;
+
+function openKaraoke() {
+  closeOverlay('captcha-success-overlay');
+  showOverlay('karaoke-overlay');
+  startKaraoke();
+}
+
+function startKaraoke() {
+  const audio = document.getElementById('karaoke-audio');
+  const lyricEl = document.getElementById('lyric-display');
+  
+  audio.currentTime = 0;
+  lyricEl.textContent = '';
+  lyricEl.classList.remove('highlight');
+  clearInterval(karaokeTimer);
+
+  audio.play().catch(() => {});
+
+  audio.addEventListener('loadedmetadata', setupLyrics, { once: true });
+  // Fallback if already loaded
+  if (audio.readyState >= 1) setupLyrics();
+}
+
+function setupLyrics() {
+  const audio = document.getElementById('karaoke-audio');
+  const lyricEl = document.getElementById('lyric-display');
+  const duration = audio.duration || 30;
+  const segLen = duration / lyrics.length;
+
+  clearInterval(karaokeTimer);
+
+  function updateLyric() {
+    const t = audio.currentTime;
+    const idx = Math.min(Math.floor(t / segLen), lyrics.length - 1);
+    const newText = lyrics[idx];
+    if (lyricEl.textContent !== newText) {
+      lyricEl.classList.remove('highlight');
+      lyricEl.textContent = newText;
+      void lyricEl.offsetWidth; // reflow
+      lyricEl.classList.add('highlight');
+    }
+    if (audio.ended) {
+      lyricEl.textContent = "♪ おわり ♪";
+      lyricEl.classList.remove('highlight');
+      clearInterval(karaokeTimer);
+    }
+  }
+
+  karaokeTimer = setInterval(updateLyric, 100);
+}
+
+function restartKaraoke() {
+  clearInterval(karaokeTimer);
+  startKaraoke();
+}
+</script>
+
+</body>
 </html>
