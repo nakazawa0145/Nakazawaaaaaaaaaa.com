@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>入力ページ</title>
+  <style>
+    :root {
+      /* =====================================================
+         
+      ====================================================== */
+
+      /* --- PAGE 1 --- */
+      --fs-p1-red:        52px;
+      --fs-p1-countdown:  38px;   /* カウントダウン */
+      --fs-p1-white1:     24px;
+      --fs-p1-yellow1:    34px;
+      --fs-p1-white2:     24px;
+      --fs-p1-yellow2:    24px;
+      --fs-p1-btn:        24px;
+
+      /* --- PAGE 2 --- */
+      --fs-p2-red:        35px;
+      --fs-p2-countdown:  28px;   /* カウントダウン */
+      --fs-p2-yellow:     50px;
+      --fs-p2-white1:     30px;
+      --fs-p2-white2:     30px;
+      --fs-p2-bottom:     24px;
+      --fs-p2-close:      17px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ===== PAGES ===== */
+    #page1 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 48px 6vw;
+      gap: 28px;
+    }
+    #page2 {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 6vw;
+      gap: 28px;
+    }
+    #page2.active { display: flex; }
+
+    /* ===== TEXT ===== */
+    .text-white      { color: #fff;    letter-spacing: 0.04em; }
+    .text-red        { color: #ff2d2d; font-weight: 700; letter-spacing: 0.04em; }
+    .text-yellow     { color: #ffe500; letter-spacing: 0.04em; }
+    .text-countdown  { color: #ff2d2d; font-weight: 700; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+
+    /* PAGE 1 sizes */
+    #p1-red        { font-size: var(--fs-p1-red); }
+    #p1-countdown  { font-size: var(--fs-p1-countdown); }
+    #p1-white1     { font-size: var(--fs-p1-white1); }
+    #p1-yellow1    { font-size: var(--fs-p1-yellow1); }
+    #p1-white2     { font-size: var(--fs-p1-white2); }
+    #p1-yellow2    { font-size: var(--fs-p1-yellow2); }
+    #p1-btn        { font-size: var(--fs-p1-btn); }
+
+    /* PAGE 2 sizes */
+    #p2-red        { font-size: var(--fs-p2-red); }
+    #p2-countdown  { font-size: var(--fs-p2-countdown); }
+    #p2-yellow     { font-size: var(--fs-p2-yellow); }
+    #p2-white1     { font-size: var(--fs-p2-white1); }
+    #p2-white2     { font-size: var(--fs-p2-white2); }
+    #p2-bottom     { font-size: var(--fs-p2-bottom); }
+    #p2-close      { font-size: var(--fs-p2-close); }
+
+    /* ===== BUTTONS ===== */
+    .btn-blue {
+      background: #1a6fff;
+      color: #fff;
+      border: none;
+      padding: 18px 48px;
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.18s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-blue:hover  { background: #0052e0; }
+    .btn-blue:active { transform: scale(0.97); }
+
+    .btn-close {
+      background: none;
+      border: 1.5px solid #fff;
+      color: #fff;
+      padding: 10px 28px;
+      font-family: inherit;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-close:hover { background: #fff; color: #000; }
+
+    /* ===== PAGE 2 BOTTOM ===== */
+    .spacer { height: 200vh; }
+    .bottom-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding-bottom: 870px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1 -->
+  <div id="page1">
+    <span id="p1-red"       class="text-red">エロサイト登録完了</span>
+    <span id="p1-countdown" class="text-countdown">00:00:00</span>
+    <span id="p1-white1"    class="text-white">ご登録ありがとうございます</span>
+    <span id="p1-yellow1"   class="text-yellow">登録料4545円</span>
+    <span id="p1-white2"    class="text-white">あなたのipアドレス</span>
+     <span id="p1-white2"    class="text-white">324.342.544</span>
+    <span id="p1-yellow2"   class="text-yellow">24時間以内にお支払いください</span>
+  
+    <span id="p2-white2"    class="text-white">090-1919-4545</span>
+    <button id="p1-btn" class="btn-blue" onclick="goToPage2()">エロサイトを開いた覚えがない</button>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div id="page2">
+    <span id="p2-red"       class="text-red">それは嘘ですね</span>
+     <span id="p2-red"       class="text-red">あなたは必ずエロサイトを閲覧しました。必ずお支払いください。</span>
+       <span id="p2-red"       class="text-red">登録料が倍増しました</span>
+    <span id="p2-countdown" class="text-countdown">00:00:00</span>
+    <span id="p2-yellow"    class="text-yellow">4545,1919,0721円</span>
+    <span id="p2-white1"    class="text-white">すぐにお支払いください</span>
+    <span id="p2-white2"    class="text-white">090-1919-4545</span>
+    <div class="spacer"></div>
+    <div class="bottom-row">
+      <span id="p2-bottom" class="text-white">嘘です</span>
+      <button id="p2-close" class="btn-close" onclick="exitFullscreen()">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== フルスクリーン =====
+    function requestFS() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      document.removeEventListener('click', requestFS);
+    }
+    document.addEventListener('click', requestFS);
+
+    // ===== カウントダウン =====
+    const STORAGE_KEY = 'countdown_start';
+    const DURATION = 24 * 60 * 60; // 2）
+
+    // 
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, Date.now().toString());
+    }
+
+    function getRemaining() {
+      const start = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      return Math.max(0, DURATION - elapsed);
+    }
+
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+    }
+
+    function updateCountdown() {
+      const remaining = getRemaining();
+      const display = remaining === 0 ? '00:00:00' : formatTime(remaining);
+      document.getElementById('p1-countdown').textContent = display;
+      document.getElementById('p2-countdown').textContent = display;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // =====  =====
+    function goToPage2() {
+      document.getElementById('page1').style.display = 'none';
+      document.getElementById('page2').classList.add('active');
+      window.scrollTo({ top: 0 });
+    }
+
+    function exitFullscreen() {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+    }
+  </script>
+
+</body>
+</html>
