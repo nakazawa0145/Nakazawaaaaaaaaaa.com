@@ -288,8 +288,7 @@
 #result-retry-btn:hover { background: #c8c8c8; }
 
 /* ===== サイト本体 ===== */
-/* ↓↓↓ ここが修正箇所 ↓↓↓ */
-#site-content { display: none; width: 100%; }
+#site-content { display: none; width: 100%; justify-content: center; }
 
 body {
   background: black;
@@ -303,6 +302,8 @@ body {
 #container {
   width: 100%;
   max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
 }
 section {
   margin: 40px 0;
@@ -433,7 +434,7 @@ button.age-btn {
   <h1 class="rainbow site-title">Nakazawaaaaaaaaaa.com</h1>
 </section>
 
-<div>
+<div style="text-align:center;">
   <div class="notice">君は１８歳以上かな？１８歳じゃなかったら下に行かないでね</div>
   <div class="small">(サイト作者は15歳です)</div>
   <button class="age-btn" onclick="over18()">１８歳です</button>
@@ -825,14 +826,16 @@ function retryQuiz() {
 
 function closeSite() {
   document.getElementById('result-panel').classList.remove('show');
-  document.getElementById('site-content').style.display = 'block';
+  document.getElementById('site-content').style.display = 'flex';
+  document.getElementById('skip-btn').style.display = 'none';
 }
 
 function skipCaptcha() {
   document.getElementById('captcha-overlay').style.display = 'none';
   document.getElementById('quiz-panel').classList.remove('show');
   document.getElementById('result-panel').classList.remove('show');
-  document.getElementById('site-content').style.display = 'block';
+  document.getElementById('site-content').style.display = 'flex';
+  document.getElementById('skip-btn').style.display = 'none';
 }
 
 /* ===== サイト本体のJS ===== */
