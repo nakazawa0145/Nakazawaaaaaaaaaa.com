@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DaikiLinkTool</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+  }
+  body {
+    padding: 20px;
+    font-family: "Courier New", Consolas, monospace;
+    color: #0f0;
+    position: relative;
+    overflow-x: hidden;
+  }
+  #matrixCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.35;
+  }
+  .card {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    background: rgba(5,5,5,0.9);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #1f1f1f;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    text-align: center;
+    color: #ff0000;
+    letter-spacing: 2px;
+  }
+  .sub {
+    text-align: center;
+    font-size: 11px;
+    color: #0f0;
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #0f0;
+    opacity: 0.7;
+    border-top: 1px solid #1f1f1f;
+    border-bottom: 1px solid #1f1f1f;
+    padding: 8px 2px;
+    margin-bottom: 14px;
+  }
+  .boot {
+    font-size: 11px;
+    color: #0f0;
+    opacity: 0.8;
+    min-height: 16px;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+  }
+  .boot .cursor {
+    display: inline-block;
+    width: 6px;
+    background: #0f0;
+    animation: blink 1s step-start infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: #ff3333;
+    margin: 14px 0 6px;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: "Courier New", Consolas, monospace;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    background: #050505;
+    color: #0f0;
+  }
+  input:focus {
+    outline: none;
+    border-color: #ff0000;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+  }
+  .row > div {
+    flex: 1;
+  }
+  .toggles {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #0f0;
+    opacity: 0.8;
+    border: 1px solid #1f1f1f;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle.on {
+    border-color: #0f0;
+    opacity: 1;
+  }
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  button {
+    flex: 1;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: "Courier New", Consolas, monospace;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #startBtn {
+    background: #061a06;
+    color: #0f0;
+    border: 1px solid #0f0;
+  }
+  #startBtn:disabled {
+    background: #0a0a0a;
+    color: #1a3a1a;
+    border-color: #1a3a1a;
+  }
+  #stopBtn {
+    background: #1a0505;
+    color: #ff3333;
+    border: 1px solid #ff3333;
+  }
+  .status {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .status .count {
+    font-size: 40px;
+    font-weight: 700;
+    color: #ff0000;
+  }
+  .status .label {
+    font-size: 12px;
+    color: #0f0;
+    opacity: 0.7;
+  }
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 18px;
+    border-top: 1px solid #1f1f1f;
+    padding-top: 10px;
+  }
+  .log-header span {
+    font-size: 12px;
+    color: #0f0;
+    opacity: 0.7;
+  }
+  #fullscreenLogBtn {
+    background: #0a0a0a;
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Courier New", Consolas, monospace;
+  }
+  .log {
+    margin-top: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    font-size: 12px;
+    color: #0f0;
+  }
+  .log div {
+    padding: 4px 0;
+    border-bottom: 1px dashed #1a1a1a;
+  }
+  .warn {
+    margin-top: 16px;
+    font-size: 11px;
+    color: #ff0000;
+    line-height: 1.5;
+  }
+
+  #fullscreenLog {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    color: #0f0;
+    z-index: 9999;
+    padding: 24px 16px;
+    overflow-y: auto;
+    font-family: "Courier New", Consolas, monospace;
+  }
+  #fullscreenLog.active {
+    display: block;
+  }
+  #fullscreenLog .fs-title {
+    color: #ff0000;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  #fullscreenLog .fs-hint {
+    color: #0f0;
+    opacity: 0.5;
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  #fullscreenLog .fs-entry {
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #1a1a1a;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div class="card">
+  <h1>DaikiLinkTool</h1>
+  <div class="sub">// automated link opener</div>
+
+  <div class="boot" id="bootLine"><span class="cursor">&nbsp;</span></div>
+
+  <div class="stats">
+    <span id="uptimeStat">UPTIME 00:00:00</span>
+    <span id="openCountStat">OPENS 0</span>
+  </div>
+
+  <label for="url">TARGET URL</label>
+  <input type="text" id="url" placeholder="https://example.com" value="https://example.com">
+
+  <div class="row">
+    <div>
+      <label for="minSec">MIN SEC</label>
+      <input type="number" id="minSec" value="10" min="1">
+    </div>
+    <div>
+      <label for="maxSec">MAX SEC</label>
+      <input type="number" id="maxSec" value="20" min="1">
+    </div>
+  </div>
+
+  <div class="toggles">
+    <div class="toggle on" id="soundToggle">SOUND: ON</div>
+    <div class="toggle on" id="matrixToggle">MATRIX BG: ON</div>
+  </div>
+
+  <div class="buttons">
+    <button id="startBtn">EXECUTE</button>
+    <button id="stopBtn">ABORT</button>
+  </div>
+
+  <div class="status">
+    <div class="count" id="countDisplay">--</div>
+    <div class="label" id="statusLabel">STANDBY</div>
+  </div>
+
+  <div class="log-header">
+    <span>LOG</span>
+    <button id="fullscreenLogBtn">FULLSCREEN LOG</button>
+  </div>
+  <div class="log" id="log"></div>
+
+  <div class="warn">
+    Note: mobile browsers may block automatic new-tab / popup actions. If blocked, allow popups via the browser prompt near the address bar. Chrome tends to allow this more reliably than Safari.
+    Also note: no browser allows JavaScript to open a tab silently in the background — the new tab will always take focus. This is a security restriction, not a limitation of this tool.
+  </div>
+</div>
+
+<div id="fullscreenLog">
+  <div class="fs-title">DaikiLinkTool LOG</div>
+  <div class="fs-hint">TAP ANYWHERE TO CLOSE</div>
+  <div id="fsLogList"></div>
+</div>
+
+<script>
+let timerId = null;
+let countdownId = null;
+let uptimeId = null;
+let remaining = 0;
+let openCount = 0;
+let startTime = null;
+let soundOn = true;
+
+const urlInput = document.getElementById('url');
+const minInput = document.getElementById('minSec');
+const maxInput = document.getElementById('maxSec');
+const countDisplay = document.getElementById('countDisplay');
+const statusLabel = document.getElementById('statusLabel');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const logEl = document.getElementById('log');
+const fullscreenLog = document.getElementById('fullscreenLog');
+const fsLogList = document.getElementById('fsLogList');
+const fullscreenLogBtn = document.getElementById('fullscreenLogBtn');
+const uptimeStat = document.getElementById('uptimeStat');
+const openCountStat = document.getElementById('openCountStat');
+const soundToggle = document.getElementById('soundToggle');
+const matrixToggle = document.getElementById('matrixToggle');
+const bootLine = document.getElementById('bootLine');
+
+/* ---------- boot text typing effect ---------- */
+const bootMessages = [
+  'initializing daikilinktool...',
+  'loading modules... OK',
+  'ready.'
+];
+let bootIndex = 0;
+function typeBoot() {
+  if (bootIndex >= bootMessages.length) return;
+  const msg = bootMessages[bootIndex];
+  let i = 0;
+  const cursor = bootLine.querySelector('.cursor');
+  const interval = setInterval(() => {
+    bootLine.textContent = msg.slice(0, i + 1);
+    bootLine.appendChild(cursor);
+    i++;
+    if (i >= msg.length) {
+      clearInterval(interval);
+      bootIndex++;
+      setTimeout(typeBoot, 400);
+    }
+  }, 30);
+}
+typeBoot();
+
+/* ---------- matrix rain background ---------- */
+const canvas = document.getElementById('matrixCanvas');
+const ctx = canvas.getContext('2d');
+let matrixOn = true;
+let matrixInterval = null;
+const chars = 'アイウエオカキクケコサシスセソ0123456789ABCDEF';
+let drops = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const columns = Math.floor(canvas.width / 16);
+  drops = new Array(columns).fill(1);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0f0';
+  ctx.font = '14px monospace';
+  for (let i = 0; i < drops.length; i++) {
+    const text = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(text, i * 16, drops[i] * 16);
+    if (drops[i] * 16 > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
+    }
+    drops[i]++;
+  }
+}
+function startMatrix() {
+  clearInterval(matrixInterval);
+  matrixInterval = setInterval(drawMatrix, 50);
+}
+function stopMatrix() {
+  clearInterval(matrixInterval);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+startMatrix();
+
+matrixToggle.addEventListener('click', () => {
+  matrixOn = !matrixOn;
+  matrixToggle.classList.toggle('on', matrixOn);
+  matrixToggle.textContent = 'MATRIX BG: ' + (matrixOn ? 'ON' : 'OFF');
+  if (matrixOn) startMatrix(); else stopMatrix();
+});
+
+/* ---------- sound (beep) ---------- */
+soundToggle.addEventListener('click', () => {
+  soundOn = !soundOn;
+  soundToggle.classList.toggle('on', soundOn);
+  soundToggle.textContent = 'SOUND: ' + (soundOn ? 'ON' : 'OFF');
+});
+
+function playBeep() {
+  if (!soundOn) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctxA = new AudioCtx();
+    const osc = ctxA.createOscillator();
+    const gain = ctxA.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 880;
+    gain.gain.value = 0.05;
+    osc.connect(gain);
+    gain.connect(ctxA.destination);
+    osc.start();
+    osc.stop(ctxA.currentTime + 0.08);
+  } catch (e) {}
+}
+
+/* ---------- uptime ---------- */
+function formatUptime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+/* ---------- core logic ---------- */
+function randomSeconds(min, max) {
+  min = Math.max(1, Math.floor(min));
+  max = Math.max(min, Math.floor(max));
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const MAX_LOG_LINES = 20;
+
+function addLog(text) {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-US', { hour12: false });
+  const entryText = `[${t}] ${text}`;
+
+  const div = document.createElement('div');
+  div.textContent = entryText;
+  logEl.prepend(div);
+  while (logEl.children.length > MAX_LOG_LINES) {
+    logEl.removeChild(logEl.lastChild);
+  }
+
+  const fsDiv = document.createElement('div');
+  fsDiv.className = 'fs-entry';
+  fsDiv.textContent = entryText;
+  fsLogList.prepend(fsDiv);
+  while (fsLogList.children.length > MAX_LOG_LINES) {
+    fsLogList.removeChild(fsLogList.lastChild);
+  }
+}
+
+function scheduleNext() {
+  const min = parseInt(minInput.value, 10) || 10;
+  const max = parseInt(maxInput.value, 10) || 20;
+  remaining = randomSeconds(min, max);
+  countDisplay.textContent = remaining;
+  statusLabel.textContent = 'NEXT LAUNCH IN';
+
+  clearInterval(countdownId);
+  countdownId = setInterval(() => {
+    remaining -= 1;
+    if (remaining >= 0) {
+      countDisplay.textContent = remaining;
+    }
+  }, 1000);
+
+  timerId = setTimeout(() => {
+    const url = urlInput.value.trim();
+    if (url) {
+      window.open(url, '_blank');
+      openCount++;
+      openCountStat.textContent = 'OPENS ' + openCount;
+      playBeep();
+      addLog(`launched: ${url}`);
+    }
+    scheduleNext();
+  }, remaining * 1000);
+}
+
+startBtn.addEventListener('click', () => {
+  const url = urlInput.value.trim();
+  if (!url) {
+    alert('Enter a target URL first');
+    return;
+  }
+  startBtn.disabled = true;
+  urlInput.disabled = true;
+  minInput.disabled = true;
+  maxInput.disabled = true;
+  addLog('sequence started');
+  startTime = Date.now();
+  clearInterval(uptimeId);
+  uptimeId = setInterval(() => {
+    uptimeStat.textContent = 'UPTIME ' + formatUptime(Date.now() - startTime);
+  }, 1000);
+  scheduleNext();
+});
+
+stopBtn.addEventListener('click', () => {
+  clearTimeout(timerId);
+  clearInterval(countdownId);
+  clearInterval(uptimeId);
+  startBtn.disabled = false;
+  urlInput.disabled = false;
+  minInput.disabled = false;
+  maxInput.disabled = false;
+  countDisplay.textContent = '--';
+  statusLabel.textContent = 'STANDBY';
+  addLog('sequence aborted');
+});
+
+fullscreenLogBtn.addEventListener('click', () => {
+  fullscreenLog.classList.add('active');
+});
+
+fullscreenLog.addEventListener('click', () => {
+  fullscreenLog.classList.remove('active');
+});
+</script>
+
+</body>
+</html>
